@@ -125,7 +125,8 @@
 
       .stage-card{
         background:var(--panel); border:1px solid var(--line); border-radius:18px;
-        box-shadow:var(--shadow); overflow:hidden;
+        box-shadow:var(--shadow); overflow:hidden; min-width:0;
+        display:flex; flex-direction:column;
       }
       .stage{
         background:var(--stage);
@@ -136,7 +137,19 @@
         max-width:100%; max-height:58vh; width:auto; height:auto;
         border-radius:6px; background:#000; touch-action:none;
       }
-      .transport{ padding:14px 16px 16px; border-top:1px solid var(--line); }
+      .btn.on{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+      /* Desktop: studio gọn trong một màn hình — xem trước + timeline chiếm
+         cột chính, cột công cụ bên phải cuộn riêng, trang không dài thêm. */
+      @media (min-width:921px){
+        #studio{ display:flex; flex-direction:column; height:100dvh; }
+        #studio .toolbar{ flex:none; width:100%; }
+        #studio .studio{ flex:1 1 auto; min-height:0; width:100%; padding:8px 18px 14px; align-items:stretch; }
+        .stage-card{ height:100%; }
+        .stage{ flex:1 1 auto; min-height:0; padding:12px; }
+        canvas#preview{ max-height:100%; }
+        .panel{ height:100%; min-height:0; overflow-y:auto; padding-right:2px; }
+      }
+      .transport{ padding:14px 16px 16px; border-top:1px solid var(--line); flex:none; }
       .transport-row{ display:flex; align-items:center; gap:12px; }
       .play-btn{
         width:46px; height:46px; flex:none; border-radius:50%;
@@ -148,35 +161,85 @@
       .time-label b{ color:var(--ink); font-weight:700; }
       input[type=range].seek{ flex:1; }
 
-      /* ---------- Timeline strip ---------- */
-      .timeline{ border-top:1px solid var(--line); padding:12px 16px 14px; }
-      .timeline-head{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+      /* ---------- Timeline (thước + track video / tiếng gốc / nhạc) ---------- */
+      .timeline{ border-top:1px solid var(--line); padding:12px 16px 12px; flex:none; }
+      .timeline-head{ display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
       .timeline-head h3{ margin:0; font-size:13px; font-weight:700; }
       .timeline-head .spacer{ flex:1; }
       .timeline-head .total{ font-size:12.5px; color:var(--ink-faint); font-variant-numeric:tabular-nums; }
-      .clips-strip{ display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; }
-      .clip-chip{
-        flex:none; width:118px; padding:0; text-align:left;
-        border:2px solid var(--line); border-radius:12px; overflow:hidden;
-        background:var(--panel-2); color:var(--ink);
+      .tl-zoom{ display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-soft); font-weight:600; }
+      .tl-zoom input[type=range]{ width:92px; }
+      .tl-body{ display:flex; gap:8px; }
+      .tl-labels{ flex:none; width:58px; }
+      .tl-lab{ display:flex; align-items:center; font-size:10.5px; font-weight:700; color:var(--ink-faint); letter-spacing:.02em; }
+      .tl-lab + .tl-lab{ margin-top:4px; }
+      .tl-scroll{
+        flex:1; min-width:0; overflow-x:auto; overflow-y:hidden;
+        border:1px solid var(--line); border-radius:10px; background:var(--panel-2);
       }
-      .clip-chip.on{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
-      .clip-chip img{ width:100%; height:58px; object-fit:cover; background:#000; }
-      .clip-chip .cthumb{
-        height:58px; background:#26221c; color:#f5f1ea;
-        display:flex; align-items:center; justify-content:center;
-        font-weight:800; font-size:19px;
+      .tl-inner{ position:relative; padding-bottom:6px; }
+      .tl-ruler{ position:relative; height:20px; border-bottom:1px solid var(--line); cursor:pointer; touch-action:none; }
+      .tl-tick{
+        position:absolute; top:0; height:100%; border-left:1px solid var(--line);
+        font-size:9.5px; color:var(--ink-faint); padding:3px 0 0 4px; font-variant-numeric:tabular-nums;
+        pointer-events:none; white-space:nowrap;
       }
-      .clip-chip .cmeta{ padding:6px 8px 7px; }
-      .clip-chip .cname{ font-size:11.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-      .clip-chip .cdur{ font-size:11px; color:var(--ink-faint); font-variant-numeric:tabular-nums; margin-top:1px; }
-      .add-chip{
-        flex:none; width:76px; min-height:92px;
-        border:1.5px dashed var(--line); border-radius:12px; background:var(--panel-2);
-        color:var(--ink-soft); font-weight:600; font-size:12.5px;
-        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+      .tl-track{ position:relative; margin-top:4px; }
+      .tl-vtrack{ height:54px; }
+      .tl-atrack{ height:26px; }
+      .tl-mtrack{ height:30px; }
+      .tl-seg{
+        position:absolute; top:0; height:54px; border-radius:7px; overflow:hidden;
+        background-color:#211e19; background-repeat:repeat-x; background-size:auto 100%;
+        border:2px solid rgba(255,255,255,.14); cursor:pointer; padding:0; text-align:left;
       }
-      .add-chip svg{ width:18px; height:18px; }
+      .tl-seg.on{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
+      .tl-seg .tl-trans{
+        position:absolute; left:0; top:0; bottom:0; display:block;
+        background:repeating-linear-gradient(45deg, rgba(255,255,255,.28) 0 6px, rgba(255,255,255,.05) 6px 12px);
+      }
+      .tl-seg-name{
+        position:absolute; left:5px; bottom:4px; max-width:calc(100% - 10px);
+        background:rgba(0,0,0,.55); color:#fff; font-size:10.5px; font-weight:600;
+        padding:2px 6px; border-radius:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      }
+      .tl-add{
+        position:absolute; top:0; height:54px; width:64px; border-radius:7px;
+        border:1.5px dashed var(--line); background:transparent; color:var(--ink-soft);
+        font-size:11.5px; font-weight:700; display:flex; align-items:center; justify-content:center;
+      }
+      .tl-aseg{
+        position:absolute; top:0; height:26px; border-radius:6px; overflow:hidden;
+        background:#274435; border:1.5px solid rgba(255,255,255,.12); cursor:pointer;
+      }
+      .tl-aseg.muted{ opacity:.45; }
+      .tl-wave-clip{ position:absolute; top:0; bottom:0; overflow:hidden; display:block; }
+      .tl-wave-clip img{ height:100%; width:100%; display:block; opacity:.95; }
+      .tl-aseg .tl-avol, .tl-mseg .tl-mlab{
+        position:absolute; right:5px; top:50%; transform:translateY(-50%);
+        font-size:9.5px; font-weight:700; color:rgba(255,255,255,.92);
+        background:rgba(0,0,0,.35); padding:1px 5px; border-radius:4px; white-space:nowrap;
+      }
+      .tl-mseg{
+        position:absolute; top:0; height:30px; border-radius:6px; overflow:hidden;
+        background-color:#274268; border:1.5px solid rgba(255,255,255,.16); cursor:grab;
+        background-repeat:repeat-x; background-size:auto 100%; touch-action:none;
+      }
+      .tl-mseg:active{ cursor:grabbing; }
+      .tl-mempty{
+        position:absolute; left:8px; top:50%; transform:translateY(-50%);
+        font-size:11.5px; color:var(--ink-faint); white-space:nowrap;
+      }
+      .tl-playhead{
+        position:absolute; top:0; bottom:0; left:0; width:2px; background:var(--accent);
+        pointer-events:none; z-index:5;
+      }
+      .tl-playhead span{
+        position:absolute; top:0; left:50%; transform:translateX(-50%);
+        width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent;
+        border-top:7px solid var(--accent);
+      }
+      @media (max-width:560px){ .tl-labels{ width:44px; } .tl-lab{ font-size:9.5px; } }
 
       /* ---------- Panel ---------- */
       .panel{ display:flex; flex-direction:column; gap:14px; }
@@ -368,13 +431,32 @@
               <h3>Dòng thời gian</h3>
               <span class="total" id="tlTotal"></span>
               <div class="spacer"></div>
+              <label class="tl-zoom">Phóng to
+                <input type="range" id="tlZoomRange" min="1" max="6" step="0.25" value="1" />
+              </label>
               <button class="btn" id="btnSplitTop" style="padding:7px 12px;font-size:13px">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.2 7.8 20 19M8.2 16.2 20 5"/></svg>
                 Tách tại điểm phát
               </button>
             </div>
-            <div class="clips-strip" id="clipsStrip"></div>
-            <p class="hint">Bấm vào clip để chọn và chỉnh. Thêm clip mới bằng nút + ở cuối hàng.</p>
+            <div class="tl-body">
+              <div class="tl-labels" aria-hidden="true">
+                <div class="tl-lab" style="height:20px"></div>
+                <div class="tl-lab" style="height:54px">Video</div>
+                <div class="tl-lab" style="height:26px">Tiếng gốc</div>
+                <div class="tl-lab" style="height:30px">Nhạc nền</div>
+              </div>
+              <div class="tl-scroll" id="tlScroll">
+                <div class="tl-inner" id="tlInner">
+                  <div class="tl-ruler" id="tlRuler"></div>
+                  <div class="tl-track tl-vtrack" id="tlVideoTrack"></div>
+                  <div class="tl-track tl-atrack" id="tlAudioTrack"></div>
+                  <div class="tl-track tl-mtrack" id="tlMusicTrack"></div>
+                  <div class="tl-playhead" id="tlPlayhead"><span></span></div>
+                </div>
+              </div>
+            </div>
+            <p class="hint">Bấm thước để tua · bấm đoạn clip để chọn và chỉnh · kéo thanh nhạc nền trên track để dời lúc nhạc bắt đầu · chỉnh tiếng từng clip ở track Tiếng gốc.</p>
           </div>
         </div>
 
@@ -406,6 +488,14 @@
               <button class="chip" data-speed="1.5">1.5x</button>
               <button class="chip" data-speed="2">2x</button>
             </div>
+            <div class="field">
+              <label>Âm lượng clip <output id="outClipVol">100%</output></label>
+              <input type="range" id="clipVol" min="0" max="100" step="1" value="100" />
+            </div>
+            <button class="btn" id="btnClipMute" style="width:100%;justify-content:center;margin-bottom:13px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg>
+              <span id="clipMuteLabel">Tắt tiếng clip</span>
+            </button>
             <div class="two-col">
               <div class="field">
                 <label>Chuyển cảnh sang clip sau</label>
@@ -649,6 +739,17 @@
               <span id="pickMusicLabel">Thêm file nhạc (MP3, WAV…)</span>
             </button>
             <p class="music-name" id="musicName" hidden></p>
+            <div class="two-col" style="margin-top:13px">
+              <div class="field">
+                <label>Nhạc bắt đầu ở (giây)</label>
+                <input type="number" id="musicStartIn" min="0" step="0.5" value="0" />
+              </div>
+              <div class="field">
+                <label>Phát nhạc từ giây (trong file)</label>
+                <input type="number" id="musicOffsetIn" min="0" step="0.5" value="0" />
+              </div>
+            </div>
+            <p class="hint" style="margin-top:0">Cũng có thể kéo trực tiếp thanh nhạc trên track Nhạc nền của dòng thời gian để dời lúc bắt đầu.</p>
             <div class="field" style="margin-top:13px">
               <label>Âm lượng nhạc <output id="outMusicVol">80%</output></label>
               <input type="range" id="musicVol" min="0" max="100" step="1" value="80" />
@@ -730,7 +831,7 @@
         aspect:"orig", posX:50, posY:50, quality:"1280", blurBg:false,
         flip:false, rot:0,
         bright:100, contrast:100, sat:100,
-        musicVol:80, videoVol:100, fadeIn:0, fadeOut:0, musicLoaded:false
+        musicVol:80, videoVol:100, fadeIn:0, fadeOut:0, musicLoaded:false, musicStart:0, musicOffset:0
       };
       var clips = [];        // {id,url,name,duration,vw,vh,trimStart,trimEnd,speed,transType,transDur,kb,filter,thumb}
       var texts = [];        // {id,kind:"text"|"sub",text,start,end,size,color,pos,bg,bold}
@@ -786,6 +887,7 @@
         sb.max = Math.max(0.1, L.total); sb.value = playhead;
         $("timeEnd").textContent = fmt(L.total);
         $("tlTotal").textContent = clips.length ? ("Tổng: " + fmt(L.total) + " · " + clips.length + " clip") : "";
+        updateTlPlayhead();
         updateBadge();
       }
       function clipIndexAt(t){
@@ -879,6 +981,50 @@
         });
       }
 
+      /* ---------- real waveforms for the audio tracks ---------- */
+      function peaksDataURL(ab){
+        var ch = ab.getChannelData(0);
+        var N = 180, per = Math.max(1, Math.floor(ch.length / N));
+        var cv = document.createElement("canvas");
+        cv.width = 720; cv.height = 56;
+        var g = cv.getContext("2d");
+        g.fillStyle = "rgba(255,255,255,0.92)";
+        var bw = cv.width / N;
+        for(var k = 0; k < N; k++){
+          var m = 0, s = k * per, step = Math.max(1, Math.floor(per / 24));
+          for(var j = 0; j < per; j += step){ var v = Math.abs(ch[s + j] || 0); if(v > m) m = v; }
+          var h = Math.max(2, m * cv.height);
+          g.fillRect(k * bw + bw * 0.22, (cv.height - h) / 2, Math.max(1, bw * 0.56), h);
+        }
+        return cv.toDataURL("image/png");
+      }
+      function decodePeaks(bufPromise, done){
+        var AC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if(!AC){ done(null); return; }
+        bufPromise.then(function(buf){
+          var oc = new AC(1, 44100, 44100);
+          return oc.decodeAudioData(buf);
+        }).then(function(ab){ done(peaksDataURL(ab)); }).catch(function(){ done(null); });
+      }
+      function computeWave(c){
+        if(c.wave || c.waveBusy || c.waveFail || !c.url) return;
+        c.waveBusy = true;
+        decodePeaks(fetch(c.url).then(function(r){ return r.arrayBuffer(); }), function(url){
+          c.waveBusy = false;
+          if(url){ c.wave = url; renderStrip(); }
+          else c.waveFail = true;
+        });
+      }
+      function computeMusicWave(file){
+        musicWave = null;
+        if(!file) return;
+        var p = file.arrayBuffer ? file.arrayBuffer()
+          : fetch(URL.createObjectURL(file)).then(function(r){ return r.arrayBuffer(); });
+        decodePeaks(Promise.resolve(p), function(url){
+          if(url){ musicWave = url; renderMusicTrack(); }
+        });
+      }
+
       /* ---------- add / load clips ---------- */
       function probeFile(file, done){
         var url = URL.createObjectURL(file);
@@ -892,6 +1038,7 @@
             duration: tv.duration || 0, vw: tv.videoWidth || 640, vh: tv.videoHeight || 360,
             trimStart: 0, trimEnd: tv.duration || 0,
             speed: 1, transType: "none", transDur: 0.5, kb: "none", filter: "none",
+            vol: 100, muted: false,
             thumb: null
           };
           try{ tv.removeAttribute("src"); tv.load(); }catch(e){}
@@ -939,6 +1086,8 @@
         if(!file) return;
         music.src = URL.createObjectURL(file);
         S.musicLoaded = true;
+        musicFileName = file.name;
+        computeMusicWave(file);
         $("musicName").hidden = false;
         $("musicName").innerHTML = "Đã thêm nhạc: <b></b>";
         $("musicName").querySelector("b").textContent = file.name;
@@ -975,7 +1124,8 @@
           clips: clips.map(function(c){
             return { id:c.id, url:c.url, name:c.name, duration:c.duration, vw:c.vw, vh:c.vh,
               trimStart:c.trimStart, trimEnd:c.trimEnd, speed:c.speed,
-              transType:c.transType, transDur:c.transDur, kb:c.kb, filter:c.filter, thumb:c.thumb };
+              transType:c.transType, transDur:c.transDur, kb:c.kb, filter:c.filter,
+              vol:(c.vol == null ? 100 : c.vol), muted:!!c.muted, thumb:c.thumb };
           }),
           texts: texts.map(function(t){
             return { id:t.id, kind:t.kind, text:t.text, start:t.start, end:t.end, size:t.size, color:t.color, pos:t.pos, bg:t.bg, bold:t.bold };
@@ -984,7 +1134,8 @@
             return { id:o.id, url:o.url, x:o.x, y:o.y, scale:o.scale, opacity:o.opacity, start:o.start, end:o.end };
           }),
           S: { aspect:S.aspect, posX:S.posX, posY:S.posY, quality:S.quality, blurBg:S.blurBg, flip:S.flip, rot:S.rot,
-               bright:S.bright, contrast:S.contrast, sat:S.sat, musicVol:S.musicVol, videoVol:S.videoVol, fadeIn:S.fadeIn, fadeOut:S.fadeOut },
+               bright:S.bright, contrast:S.contrast, sat:S.sat, musicVol:S.musicVol, videoVol:S.videoVol, fadeIn:S.fadeIn, fadeOut:S.fadeOut,
+               musicStart:S.musicStart, musicOffset:S.musicOffset },
           selClipId: selClipId, selTextId: selTextId, selOverId: selOverId
         });
       }
@@ -1009,6 +1160,7 @@
         st.clips.forEach(function(c){ keep[c.id] = true; });
         Object.keys(clipEls).forEach(function(id){ if(!keep[id]) disposeEl(id); });
         clips = st.clips;
+        clips.forEach(function(c){ if(c.vol == null) c.vol = 100; if(c.muted == null) c.muted = false; });
         texts = st.texts;
         overs = st.overs.map(function(o){
           var img = new Image();
@@ -1021,6 +1173,7 @@
         S.aspect=g.aspect; S.posX=g.posX; S.posY=g.posY; S.quality=g.quality; S.blurBg=g.blurBg;
         S.flip=g.flip; S.rot=g.rot; S.bright=g.bright; S.contrast=g.contrast; S.sat=g.sat;
         S.musicVol=g.musicVol; S.videoVol=g.videoVol; S.fadeIn=g.fadeIn; S.fadeOut=g.fadeOut;
+        S.musicStart = g.musicStart || 0; S.musicOffset = g.musicOffset || 0;
         selClipId = st.selClipId && findClip(st.selClipId) ? st.selClipId : (clips[0] ? clips[0].id : null);
         selTextId = st.selTextId; selOverId = st.selOverId;
         if(!clips.length){
@@ -1046,33 +1199,155 @@
       });
 
       /* ---------- UI renders ---------- */
-      function renderStrip(){
-        var strip = $("clipsStrip");
-        var html = "";
-        for(var i=0;i<clips.length;i++){
-          var c = clips[i];
-          var thumbHtml = c.thumb
-            ? '<img src="' + c.thumb + '" alt="" />'
-            : '<div class="cthumb">' + (i+1) + '</div>';
-          html += '<button class="clip-chip' + (c.id===selClipId ? " on" : "") + '" data-clip="' + c.id + '">' +
-            thumbHtml +
-            '<div class="cmeta"><div class="cname"></div><div class="cdur">' + (i+1) + " · " + fmt(clipOut(c)) + (c.transType!=="none" ? " · chuyển cảnh" : "") + '</div></div></button>';
-        }
-        html += '<button class="add-chip" data-add="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Thêm clip</button>';
-        strip.innerHTML = html;
-        var names = strip.querySelectorAll(".clip-chip .cname");
-        for(var j=0;j<names.length;j++) names[j].textContent = clips[j].name;
+      /* ---------- CapCut-style timeline: ruler + video / audio / music tracks ---------- */
+      var tlZoom = 1, lastPps = 8, musicDrag = null, musicDragMoved = false, scrubbing = false;
+      var musicWave = null, musicFileName = "";
+      function pxPerSec(){
+        var sc = $("tlScroll");
+        var w = sc && sc.clientWidth ? sc.clientWidth : 820;
+        if(!L.total) return 8;
+        return Math.max(1.0, (w / L.total) * tlZoom);
       }
-      $("clipsStrip").addEventListener("click", function(e){
+      function pickTickStep(pps){
+        var steps = [1, 2, 5, 10, 15, 30, 60, 120, 300];
+        for(var i = 0; i < steps.length; i++) if(steps[i] * pps >= 62) return steps[i];
+        return 600;
+      }
+      function updateTlPlayhead(){
+        var ph = $("tlPlayhead");
+        if(ph) ph.style.transform = "translateX(" + Math.round(playhead * (lastPps || 8)) + "px)";
+      }
+      function renderStrip(){
+        var inner = $("tlInner");
+        if(!inner) return;
+        var pps = pxPerSec();
+        lastPps = pps;
+        var W = Math.max(1, Math.ceil(L.total * pps));
+        inner.style.width = (W + 78) + "px";
+        var step = pickTickStep(pps), rh = "";
+        for(var t = 0; t <= L.total + 0.001; t += step){
+          rh += '<span class="tl-tick" style="left:' + Math.round(t * pps) + 'px">' + fmt(t) + '</span>';
+        }
+        var ruler = $("tlRuler");
+        ruler.style.width = W + "px";
+        ruler.innerHTML = rh;
+        var vh = "", ah = "";
+        for(var i = 0; i < clips.length; i++){
+          var c = clips[i];
+          if(!c.wave && !c.waveBusy && !c.waveFail) computeWave(c);
+          var left = Math.round(L.starts[i] * pps);
+          var wdt = Math.max(14, Math.round(clipOut(c) * pps));
+          var bg = ' style="left:' + left + 'px;width:' + wdt + 'px' + (c.thumb ? ';background-image:url(' + c.thumb + ')' : '') + '"';
+          vh += '<button type="button" class="tl-seg' + (c.id === selClipId ? " on" : "") + '" data-clip="' + c.id + '"' + bg + '>' +
+            (i > 0 && L.trs[i-1] > 0 ? '<i class="tl-trans" style="width:' + Math.round(L.trs[i-1] * pps) + 'px"></i>' : "") +
+            '<span class="tl-seg-name"></span></button>';
+          var span = Math.max(0.05, c.trimEnd - c.trimStart);
+          var waveHtml = "";
+          if(c.wave){
+            var wl = -(c.trimStart / span * 100), ww = (c.duration / span * 100);
+            waveHtml = '<span class="tl-wave-clip" style="left:' + wl + '%;width:' + ww + '%"><img src="' + c.wave + '" alt="" /></span>';
+          }
+          var effVol = c.muted ? 0 : (c.vol == null ? 100 : c.vol);
+          ah += '<div class="tl-aseg' + (c.muted ? " muted" : "") + '" data-clip="' + c.id + '" style="left:' + left + 'px;width:' + wdt + 'px">' +
+            waveHtml + '<span class="tl-avol">' + (c.muted ? "Tắt tiếng" : effVol + "%") + '</span></div>';
+        }
+        vh += '<button type="button" class="tl-add" data-add="1" style="left:' + (W + 7) + 'px">+ Clip</button>';
+        $("tlVideoTrack").innerHTML = vh;
+        var names = $("tlVideoTrack").querySelectorAll(".tl-seg-name");
+        for(var j = 0; j < names.length; j++) names[j].textContent = (j + 1) + " · " + clips[j].name + " · " + fmt(clipOut(clips[j]));
+        $("tlAudioTrack").innerHTML = ah;
+        renderMusicTrack();
+        updateTlPlayhead();
+      }
+      function renderMusicTrack(){
+        var mt = $("tlMusicTrack");
+        if(!mt || musicDrag) return;
+        if(!S.musicLoaded){
+          mt.innerHTML = '<span class="tl-mempty">Chưa có nhạc nền — thêm ở thẻ Âm thanh &amp; nhạc nền.</span>';
+          return;
+        }
+        var pps = lastPps || pxPerSec();
+        var left = Math.round(S.musicStart * pps);
+        var wdt = Math.max(20, Math.round((L.total - S.musicStart) * pps));
+        var bg = musicWave ? 'background-image:url(' + musicWave + ');' : "";
+        mt.innerHTML = '<div class="tl-mseg" id="tlMusicSeg" title="Kéo để dời lúc nhạc bắt đầu" style="left:' + left + 'px;width:' + wdt + 'px;' + bg + '">' +
+          '<span class="tl-mlab"></span></div>';
+        mt.querySelector(".tl-mlab").textContent = "♪ " + (musicFileName || "Nhạc nền") + " · từ " + fmt(S.musicStart);
+      }
+      function renderStripLight(){ renderStrip(); }
+      $("tlInner").addEventListener("click", function(e){
+        if(musicDragMoved) return;
         var add = e.target.closest("[data-add]");
         if(add){ $("fileVideo").click(); return; }
-        var chip = e.target.closest("[data-clip]");
-        if(!chip) return;
-        var id = chip.getAttribute("data-clip");
+        var seg = e.target.closest("[data-clip]");
+        if(!seg) return;
+        var id = seg.getAttribute("data-clip");
         selClipId = id;
         var idx = clips.indexOf(findClip(id));
         if(idx >= 0) seekTo(L.starts[idx]);
         renderStrip(); syncClipPanel();
+      });
+      function tlTimeFromEvent(e){
+        var r = $("tlInner").getBoundingClientRect();
+        return clamp((e.clientX - r.left) / (lastPps || 8), 0, L.total);
+      }
+      $("tlRuler").addEventListener("pointerdown", function(e){
+        if(!clips.length) return;
+        scrubbing = true;
+        try{ this.setPointerCapture(e.pointerId); }catch(err){}
+        seekTo(tlTimeFromEvent(e));
+        if(playing) syncElements();
+        e.preventDefault();
+      });
+      $("tlRuler").addEventListener("pointermove", function(e){
+        if(!scrubbing) return;
+        seekTo(tlTimeFromEvent(e));
+        if(playing) syncElements();
+      });
+      $("tlRuler").addEventListener("pointerup", function(){ scrubbing = false; });
+      $("tlRuler").addEventListener("pointercancel", function(){ scrubbing = false; });
+      $("tlMusicTrack").addEventListener("pointerdown", function(e){
+        var seg = e.target.closest(".tl-mseg");
+        if(!seg) return;
+        musicDrag = { x0: e.clientX, start0: S.musicStart, seg: seg };
+        musicDragMoved = false;
+        try{ seg.setPointerCapture(e.pointerId); }catch(err){}
+        e.preventDefault();
+      });
+      $("tlMusicTrack").addEventListener("pointermove", function(e){
+        if(!musicDrag) return;
+        var dx = (e.clientX - musicDrag.x0) / (lastPps || 8);
+        var ns = clamp(musicDrag.start0 + dx, 0, Math.max(0, L.total - 0.3));
+        ns = Math.round(ns * 10) / 10;
+        if(Math.abs(ns - S.musicStart) > 0.001){
+          musicDragMoved = true;
+          S.musicStart = ns;
+          musicDrag.seg.style.left = Math.round(S.musicStart * (lastPps || 8)) + "px";
+          musicDrag.seg.style.width = Math.max(20, Math.round((L.total - S.musicStart) * (lastPps || 8))) + "px";
+          var lab = musicDrag.seg.querySelector(".tl-mlab");
+          if(lab) lab.textContent = "♪ " + (musicFileName || "Nhạc nền") + " · từ " + fmt(S.musicStart);
+          $("musicStartIn").value = S.musicStart;
+          if(playing) syncMusic();
+        }
+      });
+      function endMusicDrag(){
+        if(!musicDrag) return;
+        musicDrag = null;
+        renderMusicTrack();
+        pushHistory();
+        setTimeout(function(){ musicDragMoved = false; }, 50);
+      }
+      $("tlMusicTrack").addEventListener("pointerup", endMusicDrag);
+      $("tlMusicTrack").addEventListener("pointercancel", endMusicDrag);
+      $("tlZoomRange").addEventListener("input", function(){
+        tlZoom = parseFloat(this.value) || 1;
+        renderStrip();
+      });
+      var resizeTimer = null;
+      window.addEventListener("resize", function(){
+        if(!clips.length || $("studio").hidden) return;
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(renderStrip, 160);
       });
 
       function syncClipPanel(){
@@ -1096,6 +1371,11 @@
         $("outTransDur").textContent = c.transDur.toFixed(1) + "s";
         $("kbSelect").value = c.kb;
         $("filterSelect").value = c.filter;
+        var cv = (c.vol == null ? 100 : c.vol);
+        $("clipVol").value = cv;
+        $("outClipVol").textContent = cv + "%";
+        $("btnClipMute").classList.toggle("on", !!c.muted);
+        $("clipMuteLabel").textContent = c.muted ? "Bật tiếng clip" : "Tắt tiếng clip";
         var idx = clips.indexOf(c);
         $("btnMoveL").disabled = idx <= 0;
         $("btnMoveR").disabled = idx >= clips.length - 1;
@@ -1192,6 +1472,8 @@
         $("videoVol").value = S.videoVol; $("outVideoVol").textContent = S.videoVol + "%";
         $("fadeIn").value = S.fadeIn; $("outFadeIn").textContent = S.fadeIn + "s";
         $("fadeOut").value = S.fadeOut; $("outFadeOut").textContent = S.fadeOut + "s";
+        $("musicStartIn").value = S.musicStart;
+        $("musicOffsetIn").value = S.musicOffset;
       }
 
       /* ---------- rendering ---------- */
@@ -1393,15 +1675,21 @@
       }
       function applyVolumesStatic(){
         if(actx){
-          for(var id in clipGains) clipGains[id].gain.value = S.videoVol / 100;
+          for(var id in clipGains){
+            var cc = findClip(id);
+            var cf = cc ? (cc.muted ? 0 : (cc.vol == null ? 100 : cc.vol) / 100) : 1;
+            clipGains[id].gain.value = (S.videoVol / 100) * cf;
+          }
           if(musicGain) musicGain.gain.value = (S.musicVol / 100) * musicFactor(playhead);
         } else {
           music.volume = S.musicVol / 100;
         }
       }
       function musicFactor(t){
+        if(t < S.musicStart) return 0;
         var f = 1;
-        if(S.fadeIn > 0) f = Math.min(f, clamp(t / S.fadeIn, 0, 1));
+        var local = t - S.musicStart;
+        if(S.fadeIn > 0) f = Math.min(f, clamp(local / S.fadeIn, 0, 1));
         if(S.fadeOut > 0) f = Math.min(f, clamp((L.total - t) / S.fadeOut, 0, 1));
         return f;
       }
@@ -1415,7 +1703,8 @@
           var tl = t - L.starts[i+1];
           if(tl >= 0 && tl < L.trs[i]) f = Math.min(f, 1 - tl / L.trs[i]);
         }
-        return clamp(f, 0, 1);
+        var cvf = clips[i].muted ? 0 : (clips[i].vol == null ? 100 : clips[i].vol) / 100;
+        return clamp(f * cvf, 0, 1);
       }
       function updateAudioLevels(){
         var i, c, el, f;
@@ -1438,8 +1727,9 @@
       function syncMusic(){
         if(!S.musicLoaded) return;
         if(music.paused) return;
-        var expected = playhead;
-        if(music.duration && isFinite(music.duration)) expected = playhead % music.duration;
+        var mt = Math.max(0, playhead - S.musicStart);
+        var expected = S.musicOffset + mt;
+        if(music.duration && isFinite(music.duration)) expected = expected % music.duration;
         if(Math.abs(music.currentTime - expected) > 0.4){
           try{ music.currentTime = expected; }catch(e){}
         }
@@ -1454,6 +1744,16 @@
       function updateTransport(){
         seekBar.value = playhead;
         $("timeCur").textContent = fmt(playhead);
+        updateTlPlayhead();
+        if(playing){
+          var sc = $("tlScroll");
+          if(sc && lastPps){
+            var x = playhead * lastPps;
+            if(x < sc.scrollLeft + 30 || x > sc.scrollLeft + sc.clientWidth - 30){
+              sc.scrollLeft = Math.max(0, x - 60);
+            }
+          }
+        }
       }
       function seekTo(t){
         playhead = clamp(t, 0, L.total);
@@ -1678,18 +1978,6 @@
         $("outTrimEnd").textContent = fmt(c.trimEnd);
         $("trimInfo").textContent = "Đoạn dùng: " + fmt(c.trimEnd - c.trimStart) + " · sau tốc độ " + c.speed.toFixed(2) + "x còn " + fmt(clipOut(c));
       }
-      function renderStripLight(){
-        // update durations without rebuilding thumbnails
-        var strip = $("clipsStrip");
-        var chipsEls = strip.querySelectorAll(".clip-chip .cdur");
-        for(var i=0;i<chipsEls.length && i<clips.length;i++){
-          chipsEls[i].textContent = (i+1) + " · " + fmt(clipOut(clips[i])) + (clips[i].transType!=="none" ? " · chuyển cảnh" : "");
-        }
-        $("tlTotal").textContent = clips.length ? ("Tổng: " + fmt(L.total) + " · " + clips.length + " clip") : "";
-        $("timeEnd").textContent = fmt(L.total);
-        seekBar.max = Math.max(0.1, L.total);
-        updateBadge();
-      }
       function setClipSpeed(v){
         var c = selClip(); if(!c) return;
         c.speed = clamp(v, 0.25, 2);
@@ -1750,7 +2038,8 @@
         var copy = JSON.parse(JSON.stringify({
           url:c.url, name:c.name, duration:c.duration, vw:c.vw, vh:c.vh,
           trimStart:c.trimStart, trimEnd:c.trimEnd, speed:c.speed,
-          transType:c.transType, transDur:c.transDur, kb:c.kb, filter:c.filter, thumb:c.thumb
+          transType:c.transType, transDur:c.transDur, kb:c.kb, filter:c.filter,
+          vol:(c.vol == null ? 100 : c.vol), muted:!!c.muted, thumb:c.thumb
         }));
         copy.id = uid("c");
         clips.splice(clips.indexOf(c)+1, 0, copy);
@@ -1793,7 +2082,8 @@
         var second = {
           id: uid("c"), url: c.url, name: c.name, duration: c.duration, vw: c.vw, vh: c.vh,
           trimStart: srcSplit, trimEnd: c.trimEnd, speed: c.speed,
-          transType: c.transType, transDur: c.transDur, kb: c.kb, filter: c.filter, thumb: c.thumb
+          transType: c.transType, transDur: c.transDur, kb: c.kb, filter: c.filter,
+          vol: (c.vol == null ? 100 : c.vol), muted: !!c.muted, thumb: c.thumb
         };
         c.trimEnd = srcSplit;
         c.transType = "none";
@@ -1998,6 +2288,50 @@
         pushHistory(); dirty = true;
       });
 
+      /* ---------- per-clip audio (volume / mute on the Tiếng gốc track) ---------- */
+      function syncClipAudioUI(c){
+        if(!c) return;
+        var cv = (c.vol == null ? 100 : c.vol);
+        $("clipVol").value = cv;
+        $("outClipVol").textContent = cv + "%";
+        $("btnClipMute").classList.toggle("on", !!c.muted);
+        $("clipMuteLabel").textContent = c.muted ? "Bật tiếng clip" : "Tắt tiếng clip";
+      }
+      $("clipVol").addEventListener("input", function(){
+        var c = selClip(); if(!c) return;
+        c.vol = parseFloat(this.value);
+        if(c.vol > 0) c.muted = false;
+        syncClipAudioUI(c);
+        updateAudioLevels();
+        renderStripLight();
+      });
+      $("clipVol").addEventListener("change", function(){ pushHistory(); });
+      $("btnClipMute").addEventListener("click", function(){
+        var c = selClip(); if(!c) return;
+        c.muted = !c.muted;
+        syncClipAudioUI(c);
+        updateAudioLevels();
+        renderStripLight();
+        pushHistory();
+      });
+      $("musicStartIn").addEventListener("change", function(){
+        var v = parseFloat(this.value);
+        if(!isFinite(v)) v = 0;
+        S.musicStart = clamp(v, 0, Math.max(0, L.total - 0.3));
+        this.value = S.musicStart;
+        renderMusicTrack();
+        if(playing) syncMusic();
+        pushHistory();
+      });
+      $("musicOffsetIn").addEventListener("change", function(){
+        var v = parseFloat(this.value);
+        if(!isFinite(v)) v = 0;
+        S.musicOffset = Math.max(0, v);
+        this.value = S.musicOffset;
+        if(playing) syncMusic();
+        pushHistory();
+      });
+
       /* ---------- audio controls ---------- */
       $("musicVol").addEventListener("input", function(){
         S.musicVol = parseFloat(this.value);
@@ -2009,7 +2343,10 @@
         S.videoVol = parseFloat(this.value);
         $("outVideoVol").textContent = S.videoVol + "%";
         if(!actx){
-          for(var id in clipEls) clipEls[id].volume = S.videoVol / 100;
+          for(var i = 0; i < clips.length; i++){
+            var el2 = clipEls[clips[i].id];
+            if(el2) el2.volume = (S.videoVol / 100) * clipFactor(i, playhead);
+          }
         }
       });
       $("videoVol").addEventListener("change", function(){ pushHistory(); });
