@@ -277,8 +277,11 @@
         display:flex; align-items:center; justify-content:center;
         padding:14px; min-height:230px;
       }
+      /* Kích thước hiển thị của canvas do JS fitPreview() đặt tường minh theo
+         kiểu "contain" (tính theo CẢ hai chiều của ô sân khấu) — CSS không tự
+         co giãn nữa, tránh việc max-height theo wrap tự co theo canvas khiến
+         khung tràn sân khấu và bị cắt mất cạnh. */
       canvas#preview{
-        max-width:100%; max-height:58vh; width:auto; height:auto;
         border-radius:6px; background:#000; touch-action:none;
       }
       .btn.on{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
@@ -293,10 +296,9 @@
         #studio .studio > .stage-card{ grid-column:2; grid-row:1; }
         .stage-card{ height:100%; }
         /* Sân khấu xem trước chỉ còn ~49% chiều cao cột chính (CapCut gọn hơn);
-           phần diện tích còn lại nhường cho khu timeline. Canvas vẫn fit trọn
-           khung nhờ max-width/max-height:100% — không cắt hình. */
+           phần diện tích còn lại nhường cho khu timeline. Canvas fit trọn khung
+           nhờ fitPreview() (contain theo cả hai chiều sân khấu) — không cắt hình. */
         .stage{ flex:0 1 49%; min-height:0; padding:10px; }
-        canvas#preview{ max-height:100%; }
         .timeline{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
         .tl-body{ flex:1 1 auto; min-height:0; }
         .tl-scroll{ min-height:0; }
@@ -2124,12 +2126,44 @@
         return { w: Math.max(2, tw), h: Math.max(2, th) };
       }
       function refreshCanvasSize(){
-        if(!clips.length) return;
+        if(!clips.length){ fitPreview(); return; }
         var d = outDims();
         if(canvas.width !== d.w || canvas.height !== d.h){
           canvas.width = d.w; canvas.height = d.h;
         }
         dirty = true;
+        fitPreview();
+      }
+      /* Fit "contain" cho khung xem trước: kích thước hiển thị của canvas tính
+         theo CẢ hai chiều của ô sân khấu —
+         scale = min(chiều rộng ô / chiều rộng khung, chiều cao ô / chiều cao khung)
+         — rồi đặt width/height hiển thị đúng tỉ lệ khung, nên khung luôn trọn vẹn
+         100%: không tràn khỏi sân khấu theo bất kỳ chiều nào, không cắt/khuất
+         cạnh nào, không méo tỉ lệ. Clip dọc 9:16 bị giới hạn bởi chiều cao (khung
+         hẹp lại, căn giữa, hai bên là nền sân khấu); clip ngang 16:9 bị giới hạn
+         bởi chiều rộng. Zoom xem trước (transform trên stageWrap) nhân thêm trên
+         kích thước đã fit này. */
+      function fitPreview(){
+        var wrap = $("stageWrap"); if(!wrap || !wrap.parentElement) return;
+        if(!canvas.width || !canvas.height) return;
+        var stage = wrap.parentElement;
+        var cs = window.getComputedStyle(stage);
+        var availW = stage.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+        var availH;
+        if(window.matchMedia("(min-width:921px)").matches){
+          availH = stage.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
+        } else {
+          /* Mobile: sân khấu cao theo nội dung, lấy chiều cao của chính nó sẽ
+             vòng lặp với canvas — dùng trần 58% chiều cao màn hình như trước. */
+          availH = Math.round(window.innerHeight * 0.58);
+        }
+        if(availW < 40 || availH < 40) return;   /* studio đang ẩn — ResizeObserver trên sân khấu sẽ fit lại khi hiện */
+        var sc = Math.min(availW / canvas.width, availH / canvas.height);
+        var w = Math.max(2, Math.floor(canvas.width * sc)) + "px";
+        var h = Math.max(2, Math.floor(canvas.height * sc)) + "px";
+        if(canvas.style.width !== w) canvas.style.width = w;
+        if(canvas.style.height !== h) canvas.style.height = h;
+        if(typeof layoutGuides === "function") layoutGuides();
       }
 
       /* ---------- clip media elements ---------- */
@@ -4432,10 +4466,14 @@
         guideMode = (guideMode + 1) % 4;
         applyGuideMode();
       });
-      window.addEventListener("resize", layoutGuides);
+      window.addEventListener("resize", function(){ fitPreview(); layoutGuides(); });
       if(window.ResizeObserver){
         new ResizeObserver(function(){ layoutGuides(); }).observe(canvas);
+        /* Sân khấu đổi kích thước (đổi cửa sổ, ẩn/hiện studio, co giãn cột)
+           → fit lại khung cho trọn vẹn trong ô mới. */
+        new ResizeObserver(function(){ fitPreview(); }).observe($("stageWrap").parentElement);
       }
+      fitPreview();
       function syncElements(){
         for(var i=0;i<clips.length;i++){
           var c = clips[i];
