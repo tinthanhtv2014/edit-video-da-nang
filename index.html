@@ -101,7 +101,7 @@
       .icon-btn svg{ width:16px; height:16px; }
       .studio{
         width:100%; padding:8px 14px 30px;
-        display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:12px; align-items:start;
+        display:grid; grid-template-columns:300px minmax(0,1fr); gap:12px; align-items:start;
       }
       @media (max-width:920px){ .studio{ grid-template-columns:1fr; } }
 
@@ -122,11 +122,13 @@
       .btn.on{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
       .btn.on:hover{ background:var(--accent-soft); }
       /* Desktop: studio gọn trong một màn hình — xem trước + timeline chiếm
-         cột chính, cột công cụ bên phải cuộn riêng, trang không dài thêm. */
+         cột chính bên phải, cột công cụ bên trái cuộn riêng, trang không dài thêm. */
       @media (min-width:921px){
         #studio{ display:flex; flex-direction:column; height:100dvh; }
         #studio .toolbar{ flex:none; width:100%; }
         #studio .studio{ flex:1 1 auto; min-height:0; width:100%; padding:5px 14px 8px; align-items:stretch; }
+        #studio .studio > .panel{ grid-column:1; grid-row:1; }
+        #studio .studio > .stage-card{ grid-column:2; grid-row:1; }
         .stage-card{ height:100%; }
         .stage{ flex:1 1 auto; min-height:0; padding:10px; }
         canvas#preview{ max-height:100%; }
