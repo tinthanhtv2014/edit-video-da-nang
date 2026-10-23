@@ -292,8 +292,15 @@
         #studio .studio > .panel{ grid-column:1; grid-row:1; }
         #studio .studio > .stage-card{ grid-column:2; grid-row:1; }
         .stage-card{ height:100%; }
-        .stage{ flex:1 1 auto; min-height:0; padding:10px; }
+        /* Sân khấu xem trước chỉ còn ~49% chiều cao cột chính (CapCut gọn hơn);
+           phần diện tích còn lại nhường cho khu timeline. Canvas vẫn fit trọn
+           khung nhờ max-width/max-height:100% — không cắt hình. */
+        .stage{ flex:0 1 49%; min-height:0; padding:10px; }
         canvas#preview{ max-height:100%; }
+        .timeline{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+        .tl-body{ flex:1 1 auto; min-height:0; }
+        .tl-scroll{ min-height:0; }
+        .tl-inner{ min-height:100%; }
         .panel{ height:100%; min-height:0; overflow-y:auto; padding-right:2px; }
       }
       .transport{ padding:8px 12px 10px; border-top:1px solid var(--line); flex:none; }
@@ -705,15 +712,33 @@
         box-shadow:0 0 0 1px rgba(0,0,0,.5); pointer-events:none;
       }
 
-      /* ---------- PRO: minimap timeline ---------- */
-      .tl-mini-row{ display:flex; gap:6px; margin-bottom:5px; }
-      .tl-mini-spacer{ flex:none; width:52px; }
-      @media (max-width:560px){ .tl-mini-spacer{ width:44px; } }
-      #tlMini{
-        flex:1; min-width:0; height:30px; display:block;
-        border:1px solid var(--line); border-radius:8px; background:var(--panel-2);
-        cursor:pointer; touch-action:none;
+      /* ---------- Theme video: chip có dải màu xem trước + theme của tôi ---------- */
+      .theme-grid{ display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+      .theme-chip{
+        border:1.5px solid var(--line); background:var(--panel-2); border-radius:10px;
+        padding:5px; cursor:pointer; text-align:left; color:var(--ink);
+        display:flex; flex-direction:column; gap:5px;
+        transition:border-color .12s ease, background .12s ease;
       }
+      .theme-chip:hover{ border-color:var(--accent); background:var(--hover); }
+      .theme-chip .th-prev{
+        position:relative; height:34px; border-radius:6px; overflow:hidden; display:block;
+        background:linear-gradient(120deg,#5b8cc0 0%,#7ec8e3 26%,#f7d08a 52%,#e88ca0 76%,#4d7c59 100%);
+      }
+      .theme-chip .th-aa{
+        position:absolute; left:0; right:0; bottom:3px; text-align:center;
+        font-size:11px; font-weight:800; line-height:1.15; pointer-events:none;
+        text-shadow:0 1px 2px rgba(0,0,0,.85), 0 0 3px rgba(0,0,0,.6);
+      }
+      .theme-chip .th-aa.bg{ background:rgba(0,0,0,.42); text-shadow:none; padding:1px 0; bottom:2px; }
+      .theme-chip .th-name{ font-size:12px; font-weight:700; padding:0 2px 1px; }
+      .theme-row{
+        display:flex; align-items:center; gap:7px; width:100%;
+        border:1.5px solid var(--line); background:var(--panel-2); border-radius:9px;
+        padding:6px 9px; font-size:12px; color:var(--ink); margin-bottom:6px;
+      }
+      .theme-row .lt{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; }
+      .theme-row .btn{ padding:4px 9px; font-size:11.5px; }
 
       /* ---------- PRO: hover xem trước trên timeline ---------- */
       .tl-hover{
@@ -1086,10 +1111,6 @@
               </button>
             </div>
             <div class="tl-selbar" id="tlSelBar" hidden></div>
-            <div class="tl-mini-row">
-              <div class="tl-mini-spacer"></div>
-              <canvas id="tlMini" height="30"></canvas>
-            </div>
             <div class="tl-body">
               <div class="tl-labels" aria-hidden="true">
                 <div class="tl-lab" style="height:16px"></div>
@@ -1379,6 +1400,22 @@
                 <option value="vivid">Rực rỡ</option>
               </select>
             </div>
+          </section>
+
+          <!-- THEME -->
+          <section class="card">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.2" cy="10" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="7.2" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.8" cy="10" r="1.3" fill="currentColor" stroke="none"/><path d="M12 21a2.6 2.6 0 0 1 0-5.2h1.8A5.2 5.2 0 0 0 19 10.6c0-2-1-3.4-2.4-4.2"/></svg>
+              Theme video
+            </h2>
+            <div class="theme-grid" id="themeGrid"></div>
+            <div class="field" style="margin-top:12px">
+              <label>Theme của tôi</label>
+              <div id="myThemeList"></div>
+            </div>
+            <div class="field">
+              <input type="text" id="themeName" placeholder="Tên theme của bạn…" maxlength="40" />
+            </div>
+            <button class="btn" id="btnSaveTheme" style="width:100%;justify-content:center">Lưu theme hiện tại</button>
           </section>
           </div>
 
@@ -1787,6 +1824,9 @@
         musicVol:80, videoVol:100, fadeIn:0, fadeOut:0, musicLoaded:false, musicStart:0, musicOffset:0,
         duck:false, duckLevel:30
       };
+      /* Style phụ đề mặc định — theme video ghi vào đây; trình tạo phụ đề
+         (theo câu + nhập SRT) dùng các giá trị này cho lớp phụ đề mới. */
+      var subStyle = { size:5.5, color:"#ffd60a", bg:false, bold:true, pos:"bottom" };
       var clips = [];        // {id,url,name,duration,vw,vh,trimStart,trimEnd,speed,ramp,transType,transDur,kb,filter,thumb,start,freeze,imgUrl,img} — start = vị trí tuyệt đối trên timeline (giây); cắt/xoá không tự dồn các đoạn khác. freeze=true: đoạn hình tĩnh chụp từ khung hình (img), duration = thời lượng đóng băng
       var asegs = [];        // đoạn tiếng gốc ĐỘC LẬP: {id,clipId,url,name,fileDur,start,trimStart,trimEnd,speed,vol,muted,fadeIn,fadeOut} — lúc tạo nằm đúng vị trí clip gốc, từ đó tách/cắt/dời/xoá riêng, KHÔNG dính tới clip video
       var texts = [];        // {id,kind:"text"|"sub",text,start,end,size,color,pos,bg,bold,anim,animDur}
@@ -2382,7 +2422,8 @@
           }),
           S: { aspect:S.aspect, posX:S.posX, posY:S.posY, quality:S.quality, blurBg:S.blurBg, flip:S.flip, rot:S.rot,
                bright:S.bright, contrast:S.contrast, sat:S.sat, musicVol:S.musicVol, videoVol:S.videoVol, fadeIn:S.fadeIn, fadeOut:S.fadeOut,
-               musicStart:S.musicStart, musicOffset:S.musicOffset, duck:!!S.duck, duckLevel:(S.duckLevel == null ? 30 : S.duckLevel) },
+               musicStart:S.musicStart, musicOffset:S.musicOffset, duck:!!S.duck, duckLevel:(S.duckLevel == null ? 30 : S.duckLevel),
+               subStyle:{ size:subStyle.size, color:subStyle.color, bg:!!subStyle.bg, bold:!!subStyle.bold, pos:subStyle.pos } },
           selClipId: selClipId, selTextId: selTextId, selOverId: selOverId, selAsegId: selAsegId
         });
       }
@@ -2470,6 +2511,7 @@
         S.musicVol=g.musicVol; S.videoVol=g.videoVol; S.fadeIn=g.fadeIn; S.fadeOut=g.fadeOut;
         S.musicStart = g.musicStart || 0; S.musicOffset = g.musicOffset || 0;
         S.duck = !!g.duck; S.duckLevel = (g.duckLevel == null ? 30 : g.duckLevel);
+        if(g.subStyle) subStyle = { size:(g.subStyle.size || 5.5), color:(g.subStyle.color || "#ffd60a"), bg:!!g.subStyle.bg, bold:!!g.subStyle.bold, pos:(g.subStyle.pos || "bottom") };
         selClipId = st.selClipId && findClip(st.selClipId) ? st.selClipId : (clips[0] ? clips[0].id : null);
         selTextId = st.selTextId; selOverId = st.selOverId;
         selAsegId = st.selAsegId && findAseg(st.selAsegId) ? st.selAsegId : null;
@@ -2628,51 +2670,6 @@
         renderMusicTrack();
         updateTlPlayhead();
         updateSelBar();
-        renderMinimap();
-      }
-      /* ---------- PRO: minimap — toàn cảnh dự án thu nhỏ + khung vùng đang xem ---------- */
-      function renderMinimap(){
-        var mc = $("tlMini");
-        if(!mc || !L.total) return;
-        var wCss = mc.clientWidth;
-        if(!wCss) return;
-        var dpr = window.devicePixelRatio || 1;
-        var W = Math.round(wCss * dpr), H = 30 * dpr;
-        if(mc.width !== W) mc.width = W;
-        if(mc.height !== H) mc.height = H;
-        var g = mc.getContext("2d");
-        g.clearRect(0, 0, W, H);
-        g.fillStyle = "#17171b";
-        g.fillRect(0, 0, W, H);
-        var rows = [
-          { list: clips.map(function(c){ return { s: c.start || 0, e: (c.start || 0) + clipOut(c) }; }), col: "#46586f" },
-          { list: asegs.map(function(a){ return { s: a.start || 0, e: (a.start || 0) + asegOut(a) }; }), col: "#1e5f43" },
-          { list: S.musicLoaded ? [{ s: S.musicStart, e: L.total }] : [], col: "#2f4d85" },
-          { list: texts.map(function(t){ return { s: t.start, e: t.end }; }), col: "#6b4e20" }
-        ];
-        var rh = H / 4;
-        for(var r2 = 0; r2 < rows.length; r2++){
-          g.fillStyle = rows[r2].col;
-          for(var b2 = 0; b2 < rows[r2].list.length; b2++){
-            var it = rows[r2].list[b2];
-            var bx = it.s / L.total * W, bw = Math.max(1.5, (it.e - it.s) / L.total * W);
-            g.fillRect(bx, r2 * rh + 1, bw, rh - 2);
-          }
-        }
-        /* Thanh mốc trên minimap */
-        g.fillStyle = "#00c9d4";
-        g.fillRect(playhead / L.total * W - 0.75, 0, 1.5, H);
-        /* Khung cửa sổ = vùng timeline chính đang hiển thị */
-        var sc = $("tlScroll");
-        if(sc && lastPps){
-          var vx = (sc.scrollLeft / lastPps) / L.total * W;
-          var vw = (sc.clientWidth / lastPps) / L.total * W;
-          g.strokeStyle = "rgba(0,201,212,.95)";
-          g.lineWidth = Math.max(1, dpr);
-          g.strokeRect(vx + 0.5, 1, Math.max(4, vw), H - 2);
-          g.fillStyle = "rgba(0,201,212,.08)";
-          g.fillRect(vx, 0, Math.max(4, vw), H);
-        }
       }
       function renderMusicTrack(){
         var mt = $("tlMusicTrack");
@@ -3483,28 +3480,6 @@
         tlZoom = parseFloat(this.value) || 1;
         renderStrip();
       });
-      /* PRO: minimap — bấm/kéo để cuộn timeline chính tới vùng đó */
-      var miniDrag = false;
-      function miniSeek(e){
-        if(!L.total) return;
-        var mc = $("tlMini");
-        var r = mc.getBoundingClientRect();
-        var f = clamp((e.clientX - r.left) / Math.max(1, r.width), 0, 1);
-        var sc = $("tlScroll");
-        var tCenter = f * L.total;
-        sc.scrollLeft = Math.max(0, tCenter * (lastPps || 8) - sc.clientWidth / 2);
-        renderMinimap();
-      }
-      $("tlMini").addEventListener("pointerdown", function(e){
-        miniDrag = true;
-        try{ this.setPointerCapture(e.pointerId); }catch(err){}
-        miniSeek(e);
-        e.preventDefault();
-      });
-      $("tlMini").addEventListener("pointermove", function(e){ if(miniDrag) miniSeek(e); });
-      $("tlMini").addEventListener("pointerup", function(){ miniDrag = false; });
-      $("tlMini").addEventListener("pointercancel", function(){ miniDrag = false; });
-      $("tlScroll").addEventListener("scroll", function(){ renderMinimap(); });
       var resizeTimer = null;
       window.addEventListener("resize", function(){
         if(!clips.length || $("studio").hidden) return;
@@ -4371,7 +4346,6 @@
         seekBar.value = playhead;
         $("timeCur").textContent = fmt(playhead);
         updateTlPlayhead();
-        if(playing || exporting) renderMinimap();
         if(playing){
           var sc = $("tlScroll");
           if(sc && lastPps){
@@ -5188,7 +5162,7 @@
             id: uid("t"), kind: "sub", text: line,
             start: Math.round(i * each * 10) / 10,
             end: Math.round(Math.min(total, (i+1) * each) * 10) / 10,
-            size: 5.5, color: "#ffd60a", pos: "bottom", bg: false, bold: true,
+            size: subStyle.size, color: subStyle.color, pos: subStyle.pos, bg: subStyle.bg, bold: subStyle.bold,
             anim: "none", animDur: 0.5
           });
         });
@@ -5248,7 +5222,7 @@
             texts.push({
               id: uid("t"), kind: "sub", text: txt,
               start: Math.round(st * 10) / 10, end: Math.round(en * 10) / 10,
-              size: 5.5, color: "#ffd60a", pos: "bottom", bg: false, bold: true,
+              size: subStyle.size, color: subStyle.color, pos: subStyle.pos, bg: subStyle.bg, bold: subStyle.bold,
               anim: "none", animDur: 0.5, karaoke: false
             });
             added++;
@@ -5733,6 +5707,127 @@
         });
       }
       refreshProjList();
+
+      /* ---------- Theme video: gói phong cách áp 1 chạm + theme của tôi (chỉ lưu cài đặt vào localStorage, không chứa media) ---------- */
+      var THEME_KEY = "evdn-themes-v1";
+      var PRESET_THEMES = [
+        { name:"Kể chuyện ma", aspect:"9:16", blurBg:false, filter:"cool",    bright:88,  contrast:118, sat:82,  sub:{ size:5.5, color:"#ffd60a", bg:false, bold:true,  pos:"bottom" } },
+        { name:"Điện ảnh",     aspect:"orig", blurBg:false, filter:"cinema",  bright:100, contrast:108, sat:92,  sub:{ size:5.5, color:"#ffffff", bg:false, bold:true,  pos:"bottom" } },
+        { name:"Vintage",      aspect:"orig", blurBg:false, filter:"vintage", bright:104, contrast:96,  sat:88,  sub:{ size:5.5, color:"#fff3d6", bg:false, bold:false, pos:"bottom" } },
+        { name:"Tươi sáng",    aspect:"orig", blurBg:false, filter:"fresh",   bright:110, contrast:102, sat:108, sub:{ size:5.5, color:"#ffd60a", bg:false, bold:true,  pos:"bottom" } },
+        { name:"Trắng đen",    aspect:"orig", blurBg:false, filter:"bw",      bright:102, contrast:120, sat:100, sub:{ size:5.5, color:"#ffffff", bg:false, bold:true,  pos:"bottom" } },
+        { name:"Pastel",       aspect:"orig", blurBg:false, filter:"none",    bright:108, contrast:92,  sat:90,  sub:{ size:5.5, color:"#ffffff", bg:true,  bold:false, pos:"bottom" } },
+        { name:"Rực rỡ",       aspect:"orig", blurBg:false, filter:"vivid",   bright:104, contrast:106, sat:135, sub:{ size:5.5, color:"#ffffff", bg:false, bold:true,  pos:"bottom" } },
+        { name:"Ấm áp",        aspect:"orig", blurBg:false, filter:"warm",    bright:103, contrast:100, sat:108, sub:{ size:5.5, color:"#ffffff", bg:false, bold:true,  pos:"bottom" } }
+      ];
+      var myThemes = [];
+      function loadMyThemes(){
+        try{
+          var raw = window.localStorage ? localStorage.getItem(THEME_KEY) : null;
+          var arr = raw ? JSON.parse(raw) : [];
+          if(Array.isArray(arr)) myThemes = arr.filter(function(t){ return t && t.name && t.sub; });
+        }catch(e){ myThemes = []; }
+      }
+      function saveMyThemes(){
+        try{ if(window.localStorage) localStorage.setItem(THEME_KEY, JSON.stringify(myThemes)); }catch(e){}
+      }
+      function themeFilterCss(th){
+        var parts = [];
+        if(FILTERS[th.filter]) parts.push(FILTERS[th.filter]);
+        parts.push("brightness(" + th.bright + "%)");
+        parts.push("contrast(" + th.contrast + "%)");
+        parts.push("saturate(" + th.sat + "%)");
+        return parts.join(" ");
+      }
+      function renderThemeGrid(){
+        var grid = $("themeGrid");
+        if(!grid) return;
+        grid.innerHTML = "";
+        PRESET_THEMES.forEach(function(th){
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "theme-chip";
+          b.title = "Áp theme " + th.name;
+          var prev = document.createElement("span");
+          prev.className = "th-prev";
+          prev.style.filter = themeFilterCss(th);
+          var aa = document.createElement("span");
+          aa.className = "th-aa" + (th.sub.bg ? " bg" : "");
+          aa.style.color = th.sub.color;
+          aa.textContent = "Phụ đề";
+          prev.appendChild(aa);
+          var nm = document.createElement("span");
+          nm.className = "th-name";
+          nm.textContent = th.name;
+          b.appendChild(prev);
+          b.appendChild(nm);
+          b.addEventListener("click", function(){ applyTheme(th); });
+          grid.appendChild(b);
+        });
+      }
+      function renderMyThemes(){
+        var box = $("myThemeList");
+        if(!box) return;
+        if(!myThemes.length){ box.innerHTML = '<div class="empty-note">Chưa có theme riêng nào.</div>'; return; }
+        box.innerHTML = "";
+        myThemes.forEach(function(th, i){
+          var row = document.createElement("div");
+          row.className = "theme-row";
+          var lt = document.createElement("span");
+          lt.className = "lt";
+          lt.textContent = th.name;
+          var ba = document.createElement("button");
+          ba.type = "button"; ba.className = "btn"; ba.textContent = "Áp dụng";
+          ba.addEventListener("click", function(){ applyTheme(th); });
+          var bd = document.createElement("button");
+          bd.type = "button"; bd.className = "btn danger"; bd.textContent = "Xoá";
+          bd.addEventListener("click", function(){
+            myThemes.splice(i, 1);
+            saveMyThemes(); renderMyThemes();
+            toast("Đã xoá theme.");
+          });
+          row.appendChild(lt); row.appendChild(ba); row.appendChild(bd);
+          box.appendChild(row);
+        });
+      }
+      /* Áp theme = ghi vào cài đặt dự án + grade lên mọi clip + style cho phụ đề
+         hiện có và mặc định cho phụ đề tạo mới — tất cả trong MỘT bước undo. */
+      function applyTheme(th){
+        S.aspect = th.aspect || "orig";
+        S.blurBg = !!th.blurBg;
+        S.bright = th.bright; S.contrast = th.contrast; S.sat = th.sat;
+        clips.forEach(function(c){ c.filter = th.filter || "none"; });
+        subStyle = { size:(th.sub.size || 5.5), color:(th.sub.color || "#ffffff"), bg:!!th.sub.bg, bold:!!th.sub.bold, pos:(th.sub.pos || "bottom") };
+        texts.forEach(function(t){
+          if(t.kind !== "sub") return;
+          t.size = subStyle.size; t.color = subStyle.color; t.bg = subStyle.bg; t.bold = subStyle.bold; t.pos = subStyle.pos;
+        });
+        syncGlobalUI(); syncClipPanel(); renderTextList(); syncTextPanel();
+        refreshCanvasSize(); renderStrip();
+        dirty = true;
+        pushHistory();
+        toast('Đã áp theme "' + th.name + '".');
+      }
+      function captureTheme(name){
+        var fc = selClip() || clips[0] || null;
+        var st = null;
+        for(var i = 0; i < texts.length; i++){ if(texts[i].kind === "sub"){ st = texts[i]; break; } }
+        var sub = st
+          ? { size:st.size, color:st.color, bg:!!st.bg, bold:!!st.bold, pos:st.pos }
+          : { size:subStyle.size, color:subStyle.color, bg:!!subStyle.bg, bold:!!subStyle.bold, pos:subStyle.pos };
+        return { name:name, aspect:S.aspect, blurBg:!!S.blurBg,
+          bright:S.bright, contrast:S.contrast, sat:S.sat,
+          filter:(fc ? (fc.filter || "none") : "none"), sub:sub };
+      }
+      $("btnSaveTheme").addEventListener("click", function(){
+        var name = ($("themeName").value || "").trim();
+        if(!name){ toast("Hãy nhập tên cho theme trước đã."); return; }
+        myThemes.push(captureTheme(name));
+        saveMyThemes(); renderMyThemes();
+        $("themeName").value = "";
+        toast('Đã lưu theme "' + name + '".');
+      });
+      loadMyThemes(); renderThemeGrid(); renderMyThemes();
 
       /* ---------- export ---------- */
       var recorder = null, recChunks = [], recMime = "", exportCancelled = false, lastBlobUrl = null;
