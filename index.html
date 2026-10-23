@@ -275,6 +275,14 @@
         background:var(--accent); border-radius:2px; z-index:5; pointer-events:none;
         box-shadow:0 0 0 1px rgba(255,255,255,.65);
       }
+      .tl-gap{
+        position:absolute; top:0; bottom:0; border-radius:6px; cursor:pointer;
+        border:1.5px dashed rgba(130,120,108,.6);
+        background:repeating-linear-gradient(45deg, rgba(130,120,108,.16) 0 6px, transparent 6px 12px);
+      }
+      .tl-vtrack .tl-gap{ height:54px; }
+      .tl-atrack .tl-gap{ height:26px; }
+      .tl-gap.on{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); background-color:rgba(232,80,30,.10); }
       .tl-tip{
         position:absolute; z-index:9; pointer-events:none;
         background:rgba(20,17,13,.92); color:#fff; font-size:11px; font-weight:600;
@@ -537,7 +545,7 @@
               </div>
             </div>
             <div class="tl-menu" id="tlMenu" hidden></div>
-            <p class="hint">Kéo thước / đầu phát để tua · bấm đoạn để chọn — kéo thân đoạn để dời vị trí, kéo hai mép để cắt ngắn / kéo dài · phím Delete xoá đoạn, S tách tại điểm phát · chuột phải vào đoạn để mở menu · track Tiếng gốc đi theo clip, kéo mép trái thanh nhạc để cắt đầu nhạc.</p>
+            <p class="hint">Kéo thước / đầu phát để tua · bấm đoạn để chọn — kéo thân đoạn để dời vị trí tự do, kéo hai mép để cắt ngắn / kéo dài · phím Delete xoá đoạn, S tách tại điểm phát · chuột phải vào đoạn để mở menu · Cắt / xoá / cắt ngắn KHÔNG tự dồn các đoạn khác: chỗ trống để lại thành khoảng trống (hình đen, tiếng im lặng) — muốn lấp thì bấm vào khoảng trống hoặc chuột phải vào đoạn, chọn "Đóng khoảng trống" · track Tiếng gốc đi theo clip, kéo mép trái thanh nhạc để cắt đầu nhạc.</p>
           </div>
         </div>
 
@@ -914,11 +922,12 @@
         bright:100, contrast:100, sat:100,
         musicVol:80, videoVol:100, fadeIn:0, fadeOut:0, musicLoaded:false, musicStart:0, musicOffset:0
       };
-      var clips = [];        // {id,url,name,duration,vw,vh,trimStart,trimEnd,speed,transType,transDur,kb,filter,thumb}
+      var clips = [];        // {id,url,name,duration,vw,vh,trimStart,trimEnd,speed,transType,transDur,kb,filter,thumb,start} — start = vị trí tuyệt đối trên timeline (giây); cắt/xoá không tự dồn các đoạn khác
       var texts = [];        // {id,kind:"text"|"sub",text,start,end,size,color,pos,bg,bold}
       var overs = [];        // {id,url,x,y,scale,opacity,start,end,img}
       var selClipId = null, selTextId = null, selOverId = null;
-      var tlSel = { kind: null, id: null };   // đoạn đang chọn trên timeline: "clip" | "text" | "music"
+      var tlSel = { kind: null, id: null };   // đoạn đang chọn trên timeline: "clip" | "text" | "music" | "gap"
+      var tlGap = null;      // khoảng trống đang chọn trên track video: {s, e}
       var playhead = 0, playing = false, exporting = false, dirty = true;
       var L = { starts:[], trs:[], total:0 };
       var clipEls = {};      // id -> <video>
@@ -950,20 +959,77 @@
 
       /* ---------- timeline layout ---------- */
       function clipOut(c){ return Math.max(0.05, (c.trimEnd - c.trimStart) / c.speed); }
+      function sortClips(){ clips.sort(function(a, b){ return (a.start || 0) - (b.start || 0); }); }
+      function clipsEnd(){
+        var e = 0;
+        for(var i = 0; i < clips.length; i++) e = Math.max(e, (clips[i].start || 0) + clipOut(clips[i]));
+        return e;
+      }
+      /* Khoảng trống trên track video: chỗ bị cắt/xoá/cắt ngắn để lại — các đoạn khác ĐỨNG YÊN, không tự dồn */
+      function computeGaps(){
+        var iv = [];
+        for(var i = 0; i < clips.length; i++) iv.push({ s: clips[i].start || 0, e: (clips[i].start || 0) + clipOut(clips[i]) });
+        iv.sort(function(a, b){ return a.s - b.s; });
+        var gaps = [], cur = 0;
+        for(var j = 0; j < iv.length; j++){
+          if(iv[j].s > cur + 0.01) gaps.push({ s: cur, e: iv[j].s });
+          if(iv[j].e > cur) cur = iv[j].e;
+        }
+        return gaps;
+      }
+      function gapAtTime(t){
+        var gaps = computeGaps();
+        for(var i = 0; i < gaps.length; i++){
+          if(t >= gaps[i].s - 0.001 && t <= gaps[i].e + 0.001) return { s: gaps[i].s, e: gaps[i].e };
+        }
+        return null;
+      }
+      /* Hít nhẹ khi kéo đoạn: bám vào mốc 0, đầu phát và mép các đoạn khác */
+      function snapTargetsFor(excludeKind, excludeId){
+        var tg = [0, playhead];
+        for(var i = 0; i < clips.length; i++){
+          if(excludeKind === "clip" && clips[i].id === excludeId) continue;
+          tg.push(clips[i].start || 0);
+          tg.push((clips[i].start || 0) + clipOut(clips[i]));
+        }
+        for(var j = 0; j < texts.length; j++){
+          if(excludeKind === "text" && texts[j].id === excludeId) continue;
+          tg.push(texts[j].start); tg.push(texts[j].end);
+        }
+        if(S.musicLoaded && excludeKind !== "music") tg.push(S.musicStart);
+        return tg;
+      }
+      function snapStart(newStart, dur, targets, pps){
+        var th = 10 / Math.max(1, pps || 8);
+        var best = newStart, bestD = th;
+        for(var i = 0; i < targets.length; i++){
+          var cands = [targets[i], targets[i] - dur];
+          for(var k = 0; k < 2; k++){
+            var dd = Math.abs(cands[k] - newStart);
+            if(dd < bestD){ bestD = dd; best = cands[k]; }
+          }
+        }
+        return best;
+      }
       function relayout(){
         L.starts = []; L.trs = [];
-        var t = 0;
-        for(var i=0;i<clips.length;i++){
-          L.starts.push(t);
-          var out = clipOut(clips[i]);
-          var tr = 0;
-          if(i < clips.length-1 && clips[i].transType !== "none"){
-            tr = Math.min(clips[i].transDur, out*0.45, clipOut(clips[i+1])*0.45);
-          }
-          L.trs.push(tr);
-          t += out - tr;
+        var total = 0, i, endI;
+        for(i = 0; i < clips.length; i++){
+          L.starts.push(clips[i].start || 0);
+          L.trs.push(0);
+          endI = (clips[i].start || 0) + clipOut(clips[i]);
+          if(endI > total) total = endI;
         }
-        L.total = clips.length ? L.starts[clips.length-1] + clipOut(clips[clips.length-1]) : 0;
+        /* Chuyển cảnh chỉ còn khi hai clip thật sự chồng lấn nhau trên timeline */
+        for(i = 0; i < clips.length - 1; i++){
+          if(clips[i].transType === "none") continue;
+          var ov = (L.starts[i] + clipOut(clips[i])) - L.starts[i+1];
+          if(ov > 0) L.trs[i] = Math.min(clips[i].transDur, ov, clipOut(clips[i]) * 0.45, clipOut(clips[i+1]) * 0.45);
+        }
+        /* Tổng thời lượng = điểm kết thúc của đoạn cuối cùng trên mọi track (kể cả khi đầu timeline trống) */
+        for(i = 0; i < texts.length; i++) if(texts[i].end > total) total = texts[i].end;
+        for(i = 0; i < overs.length; i++) if(overs[i].end > total) total = overs[i].end;
+        L.total = total;
         playhead = clamp(playhead, 0, L.total);
         var sb = $("seekBar");
         sb.max = Math.max(0.1, L.total); sb.value = playhead;
@@ -973,10 +1039,10 @@
         updateBadge();
       }
       function clipIndexAt(t){
-        for(var i=clips.length-1;i>=0;i--){
+        for(var i = 0; i < clips.length; i++){
           if(t >= L.starts[i] - 0.001 && t <= L.starts[i] + clipOut(clips[i]) + 0.001) return i;
         }
-        return clips.length-1;
+        return -1;
       }
       function updateBadge(){
         if(!clips.length) return;
@@ -1118,7 +1184,7 @@
             id: uid("c"), url: url,
             name: file.name,
             duration: tv.duration || 0, vw: tv.videoWidth || 640, vh: tv.videoHeight || 360,
-            trimStart: 0, trimEnd: tv.duration || 0,
+            trimStart: 0, trimEnd: tv.duration || 0, start: 0,
             speed: 1, transType: "none", transDur: 0.5, kb: "none", filter: "none",
             vol: 100, muted: false,
             thumb: null
@@ -1150,6 +1216,7 @@
           }
           probeFile(list[idx++], function(c){
             if(c){
+              c.start = Math.round(clipsEnd() * 100) / 100;
               clips.push(c);
               if(!firstNew) firstNew = c;
               captureThumb(c);
@@ -1206,7 +1273,7 @@
         return JSON.stringify({
           clips: clips.map(function(c){
             return { id:c.id, url:c.url, name:c.name, duration:c.duration, vw:c.vw, vh:c.vh,
-              trimStart:c.trimStart, trimEnd:c.trimEnd, speed:c.speed,
+              trimStart:c.trimStart, trimEnd:c.trimEnd, start:(c.start || 0), speed:c.speed,
               transType:c.transType, transDur:c.transDur, kb:c.kb, filter:c.filter,
               vol:(c.vol == null ? 100 : c.vol), muted:!!c.muted, thumb:c.thumb };
           }),
@@ -1245,6 +1312,8 @@
         Object.keys(clipEls).forEach(function(id){ if(!keep[id]) disposeEl(id); });
         clips = st.clips;
         clips.forEach(function(c){ if(c.vol == null) c.vol = 100; if(c.muted == null) c.muted = false; });
+        (function(){ var acc = 0; clips.forEach(function(c){ if(c.start == null) c.start = acc; acc = Math.max(acc, (c.start || 0) + clipOut(c)); }); sortClips(); })();
+        tlGap = null;
         texts = st.texts;
         overs = st.overs.map(function(o){
           var img = new Image();
@@ -1338,6 +1407,14 @@
         ruler.style.width = W + "px";
         ruler.innerHTML = rh;
         var vh = "", ah = "";
+        var gapList = computeGaps();
+        for(var gi = 0; gi < gapList.length; gi++){
+          var gp = gapList[gi];
+          var gOn = tlSel.kind === "gap" && tlGap && Math.abs(tlGap.s - gp.s) < 0.01 && Math.abs(tlGap.e - gp.e) < 0.01;
+          var gst = ' style="left:' + Math.round(gp.s * pps) + 'px;width:' + Math.max(8, Math.round((gp.e - gp.s) * pps)) + 'px"';
+          vh += '<div class="tl-gap' + (gOn ? " on" : "") + '" data-gap="' + gi + '"' + gst + ' title="Khoảng trống — bấm để chọn, hoặc chuột phải để đóng khoảng trống"></div>';
+          ah += '<div class="tl-gap" data-gap="' + gi + '"' + gst + '></div>';
+        }
         for(var i = 0; i < clips.length; i++){
           var c = clips[i];
           if(!c.wave && !c.waveBusy && !c.waveFail) computeWave(c);
@@ -1437,7 +1514,7 @@
         return $("tlMusicSeg");
       }
       function selectTimeline(kind, id, seek){
-        tlSel.kind = kind; tlSel.id = id || null;
+        tlSel.kind = kind; tlSel.id = id || null; tlGap = null;
         if(kind === "clip"){
           selClipId = id;
           syncClipPanel();
@@ -1452,7 +1529,7 @@
         dirty = true;
       }
       function clearTimelineSelection(){
-        tlSel.kind = null; tlSel.id = null;
+        tlSel.kind = null; tlSel.id = null; tlGap = null;
         renderStrip();
       }
       function showTlTip(x, y, text){
@@ -1506,6 +1583,14 @@
           ms.style.left = Math.round(S.musicStart * pps) + "px";
           ms.style.width = Math.max(20, Math.round((L.total - S.musicStart) * pps)) + "px";
         }
+        var gapsNow = computeGaps();
+        ["tlVideoTrack", "tlAudioTrack"].forEach(function(tid){
+          var gels = $(tid).querySelectorAll(".tl-gap");
+          for(var gi2 = 0; gi2 < gels.length && gi2 < gapsNow.length; gi2++){
+            gels[gi2].style.left = Math.round(gapsNow[gi2].s * pps) + "px";
+            gels[gi2].style.width = Math.max(8, Math.round((gapsNow[gi2].e - gapsNow[gi2].s) * pps)) + "px";
+          }
+        });
         updateTlPlayhead();
       }
 
@@ -1515,6 +1600,15 @@
         if(!bar) return;
         var kind = tlSel.kind;
         if(!kind || (kind === "music" && !S.musicLoaded)){ bar.hidden = true; bar.innerHTML = ""; return; }
+        if(kind === "gap"){
+          if(!tlGap){ bar.hidden = true; bar.innerHTML = ""; return; }
+          bar.innerHTML = '<span class="sb-name"></span>' +
+            '<button type="button" class="sb-btn" data-act="closegap">Đóng khoảng trống — dồn các đoạn sau sang trái</button>' +
+            '<button type="button" class="sb-btn sb-x" data-act="close" aria-label="Bỏ chọn">✕</button>';
+          bar.querySelector(".sb-name").textContent = "Khoảng trống " + fmt(tlGap.s) + " → " + fmt(tlGap.e) + " · dài " + fmt(tlGap.e - tlGap.s);
+          bar.hidden = false;
+          return;
+        }
         var name = "", canSplit = false, canDup = false, c = null, t = null;
         if(kind === "clip"){
           c = findClip(tlSel.id);
@@ -1570,6 +1664,16 @@
         var kind = tlSel.kind;
         if(act === "close"){ clearTimelineSelection(); return; }
         if(act === "edit"){ scrollToEditor(kind); return; }
+        if(kind === "gap"){
+          if(act === "closegap" && tlGap) closeGapRange(tlGap.s, tlGap.e);
+          return;
+        }
+        if(act === "closegap" && (kind === "clip" || kind === "text")){
+          var gb = gapBeforeSeg(kind, tlSel.id);
+          if(!gb || gb.e - gb.s <= 0.01){ toast("Không có khoảng trống ngay trước đoạn này."); return; }
+          closeGapRange(gb.s, gb.e);
+          return;
+        }
         if(kind === "clip"){
           var c = findClip(tlSel.id); if(!c) return;
           if(act === "split") splitAtPlayhead();
@@ -1626,6 +1730,38 @@
         pushHistory(); dirty = true;
         toast("Đã tách lớp chữ tại điểm phát.");
       }
+      /* ---------- đóng khoảng trống: CHỈ khi user bấm — không bao giờ tự dồn ---------- */
+      function gapBeforeSeg(kind, id){
+        var s, list;
+        if(kind === "clip"){ var c = findClip(id); if(!c) return null; s = c.start || 0; list = clips; }
+        else if(kind === "text"){ var t = findText(id); if(!t) return null; s = t.start; list = texts; }
+        else return null;
+        var prevEnd = 0;
+        for(var i = 0; i < list.length; i++){
+          var it = list[i];
+          if(it.id === id) continue;
+          var st = kind === "clip" ? (it.start || 0) : it.start;
+          var en = kind === "clip" ? st + clipOut(it) : it.end;
+          if(en <= s + 0.001 && en > prevEnd) prevEnd = en;
+        }
+        return { s: prevEnd, e: s };
+      }
+      function closeGapRange(gs, ge){
+        var len = Math.round((ge - gs) * 100) / 100;
+        if(len <= 0.01){ toast("Không có khoảng trống để đóng."); return; }
+        clips.forEach(function(c){ if((c.start || 0) >= gs - 0.001) c.start = Math.max(0, Math.round(((c.start || 0) - len) * 100) / 100); });
+        texts.forEach(function(t){ if(t.start >= gs - 0.001){ t.start = Math.round((t.start - len) * 10) / 10; t.end = Math.round((t.end - len) * 10) / 10; } });
+        overs.forEach(function(o){ if(o.start >= gs - 0.001){ o.start = Math.round((o.start - len) * 10) / 10; o.end = Math.round((o.end - len) * 10) / 10; } });
+        if(S.musicLoaded && S.musicStart >= gs - 0.001) S.musicStart = Math.max(0, Math.round((S.musicStart - len) * 10) / 10);
+        if(tlSel.kind === "gap"){ tlSel.kind = null; tlSel.id = null; }
+        tlGap = null;
+        sortClips();
+        relayout(); refreshCanvasSize();
+        renderStrip(); syncClipPanel(); renderTextList(); syncTextPanel(); renderOverList(); syncOverPanel(); syncGlobalUI();
+        if(!playing) syncPausedFrame();
+        pushHistory(); dirty = true;
+        toast("Đã đóng khoảng trống " + fmt(len) + " — các đoạn từ đó trở đi đã dồn sang trái.");
+      }
       function removeMusic(){
         if(!S.musicLoaded) return;
         try{ music.pause(); }catch(e){}
@@ -1647,11 +1783,16 @@
       function showTlMenu(x, y, kind){
         var m = $("tlMenu");
         var h = "";
-        if(kind !== "music") h += '<button type="button" data-mact="split">Tách tại điểm phát</button>';
-        if(kind !== "music") h += '<button type="button" data-mact="dup">Nhân bản đoạn</button>';
-        h += '<button type="button" data-mact="edit">Chỉnh đoạn…</button>';
-        h += '<div class="sep"></div>';
-        h += '<button type="button" class="danger" data-mact="del">' + (kind === "music" ? "Xoá nhạc nền" : "Xoá đoạn") + '</button>';
+        if(kind === "gap"){
+          h += '<button type="button" data-mact="closegap">Đóng khoảng trống này — dồn các đoạn sau sang trái</button>';
+        } else {
+          if(kind !== "music") h += '<button type="button" data-mact="split">Tách tại điểm phát</button>';
+          if(kind !== "music") h += '<button type="button" data-mact="dup">Nhân bản đoạn</button>';
+          if(kind === "clip" || kind === "text") h += '<button type="button" data-mact="closegap">Đóng khoảng trống bên trái</button>';
+          h += '<button type="button" data-mact="edit">Chỉnh đoạn…</button>';
+          h += '<div class="sep"></div>';
+          h += '<button type="button" class="danger" data-mact="del">' + (kind === "music" ? "Xoá nhạc nền" : "Xoá đoạn") + '</button>';
+        }
         m.innerHTML = h;
         m.hidden = false;
         m.style.left = Math.max(4, Math.min(x, window.innerWidth - 208)) + "px";
@@ -1671,11 +1812,22 @@
       });
       $("tlInner").addEventListener("contextmenu", function(e){
         var segEl = e.target.closest(".tl-seg, .tl-aseg, .tl-tseg, .tl-mseg");
-        if(!segEl) return;
+        if(!segEl){
+          if(e.target.closest(".tl-vtrack") || e.target.closest(".tl-atrack")){
+            var gg = gapAtTime(tlTimeFromEvent(e));
+            if(gg){
+              e.preventDefault();
+              tlSel.kind = "gap"; tlSel.id = null; tlGap = gg;
+              renderStrip();
+              showTlMenu(e.clientX, e.clientY, "gap");
+            }
+          }
+          return;
+        }
         e.preventDefault();
         var kind = segKindOf(segEl);
         var id = kind === "clip" ? segEl.getAttribute("data-clip") : (kind === "text" ? segEl.getAttribute("data-text") : null);
-        tlSel.kind = kind; tlSel.id = id;
+        tlSel.kind = kind; tlSel.id = id; tlGap = null;
         if(kind === "clip"){ selClipId = id; syncClipPanel(); }
         else if(kind === "text"){ selTextId = id; renderTextList(); syncTextPanel(); }
         renderStrip();
@@ -1690,6 +1842,14 @@
         if(add){ $("fileVideo").click(); return; }
         var segEl = e.target.closest(".tl-seg, .tl-aseg, .tl-tseg, .tl-mseg");
         if(!segEl){
+          if(e.target.closest(".tl-vtrack") || e.target.closest(".tl-atrack")){
+            var gg2 = gapAtTime(tlTimeFromEvent(e));
+            if(gg2){
+              tlSel.kind = "gap"; tlSel.id = null; tlGap = gg2;
+              renderStrip(); dirty = true;
+              return;
+            }
+          }
           if(e.target.closest(".tl-track")) clearTimelineSelection();
           return;
         }
@@ -1703,7 +1863,7 @@
         else if(e.clientX - r0.left <= hw) mode = "trim-l";
         else if(kind !== "music" && r0.right - e.clientX <= hw) mode = "trim-r";
         if(kind === "music" && mode === "trim-r") mode = "move";
-        tlSel.kind = kind; tlSel.id = id;
+        tlSel.kind = kind; tlSel.id = id; tlGap = null;
         if(kind === "clip"){ selClipId = id; syncClipPanel(); }
         else if(kind === "text"){ selTextId = id; renderTextList(); syncTextPanel(); }
         renderStrip();
@@ -1714,7 +1874,7 @@
         tlDrag = {
           kind: kind, id: id, mode: mode, el: segEl,
           x0: e.clientX, moved: false, targetIdx: -1,
-          clip: c ? { trimStart: c.trimStart, trimEnd: c.trimEnd } : null,
+          clip: c ? { trimStart: c.trimStart, trimEnd: c.trimEnd, start: c.start || 0 } : null,
           text: tx ? { start: tx.start, end: tx.end } : null,
           musicStart0: S.musicStart, musicOffset0: S.musicOffset,
           startT: segStartT(kind, id)
@@ -1736,23 +1896,22 @@
         if(d.kind === "clip"){
           var c = findClip(d.id); if(!c) return;
           if(d.mode === "move"){
-            d.el.style.transform = "translateX(" + dxPx + "px)";
-            d.el.classList.add("tl-drag-ghost");
-            var others = clips.filter(function(x){ return x.id !== d.id; });
-            var centerT = d.startT + clipOut(c) / 2 + dt;
-            var acc = 0, insertAt = others.length, dropX = 0;
-            for(var k = 0; k < others.length; k++){
-              var oOut = clipOut(others[k]);
-              if(centerT < acc + oOut / 2){ insertAt = k; dropX = acc * pps; break; }
-              acc += oOut;
-            }
-            if(insertAt === others.length) dropX = acc * pps;
-            d.targetIdx = insertAt;
-            showDropMark(d.el.parentNode, dropX);
-            showTlTip(tipX, tipY, "Dời tới vị trí " + (insertAt + 1) + " / " + clips.length);
+            /* Dời tự do: đoạn tới đâu nằm yên ở đó, chừa khoảng trống thoải mái — chỉ hít nhẹ khi gần mốc */
+            var nsMove = snapStart(d.clip.start + dt, clipOut(c), snapTargetsFor("clip", d.id), pps);
+            c.start = Math.round(Math.max(0, nsMove) * 100) / 100;
+            relayout();
+            positionSegsLive();
+            showTlTip(tipX, tipY, "Clip bắt đầu ở " + fmt(c.start) + " · " + fmt(c.start) + " → " + fmt(c.start + clipOut(c)));
+            if(!playing) syncPausedFrame();
+            dirty = true;
           } else {
             if(d.mode === "trim-l"){
-              c.trimStart = Math.round(clamp(d.clip.trimStart + dt * c.speed, 0, d.clip.trimEnd - 0.2) * 100) / 100;
+              /* Mép trái đi tới đâu, điểm bắt đầu trên timeline đi theo tới đó — nội dung còn lại giữ nguyên vị trí, đoạn khác đứng yên */
+              var nts = clamp(d.clip.trimStart + dt * c.speed, 0, d.clip.trimEnd - 0.2);
+              var used = (nts - d.clip.trimStart) / c.speed;
+              if(d.clip.start + used < 0){ used = -d.clip.start; nts = d.clip.trimStart + used * c.speed; }
+              c.trimStart = Math.round(nts * 100) / 100;
+              c.start = Math.round((d.clip.start + used) * 100) / 100;
             } else {
               c.trimEnd = Math.round(clamp(d.clip.trimEnd + dt * c.speed, d.clip.trimStart + 0.2, c.duration) * 100) / 100;
             }
@@ -1767,14 +1926,16 @@
           var t = findText(d.id); if(!t) return;
           var dur = d.text.end - d.text.start;
           if(d.mode === "move"){
-            var ns = Math.round(clamp(d.text.start + dt, 0, Math.max(0, L.total - dur)) * 10) / 10;
-            t.start = ns;
-            t.end = Math.round((ns + dur) * 10) / 10;
+            var nsT = snapStart(d.text.start + dt, dur, snapTargetsFor("text", d.id), pps);
+            nsT = Math.round(clamp(nsT, 0, Math.max(clipsEnd(), d.text.start)) * 10) / 10;
+            t.start = nsT;
+            t.end = Math.round((nsT + dur) * 10) / 10;
           } else if(d.mode === "trim-l"){
             t.start = Math.round(clamp(d.text.start + dt, 0, d.text.end - 0.2) * 10) / 10;
           } else {
             t.end = Math.round(clamp(d.text.end + dt, d.text.start + 0.2, Math.max(L.total, d.text.end)) * 10) / 10;
           }
+          relayout();
           positionSegsLive();
           showTlTip(tipX, tipY, fmt(t.start) + " → " + fmt(t.end) + " · dài " + fmt(t.end - t.start));
           dirty = true;
@@ -1785,7 +1946,8 @@
             S.musicStart = Math.round((d.musicStart0 + dd) * 10) / 10;
             S.musicOffset = Math.round((d.musicOffset0 + dd) * 10) / 10;
           } else {
-            S.musicStart = Math.round(clamp(d.musicStart0 + dt, 0, Math.max(0, L.total - 0.3)) * 10) / 10;
+            var msn = snapStart(d.musicStart0 + dt, 0, snapTargetsFor("music", null), pps);
+            S.musicStart = Math.round(clamp(msn, 0, Math.max(0, L.total - 0.3)) * 10) / 10;
           }
           positionSegsLive();
           var lab = d.el.querySelector(".tl-mlab");
@@ -1808,22 +1970,16 @@
           return;
         }
         if(d.kind === "clip" && d.mode === "move"){
-          var c = findClip(d.id);
-          if(c && d.targetIdx >= 0){
-            var from = clips.indexOf(c);
-            if(d.targetIdx !== from){
-              clips.splice(from, 1);
-              clips.splice(d.targetIdx, 0, c);
-              toast("Đã dời clip tới vị trí " + (d.targetIdx + 1) + ".");
-            }
-          }
+          var cmv = findClip(d.id);
+          sortClips();
           afterClipStructure(); pushHistory();
+          if(cmv) toast("Đã dời clip — bắt đầu ở " + fmt(cmv.start || 0) + ". Các đoạn khác đứng yên tại chỗ.");
         } else if(d.kind === "clip"){
           relayout(); renderStrip(); syncClipPanel();
           if(!playing) syncPausedFrame();
           pushHistory();
         } else if(d.kind === "text"){
-          renderStrip(); renderTextList(); syncTextPanel();
+          relayout(); renderStrip(); renderTextList(); syncTextPanel();
           pushHistory(); dirty = true;
         } else if(d.kind === "music"){
           renderStrip();
@@ -2454,6 +2610,7 @@
 
       /* ---------- clip editing ---------- */
       function afterClipStructure(){
+        sortClips();
         relayout(); refreshCanvasSize();
         renderStrip(); syncClipPanel(); renderTextList(); renderOverList();
         if(!playing) syncPausedFrame();
@@ -2463,7 +2620,12 @@
         var c = selClip(); if(!c) return;
         var v = parseFloat(this.value);
         if(v > c.trimEnd - 0.2) v = c.trimEnd - 0.2;
-        c.trimStart = Math.max(0, v);
+        v = Math.max(0, v);
+        /* Cắt đầu ở panel cũng ghim nội dung: điểm bắt đầu trên timeline dời theo phần đã cắt, các đoạn khác đứng yên */
+        var dOut = (v - c.trimStart) / c.speed;
+        if((c.start || 0) + dOut < 0){ dOut = -(c.start || 0); v = c.trimStart + dOut * c.speed; }
+        c.trimStart = v;
+        c.start = Math.round(((c.start || 0) + dOut) * 100) / 100;
         this.value = c.trimStart;
         relayout(); syncClipPanelLive(); renderStripLight();
         dirty = true;
@@ -2527,17 +2689,21 @@
       });
       $("btnMoveL").addEventListener("click", function(){
         var c = selClip(); if(!c) return;
-        var i = clips.indexOf(c);
-        if(i <= 0) return;
-        clips.splice(i, 1); clips.splice(i-1, 0, c);
-        seekTo(L.starts[i-1] || 0);
+        var sorted = clips.slice().sort(function(a, b){ return (a.start || 0) - (b.start || 0); });
+        var pos = sorted.indexOf(c);
+        if(pos <= 0) return;
+        var other = sorted[pos - 1], tmpS = c.start || 0;
+        c.start = other.start || 0; other.start = tmpS;
         afterClipStructure(); pushHistory();
+        seekTo(c.start || 0);
       });
       $("btnMoveR").addEventListener("click", function(){
         var c = selClip(); if(!c) return;
-        var i = clips.indexOf(c);
-        if(i >= clips.length-1) return;
-        clips.splice(i, 1); clips.splice(i+1, 0, c);
+        var sorted = clips.slice().sort(function(a, b){ return (a.start || 0) - (b.start || 0); });
+        var pos = sorted.indexOf(c);
+        if(pos < 0 || pos >= sorted.length - 1) return;
+        var other = sorted[pos + 1], tmpS = c.start || 0;
+        c.start = other.start || 0; other.start = tmpS;
         afterClipStructure(); pushHistory();
       });
       function duplicateClip(c){
@@ -2549,6 +2715,7 @@
           vol:(c.vol == null ? 100 : c.vol), muted:!!c.muted, thumb:c.thumb
         }));
         copy.id = uid("c");
+        copy.start = Math.round(((c.start || 0) + clipOut(c)) * 100) / 100;
         clips.splice(clips.indexOf(c)+1, 0, copy);
         selClipId = copy.id;
         tlSel.kind = "clip"; tlSel.id = copy.id;
@@ -2582,6 +2749,7 @@
       function splitAtPlayhead(){
         if(!clips.length) return;
         var i = clipIndexAt(playhead);
+        if(i < 0){ toast("Điểm phát đang nằm ở khoảng trống — không có clip nào để tách tại đó."); return; }
         var c = clips[i]; if(!c) return;
         var local = playhead - L.starts[i];
         var out = clipOut(c);
@@ -2593,7 +2761,7 @@
         var srcSplit = c.trimStart + local * c.speed;
         var second = {
           id: uid("c"), url: c.url, name: c.name, duration: c.duration, vw: c.vw, vh: c.vh,
-          trimStart: srcSplit, trimEnd: c.trimEnd, speed: c.speed,
+          start: Math.round(((c.start || 0) + local) * 100) / 100, trimStart: srcSplit, trimEnd: c.trimEnd, speed: c.speed,
           transType: c.transType, transDur: c.transDur, kb: c.kb, filter: c.filter,
           vol: (c.vol == null ? 100 : c.vol), muted: !!c.muted, thumb: c.thumb
         };
