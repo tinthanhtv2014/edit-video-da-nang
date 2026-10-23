@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Edit Video Đa Năng</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --bg:#f4f2ee;
+        --panel:#ffffff;
+        --panel-2:#faf8f4;
+        --ink:#1d1a16;
+        --ink-soft:#5c564d;
+        --ink-faint:#8a8478;
+        --line:#e5e0d5;
+        --accent:#e8501e;
+        --accent-ink:#ffffff;
+        --accent-soft:#fdeee8;
+        --chip:#f0ece3;
+        --stage:#171512;
+        --stage-ink:#f5f1ea;
+        --ok:#1e9e62;
+        --shadow:0 10px 30px rgba(50,38,20,.10);
+        --radius:14px;
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --bg:#121110;
+          --panel:#1d1b18;
+          --panel-2:#232019;
+          --ink:#f2eee6;
+          --ink-soft:#b8b1a2;
+          --ink-faint:#857e6f;
+          --line:#35312a;
+          --accent:#ff6a35;
+          --accent-ink:#1a0f08;
+          --accent-soft:#3a2317;
+          --chip:#2a2721;
+          --stage:#0a0908;
+          --stage-ink:#f5f1ea;
+          --ok:#3ecf8e;
+          --shadow:0 10px 30px rgba(0,0,0,.45);
+        }
+      }
+      *{ box-sizing:border-box; }
+      html,body{ margin:0; padding:0; }
+      body{
+        font-family:"Be Vietnam Pro", system-ui, -apple-system, sans-serif;
+        background:var(--bg);
+        color:var(--ink);
+        -webkit-font-smoothing:antialiased;
+      }
+      button{ font-family:inherit; cursor:pointer; }
+      input, select, textarea{ font-family:inherit; }
+      svg{ display:block; }
+
+      /* ---------- Empty state / drop zone ---------- */
+      .empty-wrap{ max-width:760px; margin:0 auto; padding:34px 18px 60px; }
+      .dropzone{
+        border:2px dashed var(--line);
+        border-radius:20px;
+        background:var(--panel);
+        padding:52px 26px 44px;
+        text-align:center;
+        transition:border-color .15s, background .15s;
+      }
+      .dropzone.dragging{ border-color:var(--accent); background:var(--accent-soft); }
+      .dz-icon{
+        width:74px; height:74px; margin:0 auto 18px;
+        border-radius:20px; background:var(--accent-soft);
+        display:flex; align-items:center; justify-content:center;
+      }
+      .dz-icon svg{ width:36px; height:36px; color:var(--accent); }
+      .dropzone h1{ font-size:26px; font-weight:800; margin:0 0 8px; letter-spacing:-.01em; }
+      .dropzone p{ margin:0 auto 22px; color:var(--ink-soft); font-size:15px; max-width:440px; line-height:1.55; }
+      .btn{
+        display:inline-flex; align-items:center; gap:8px;
+        border:1px solid var(--line); background:var(--panel); color:var(--ink);
+        border-radius:11px; padding:10px 16px; font-size:14px; font-weight:600;
+        transition:transform .08s, background .15s, border-color .15s;
+      }
+      .btn:active{ transform:scale(.97); }
+      .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+      .btn.big{ padding:14px 26px; font-size:16px; border-radius:13px; }
+      .btn:disabled{ opacity:.45; cursor:not-allowed; }
+      .btn.danger{ color:#d63a2a; }
+      .feat-list{
+        list-style:none; margin:28px auto 0; padding:0;
+        display:grid; grid-template-columns:1fr 1fr; gap:10px 22px;
+        max-width:520px; text-align:left;
+      }
+      .feat-list li{ display:flex; gap:9px; align-items:flex-start; font-size:14px; color:var(--ink-soft); line-height:1.45; }
+      .feat-list svg{ width:17px; height:17px; flex:none; margin-top:2px; color:var(--accent); }
+      .dz-note{ margin-top:26px; font-size:12.5px; color:var(--ink-faint); }
+      @media (max-width:560px){ .feat-list{ grid-template-columns:1fr; } .dropzone h1{ font-size:22px; } }
+
+      /* ---------- Studio layout ---------- */
+      .toolbar{
+        display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+        max-width:1240px; margin:0 auto; padding:16px 18px 4px;
+      }
+      .toolbar .spacer{ flex:1; }
+      .file-badge{
+        display:flex; align-items:center; gap:9px; min-width:0;
+        font-size:13px; color:var(--ink-soft);
+      }
+      .file-badge .fname{ font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px; }
+      .studio{
+        max-width:1240px; margin:0 auto; padding:12px 18px 50px;
+        display:grid; grid-template-columns:minmax(0,1fr) 372px; gap:18px; align-items:start;
+      }
+      @media (max-width:920px){ .studio{ grid-template-columns:1fr; } }
+
+      .stage-card{
+        background:var(--panel); border:1px solid var(--line); border-radius:18px;
+        box-shadow:var(--shadow); overflow:hidden;
+      }
+      .stage{
+        background:var(--stage);
+        display:flex; align-items:center; justify-content:center;
+        padding:18px; min-height:280px;
+      }
+      canvas#preview{
+        max-width:100%; max-height:58vh; width:auto; height:auto;
+        border-radius:6px; background:#000;
+      }
+      .transport{ padding:14px 16px 16px; border-top:1px solid var(--line); }
+      .transport-row{ display:flex; align-items:center; gap:12px; }
+      .play-btn{
+        width:46px; height:46px; flex:none; border-radius:50%;
+        border:none; background:var(--accent); color:var(--accent-ink);
+        display:flex; align-items:center; justify-content:center;
+      }
+      .play-btn svg{ width:20px; height:20px; }
+      .time-label{ font-size:13px; font-variant-numeric:tabular-nums; color:var(--ink-soft); white-space:nowrap; }
+      .time-label b{ color:var(--ink); font-weight:700; }
+      input[type=range].seek{ flex:1; }
+
+      /* ---------- Panel ---------- */
+      .panel{ display:flex; flex-direction:column; gap:14px; }
+      .card{
+        background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+        box-shadow:var(--shadow); padding:16px 16px 18px;
+      }
+      .card h2{
+        margin:0 0 14px; font-size:13px; font-weight:700;
+        display:flex; align-items:center; gap:8px;
+      }
+      .card h2 svg{ width:16px; height:16px; color:var(--accent); }
+      .card h2 .reset-link{
+        margin-left:auto; background:none; border:none; color:var(--accent);
+        font-size:12.5px; font-weight:600; padding:2px 0;
+      }
+      .field{ margin-bottom:13px; }
+      .field:last-child{ margin-bottom:0; }
+      .field label{
+        display:flex; justify-content:space-between; align-items:baseline;
+        font-size:13px; font-weight:500; color:var(--ink-soft); margin-bottom:6px;
+      }
+      .field label output{ font-variant-numeric:tabular-nums; color:var(--ink); font-weight:700; font-size:13px; }
+      input[type=range]{
+        -webkit-appearance:none; appearance:none; width:100%; height:26px; background:transparent; margin:0;
+      }
+      input[type=range]::-webkit-slider-runnable-track{ height:6px; border-radius:3px; background:var(--chip); }
+      input[type=range]::-webkit-slider-thumb{
+        -webkit-appearance:none; width:20px; height:20px; border-radius:50%;
+        background:var(--panel); border:2.5px solid var(--accent); margin-top:-7px;
+        box-shadow:0 1px 5px rgba(0,0,0,.25);
+      }
+      input[type=range]::-moz-range-track{ height:6px; border-radius:3px; background:var(--chip); }
+      input[type=range]::-moz-range-thumb{ width:15px; height:15px; border-radius:50%; background:var(--panel); border:2.5px solid var(--accent); }
+      .chips{ display:flex; flex-wrap:wrap; gap:7px; }
+      .chip{
+        border:1.5px solid var(--line); background:var(--panel-2); color:var(--ink);
+        border-radius:10px; padding:8px 13px; font-size:13.5px; font-weight:600;
+      }
+      .chip.on{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+      .row-btns{ display:flex; gap:8px; }
+      .row-btns .btn{ flex:1; justify-content:center; }
+      .row-btns .btn.on{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+      .btn svg{ width:16px; height:16px; flex:none; }
+      select, input[type=text]{
+        width:100%; padding:10px 12px; border-radius:10px; font-size:14px;
+        border:1.5px solid var(--line); background:var(--panel-2); color:var(--ink);
+      }
+      select:focus, input[type=text]:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
+      .swatches{ display:flex; gap:8px; align-items:center; }
+      .swatch{ width:30px; height:30px; border-radius:9px; border:2px solid var(--line); padding:0; }
+      .swatch.on{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
+      input[type=color]{ width:44px; height:30px; border:1.5px solid var(--line); border-radius:9px; background:var(--panel-2); padding:2px; }
+      .hint{ font-size:12.5px; color:var(--ink-faint); line-height:1.5; margin-top:8px; }
+      .music-name{ font-size:13px; color:var(--ink-soft); margin-top:8px; word-break:break-all; }
+      .music-name b{ color:var(--ink); }
+      .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+      /* ---------- Export overlay ---------- */
+      .overlay{
+        position:fixed; inset:0; z-index:60; background:rgba(12,10,8,.62);
+        display:flex; align-items:center; justify-content:center; padding:18px;
+      }
+      .overlay[hidden]{ display:none; }
+      .sheet{
+        background:var(--panel); border-radius:18px; max-width:440px; width:100%;
+        padding:24px; box-shadow:var(--shadow); text-align:center;
+      }
+      .sheet h3{ margin:0 0 6px; font-size:18px; font-weight:800; }
+      .sheet p{ margin:0 0 16px; font-size:13.5px; color:var(--ink-soft); line-height:1.55; }
+      .progress-track{ height:10px; border-radius:5px; background:var(--chip); overflow:hidden; margin-bottom:8px; }
+      .progress-bar{ height:100%; width:0%; background:var(--accent); border-radius:5px; transition:width .2s; }
+      .progress-pct{ font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:16px; }
+      .sheet video{ width:100%; max-height:46vh; border-radius:10px; background:#000; margin-bottom:14px; }
+      .sheet .row-btns{ margin-top:4px; }
+      .drop-veil{
+        position:fixed; inset:0; z-index:80; background:rgba(232,80,30,.14);
+        border:3px dashed var(--accent); border-radius:0;
+        display:flex; align-items:center; justify-content:center;
+        font-size:22px; font-weight:800; color:var(--accent);
+        pointer-events:none; text-align:center; padding:20px;
+      }
+      .drop-veil[hidden]{ display:none; }
+      .toast{
+        position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
+        background:var(--ink); color:var(--bg); font-size:14px; font-weight:600;
+        padding:11px 18px; border-radius:12px; z-index:90; opacity:0; pointer-events:none;
+        transition:opacity .2s, transform .2s; max-width:88vw; text-align:center;
+      }
+      .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+      .hidden-media{ position:absolute; width:2px; height:2px; opacity:.01; pointer-events:none; left:-10px; top:-10px; }
+      [hidden]{ display:none !important; }
+    </style>
+  </head>
+  <body>
+
+    <!-- Hidden media elements that feed the canvas renderer -->
+    <video id="srcVideo" class="hidden-media" playsinline preload="auto"></video>
+    <audio id="srcMusic" class="hidden-media" loop preload="auto"></audio>
+    <input type="file" id="fileVideo" accept="video/*,.mkv,.mov" hidden />
+    <input type="file" id="fileMusic" accept="audio/*" hidden />
+
+    <!-- ============ EMPTY STATE ============ -->
+    <div class="empty-wrap" id="emptyState">
+      <div class="dropzone" id="dropzone">
+        <div class="dz-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 9.5h19M7 5v14M17 5v14"/><path d="M10.2 10.8v2.4l2.1-1.2z" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <h1>Chỉnh sửa video ngay trên trình duyệt</h1>
+        <p>Kéo thả file video vào đây, hoặc bấm nút bên dưới để chọn từ máy. Không cần cài thêm gì, không tải lên máy chủ.</p>
+        <button class="btn primary big" id="btnPickVideo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 20h16"/></svg>
+          Chọn video
+        </button>
+        <ul class="feat-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Cắt đầu / cuối, tua nhanh chậm 0.25x – 2x</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Đổi tỉ lệ 9:16 · 16:9 · 1:1 · 4:5 cho TikTok, Reels, YouTube</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Chèn chữ, chỉnh sáng / tương phản / màu</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Thêm nhạc nền, chỉnh volume riêng từng nguồn</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Lật ngang, xoay 90°</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Xuất file tải về máy, xem trước trực tiếp khi chỉnh</li>
+        </ul>
+        <p class="dz-note">Hỗ trợ MP4, WebM, MOV… tuỳ trình duyệt. File càng nặng máy xử lý càng lâu khi xuất.</p>
+      </div>
+    </div>
+
+    <!-- ============ STUDIO ============ -->
+    <div id="studio" hidden>
+      <div class="toolbar">
+        <div class="file-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:18px;height:18px;color:var(--accent)"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 9.5h19M7 5v14M17 5v14"/></svg>
+          <span class="fname" id="fileName">video.mp4</span>
+          <span id="fileMeta"></span>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn" id="btnNewVideo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Video khác
+        </button>
+        <button class="btn primary" id="btnExport">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0 5-5m-5 5-5-5"/><path d="M4 20h16"/></svg>
+          Xuất video
+        </button>
+      </div>
+
+      <div class="studio">
+        <div class="stage-card">
+          <div class="stage"><canvas id="preview" width="640" height="360"></canvas></div>
+          <div class="transport">
+            <div class="transport-row">
+              <button class="play-btn" id="btnPlay" aria-label="Phát / tạm dừng">
+                <svg id="icoPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+                <svg id="icoPause" viewBox="0 0 24 24" fill="currentColor" hidden><rect x="6" y="5" width="4.4" height="14" rx="1.2"/><rect x="13.6" y="5" width="4.4" height="14" rx="1.2"/></svg>
+              </button>
+              <input type="range" class="seek" id="seekBar" min="0" max="10" step="0.05" value="0" />
+              <span class="time-label"><b id="timeCur">0:00</b> / <span id="timeEnd">0:00</span></span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <!-- TRIM -->
+          <section class="card">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.2 7.8 20 19M8.2 16.2 20 5"/></svg>
+              Cắt video
+              <button class="reset-link" id="btnTrimReset">Đặt lại</button>
+            </h2>
+            <div class="field">
+              <label>Bắt đầu tại <output id="outTrimStart">0:00</output></label>
+              <input type="range" id="trimStart" min="0" max="10" step="0.1" value="0" />
+            </div>
+            <div class="field">
+              <label>Kết thúc tại <output id="outTrimEnd">0:00</output></label>
+              <input type="range" id="trimEnd" min="0" max="10" step="0.1" value="10" />
+            </div>
+            <p class="hint" id="trimInfo">Đoạn xuất: 0 giây</p>
+          </section>
+
+          <!-- FRAME -->
+          <section class="card">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15.5 9 10l3.5 3L16 9.5l5 4.5"/></svg>
+              Khung hình
+            </h2>
+            <div class="field">
+              <label>Tỉ lệ</label>
+              <div class="chips" id="aspectChips">
+                <button class="chip on" data-aspect="orig">Gốc</button>
+                <button class="chip" data-aspect="9:16">9:16 Dọc</button>
+                <button class="chip" data-aspect="16:9">16:9 Ngang</button>
+                <button class="chip" data-aspect="1:1">1:1 Vuông</button>
+                <button class="chip" data-aspect="4:5">4:5</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Dịch khung ngang <output id="outPosX">50%</output></label>
+              <input type="range" id="posX" min="0" max="100" step="1" value="50" />
+            </div>
+            <div class="field">
+              <label>Dịch khung dọc <output id="outPosY">50%</output></label>
+              <input type="range" id="posY" min="0" max="100" step="1" value="50" />
+            </div>
+            <div class="field">
+              <label>Độ phân giải xuất</label>
+              <select id="quality">
+                <option value="854">Nhẹ — tối đa 854px (nhanh)</option>
+                <option value="1280" selected>HD — tối đa 1280px</option>
+                <option value="1920">Full HD — tối đa 1920px</option>
+              </select>
+            </div>
+            <div class="row-btns">
+              <button class="btn" id="btnFlip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 8 4.5 12 8 16zM16 8l3.5 4L16 16z" fill="currentColor" stroke="none"/></svg>
+                Lật ngang
+              </button>
+              <button class="btn" id="btnRotate">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 3v4h-4"/></svg>
+                Xoay 90°
+              </button>
+            </div>
+          </section>
+
+          <!-- SPEED -->
+          <section class="card">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20a8 8 0 1 1 8-8"/><path d="M12 12l4.5-4.5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
+              Tốc độ
+            </h2>
+            <div class="field">
+              <label>Tốc độ phát <output id="outSpeed">1.00x</output></label>
+              <input type="range" id="speed" min="0.25" max="2" step="0.05" value="1" />
+            </div>
+            <div class="chips" id="speedChips">
+              <button class="chip" data-speed="0.5">0.5x</button>
+              <button class="chip" data-speed="0.75">0.75x</button>
+              <button class="chip on" data-speed="1">1x</button>
+              <button class="chip" data-speed="1.15">1.15x</button>
+              <button class="chip" data-speed="1.5">1.5x</button>
+              <button class="chip" data-speed="2">2x</button>
+            </div>
+          </section>
+
+          <!-- COLOR -->
+          <section class="card">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5 5l1.8 1.8M17.2 17.2 19 19M19 5l-1.8 1.8M6.8 17.2 5 19"/></svg>
+              Sáng &amp; màu
+              <button class="reset-link" id="btnColorReset">Đặt lại</button>
+            </h2>
+            <div class="field">
+              <label>Độ sáng <output id="outBright">100%</output></label>
+              <input type="range" id="bright" min="40" max="180" step="1" value="100" />
+            </div>
+            <div class="field">
+              <label>Tương phản <output id="outContrast">100%</output></label>
+              <input type="range" id="contrast" min="40" max="180" step="1" value="100" />
+            </div>
+            <div class="field">
+              <label>Bão hoà màu <output id="outSat">100%</output></label>
+              <input type="range" id="sat" min="0" max="220" step="1" value="100" />
+            </div>
+          </section>
+
+          <!-- TEXT -->
+          <section class="card">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>
+              Chữ trên video
+            </h2>
+            <div class="field">
+              <input type="text" id="textInput" placeholder="Nhập chữ… (để trống = không có chữ)" maxlength="120" />
+            </div>
+            <div class="field">
+              <label>Cỡ chữ <output id="outTextSize">6.5%</output></label>
+              <input type="range" id="textSize" min="3" max="13" step="0.5" value="6.5" />
+            </div>
+            <div class="field">
+              <label>Màu chữ</label>
+              <div class="swatches">
+                <button class="swatch on" data-color="#ffffff" style="background:#ffffff" aria-label="Trắng"></button>
+                <button class="swatch" data-color="#ffd60a" style="background:#ffd60a" aria-label="Vàng"></button>
+                <button class="swatch" data-color="#111111" style="background:#111111" aria-label="Đen"></button>
+                <button class="swatch" data-color="#ff3b30" style="background:#ff3b30" aria-label="Đỏ"></button>
+                <button class="swatch" data-color="#34d17b" style="background:#34d17b" aria-label="Xanh lá"></button>
+                <input type="color" id="textColor" value="#ffffff" />
+              </div>
+            </div>
+            <div class="field">
+              <label>Vị trí</label>
+              <div class="chips" id="textPosChips">
+                <button class="chip" data-pos="top">Trên</button>
+                <button class="chip" data-pos="center">Giữa</button>
+                <button class="chip on" data-pos="bottom">Dưới</button>
+              </div>
+            </div>
+            <div class="row-btns">
+              <button class="btn on" id="btnTextBg">Nền chữ</button>
+              <button class="btn on" id="btnTextBold">Chữ đậm</button>
+            </div>
+          </section>
+
+          <!-- AUDIO -->
+          <section class="card">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>
+              Âm thanh &amp; nhạc nền
+            </h2>
+            <button class="btn" id="btnPickMusic" style="width:100%;justify-content:center">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 20h16"/></svg>
+              <span id="pickMusicLabel">Thêm file nhạc (MP3, WAV…)</span>
+            </button>
+            <p class="music-name" id="musicName" hidden></p>
+            <div class="field" style="margin-top:13px">
+              <label>Âm lượng nhạc <output id="outMusicVol">80%</output></label>
+              <input type="range" id="musicVol" min="0" max="100" step="1" value="80" />
+            </div>
+            <div class="field">
+              <label>Âm lượng tiếng gốc <output id="outVideoVol">100%</output></label>
+              <input type="range" id="videoVol" min="0" max="100" step="1" value="100" />
+            </div>
+            <p class="hint">Nhạc sẽ tự lặp nếu ngắn hơn video, và tự cắt khi video hết.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ============ EXPORT OVERLAY ============ -->
+    <div class="overlay" id="exportOverlay" hidden>
+      <div class="sheet">
+        <div id="exportRunning">
+          <h3>Đang xuất video…</h3>
+          <p>Video đang được ghi lại theo thời gian thật — đoạn cắt 60 giây ở tốc độ 1x sẽ mất khoảng 60 giây. Đừng đóng trang trong lúc xuất.</p>
+          <div class="progress-track"><div class="progress-bar" id="exportBar"></div></div>
+          <div class="progress-pct" id="exportPct">0%</div>
+          <button class="btn danger" id="btnCancelExport">Huỷ xuất</button>
+        </div>
+        <div id="exportDone" hidden>
+          <h3>Xuất xong!</h3>
+          <p id="exportMeta">Sẵn sàng tải về.</p>
+          <video id="exportPreview" controls playsinline></video>
+          <div class="row-btns">
+            <button class="btn" id="btnCloseExport">Chỉnh tiếp</button>
+            <a class="btn primary" id="btnDownload" href="#" download style="text-decoration:none;flex:1;justify-content:center">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0 5-5m-5 5-5-5"/><path d="M4 20h16"/></svg>
+              Tải video về
+            </a>
+          </div>
+        </div>
+        <div id="exportError" hidden>
+          <h3>Chưa xuất được</h3>
+          <p id="exportErrorMsg"></p>
+          <button class="btn" id="btnCloseError">Đóng</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drop-veil" id="dropVeil" hidden>Thả video vào đây để bắt đầu chỉnh</div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+    (function(){
+      "use strict";
+      var $ = function(id){ return document.getElementById(id); };
+
+      var video = $("srcVideo"), music = $("srcMusic");
+      var canvas = $("preview"), ctx = canvas.getContext("2d");
+      var off = document.createElement("canvas"), octx = off.getContext("2d");
+
+      var S = {
+        loaded:false, fileName:"video", duration:0, vw:0, vh:0,
+        trimStart:0, trimEnd:0,
+        aspect:"orig", posX:50, posY:50, quality:"1280",
+        flip:false, rot:0,
+        speed:1,
+        bright:100, contrast:100, sat:100,
+        text:"", textSize:6.5, textColor:"#ffffff", textPos:"bottom", textBg:true, textBold:true,
+        musicVol:80, videoVol:100, musicLoaded:false
+      };
+      var dirty = true, exporting = false;
+
+      /* ---------- helpers ---------- */
+      function fmt(t){
+        if(!isFinite(t) || t < 0) t = 0;
+        var m = Math.floor(t/60), s = t - m*60;
+        return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1).replace(/\.0$/, "");
+      }
+      function fmtSize(bytes){
+        if(bytes < 1024*1024) return (bytes/1024).toFixed(0) + " KB";
+        return (bytes/(1024*1024)).toFixed(1) + " MB";
+      }
+      var toastTimer = null;
+      function toast(msg){
+        var el = $("toast"); el.textContent = msg; el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function(){ el.classList.remove("show"); }, 2600);
+      }
+
+      /* ---------- output geometry ---------- */
+      function outDims(){
+        var q = parseInt(S.quality, 10);
+        var tw, th;
+        if(S.aspect === "orig"){
+          var rw = (S.rot % 180 === 0) ? S.vw : S.vh;
+          var rh = (S.rot % 180 === 0) ? S.vh : S.vw;
+          var sc = Math.min(1, q / Math.max(rw, rh));
+          tw = Math.round(rw * sc); th = Math.round(rh * sc);
+        } else {
+          var parts = S.aspect.split(":");
+          var aw = parseInt(parts[0],10), ah = parseInt(parts[1],10);
+          if(aw >= ah){ tw = q; th = Math.round(q * ah / aw); }
+          else { th = q; tw = Math.round(q * aw / ah); }
+        }
+        tw -= tw % 2; th -= th % 2;
+        return { w: Math.max(2, tw), h: Math.max(2, th) };
+      }
+      function refreshCanvasSize(){
+        if(!S.loaded) return;
+        var d = outDims();
+        if(canvas.width !== d.w || canvas.height !== d.h){
+          canvas.width = d.w; canvas.height = d.h;
+        }
+        dirty = true;
+      }
+
+      /* ---------- render ---------- */
+      function wrapLines(text, maxWidth){
+        var out = [];
+        ctx.font = (S.textBold ? "700 " : "400 ") + "10px 'Be Vietnam Pro', sans-serif";
+        var rawLines = text.split("\n");
+        for(var i = 0; i < rawLines.length; i++){
+          var words = rawLines[i].split(/\s+/).filter(Boolean);
+          if(!words.length){ out.push(""); continue; }
+          var fs = Math.round(canvas.height * S.textSize / 100);
+          ctx.font = (S.textBold ? "700 " : "400 ") + fs + "px 'Be Vietnam Pro', sans-serif";
+          var line = "";
+          for(var j = 0; j < words.length; j++){
+            var test = line ? line + " " + words[j] : words[j];
+            if(ctx.measureText(test).width > maxWidth && line){ out.push(line); line = words[j]; }
+            else line = test;
+          }
+          if(line) out.push(line);
+        }
+        return out;
+      }
+      function roundRectPath(c, x, y, w, h, r){
+        c.beginPath();
+        c.moveTo(x + r, y);
+        c.arcTo(x + w, y, x + w, y + h, r);
+        c.arcTo(x + w, y + h, x, y + h, r);
+        c.arcTo(x, y + h, x, y, r);
+        c.arcTo(x, y, x + w, y, r);
+        c.closePath();
+      }
+      function drawText(){
+        var text = S.text.replace(/\s+$/,"");
+        if(!text.trim()) return;
+        var W = canvas.width, H = canvas.height;
+        var fs = Math.max(10, Math.round(H * S.textSize / 100));
+        ctx.font = (S.textBold ? "700 " : "400 ") + fs + "px 'Be Vietnam Pro', sans-serif";
+        var lines = wrapLines(text, W * 0.88);
+        var lh = fs * 1.28, totalH = lh * lines.length;
+        var centerY;
+        if(S.textPos === "top") centerY = H * 0.055 + totalH / 2;
+        else if(S.textPos === "center") centerY = H / 2;
+        else centerY = H - H * 0.055 - totalH / 2;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        if(S.textBg){
+          var maxW = 0;
+          for(var i = 0; i < lines.length; i++) maxW = Math.max(maxW, ctx.measureText(lines[i]).width);
+          var padX = fs * 0.55, padY = fs * 0.34;
+          ctx.fillStyle = "rgba(0,0,0,0.55)";
+          roundRectPath(ctx, W/2 - maxW/2 - padX, centerY - totalH/2 - padY, maxW + padX*2, totalH + padY*2, fs * 0.28);
+          ctx.fill();
+        }
+        ctx.fillStyle = S.textColor;
+        if(!S.textBg){
+          ctx.lineWidth = Math.max(2, fs / 13);
+          ctx.strokeStyle = "rgba(0,0,0,0.7)";
+          ctx.lineJoin = "round";
+        }
+        for(var k = 0; k < lines.length; k++){
+          var y = centerY - totalH/2 + lh * (k + 0.5);
+          if(!S.textBg) ctx.strokeText(lines[k], W/2, y);
+          ctx.fillText(lines[k], W/2, y);
+        }
+      }
+      function drawFrame(){
+        if(!S.loaded || video.readyState < 2) return;
+        var W = canvas.width, H = canvas.height;
+        var sw = (S.rot % 180 === 0) ? S.vw : S.vh;
+        var sh = (S.rot % 180 === 0) ? S.vh : S.vw;
+        if(off.width !== sw || off.height !== sh){ off.width = sw; off.height = sh; }
+        octx.save();
+        octx.clearRect(0, 0, sw, sh);
+        octx.translate(sw/2, sh/2);
+        octx.rotate(S.rot * Math.PI / 180);
+        if(S.flip) octx.scale(-1, 1);
+        octx.drawImage(video, -S.vw/2, -S.vh/2, S.vw, S.vh);
+        octx.restore();
+        var scale = Math.max(W / sw, H / sh);
+        var cw = W / scale, ch = H / scale;
+        var cx = (sw - cw) * S.posX / 100, cy = (sh - ch) * S.posY / 100;
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, W, H);
+        try{
+          ctx.filter = "brightness(" + S.bright + "%) contrast(" + S.contrast + "%) saturate(" + S.sat + "%)";
+        }catch(e){}
+        ctx.drawImage(off, cx, cy, cw, ch, 0, 0, W, H);
+        try{ ctx.filter = "none"; }catch(e){}
+        drawText();
+      }
+
+      /* ---------- transport / sync ---------- */
+      var seekBar = $("seekBar");
+      function updateTransport(){
+        if(!S.loaded) return;
+        seekBar.value = video.currentTime;
+        $("timeCur").textContent = fmt(video.currentTime);
+      }
+      function syncMusic(){
+        if(!S.musicLoaded || music.paused) return;
+        var expected = (video.currentTime - S.trimStart) / S.speed;
+        if(music.duration && isFinite(music.duration)) expected = expected % music.duration;
+        if(expected < 0) expected = 0;
+        if(Math.abs(music.currentTime - expected) > 0.35){
+          try{ music.currentTime = expected; }catch(e){}
+        }
+      }
+      function playAll(){
+        if(!S.loaded) return;
+        if(video.currentTime >= S.trimEnd - 0.05) video.currentTime = S.trimStart;
+        video.playbackRate = S.speed;
+        var p = video.play();
+        if(p && p.catch) p.catch(function(){});
+        if(S.musicLoaded){
+          syncMusicStart();
+          var pm = music.play();
+          if(pm && pm.catch) pm.catch(function(){});
+        }
+        setPlayIcon(true);
+      }
+      function syncMusicStart(){
+        var expected = (video.currentTime - S.trimStart) / S.speed;
+        if(music.duration && isFinite(music.duration)) expected = expected % music.duration;
+        if(expected < 0) expected = 0;
+        try{ music.currentTime = expected; }catch(e){}
+      }
+      function pauseAll(){
+        video.pause(); music.pause();
+        setPlayIcon(false);
+      }
+      function setPlayIcon(playing){
+        $("icoPlay").hidden = playing;
+        $("icoPause").hidden = !playing;
+      }
+      video.addEventListener("play", function(){ setPlayIcon(true); });
+      video.addEventListener("pause", function(){ if(!exporting) setPlayIcon(false); });
+      video.addEventListener("seeked", function(){ dirty = true; updateTransport(); });
+      video.addEventListener("timeupdate", updateTransport);
+
+      function rafLoop(){
+        requestAnimationFrame(rafLoop);
+        if(!S.loaded) return;
+        if(exporting){
+          var total = S.trimEnd - S.trimStart;
+          var done = Math.min(total, Math.max(0, video.currentTime - S.trimStart));
+          var pct = total > 0 ? Math.round(done / total * 100) : 0;
+          $("exportBar").style.width = pct + "%";
+          $("exportPct").textContent = pct + "%";
+          if(video.currentTime >= S.trimEnd || video.ended) finishExport(false);
+        } else if(!video.paused){
+          if(video.currentTime >= S.trimEnd){
+            pauseAll();
+            video.currentTime = S.trimStart;
+          }
+          syncMusic();
+          updateTransport();
+        }
+        if(!video.paused || dirty){
+          drawFrame();
+          dirty = false;
+        }
+      }
+      requestAnimationFrame(rafLoop);
+
+      /* ---------- audio graph (built lazily for export) ---------- */
+      var actx = null, videoGain = null, musicGain = null, audioDest = null, musicSrcNode = null;
+      function ensureAudioGraph(){
+        if(actx) return true;
+        try{
+          var AC = window.AudioContext || window.webkitAudioContext;
+          if(!AC) return false;
+          actx = new AC();
+          var vSrc = actx.createMediaElementSource(video);
+          videoGain = actx.createGain();
+          vSrc.connect(videoGain);
+          videoGain.connect(actx.destination);
+          audioDest = actx.createMediaStreamDestination();
+          videoGain.connect(audioDest);
+          if(S.musicLoaded) attachMusicNode();
+          applyVolumes();
+          return true;
+        }catch(e){ return false; }
+      }
+      function attachMusicNode(){
+        if(!actx || musicSrcNode) return;
+        try{
+          musicSrcNode = actx.createMediaElementSource(music);
+          musicGain = actx.createGain();
+          musicSrcNode.connect(musicGain);
+          musicGain.connect(actx.destination);
+          musicGain.connect(audioDest);
+        }catch(e){}
+      }
+      function applyVolumes(){
+        if(actx && videoGain){
+          videoGain.gain.value = S.videoVol / 100;
+          if(musicGain) musicGain.gain.value = S.musicVol / 100;
+        } else {
+          video.volume = S.videoVol / 100;
+          music.volume = S.musicVol / 100;
+        }
+      }
+
+      /* ---------- file loading ---------- */
+      function loadVideoFile(file){
+        if(!file) return;
+        if(file.type && file.type.indexOf("video/") !== 0 && !/\.(mkv|mov|avi|webm|mp4|m4v)$/i.test(file.name)){
+          toast("File này không giống file video — thử file khác nhé.");
+          return;
+        }
+        pauseAll();
+        var url = URL.createObjectURL(file);
+        video.src = url;
+        S.fileName = file.name.replace(/\.[^.]+$/, "") || "video";
+        $("fileName").textContent = file.name;
+        $("fileMeta").textContent = "· " + fmtSize(file.size);
+        video.addEventListener("loadedmetadata", onVideoReady, { once:true });
+        video.load();
+      }
+      function onVideoReady(){
+        S.loaded = true;
+        S.duration = video.duration || 0;
+        S.vw = video.videoWidth; S.vh = video.videoHeight;
+        S.trimStart = 0; S.trimEnd = S.duration;
+        $("emptyState").hidden = true;
+        $("studio").hidden = false;
+        // trim sliders
+        var ts = $("trimStart"), te = $("trimEnd");
+        ts.max = S.duration; te.max = S.duration;
+        ts.value = 0; te.value = S.duration;
+        seekBar.min = 0; seekBar.max = S.duration; seekBar.value = 0;
+        $("timeEnd").textContent = fmt(S.duration);
+        $("fileMeta").textContent += " · " + S.vw + "×" + S.vh + " · " + fmt(S.duration);
+        refreshCanvasSize();
+        updateTrimUI();
+        applyVolumes();
+        dirty = true;
+        video.currentTime = 0;
+        toast("Đã tải video — bắt đầu chỉnh thôi!");
+      }
+      function loadMusicFile(file){
+        if(!file) return;
+        music.src = URL.createObjectURL(file);
+        S.musicLoaded = true;
+        $("musicName").hidden = false;
+        $("musicName").innerHTML = "Đã thêm nhạc: <b></b>";
+        $("musicName").querySelector("b").textContent = file.name;
+        $("pickMusicLabel").textContent = "Đổi nhạc khác";
+        if(actx) attachMusicNode();
+        applyVolumes();
+        toast("Đã thêm nhạc nền.");
+      }
+
+      $("btnPickVideo").addEventListener("click", function(){ $("fileVideo").click(); });
+      $("btnNewVideo").addEventListener("click", function(){ $("fileVideo").click(); });
+      $("fileVideo").addEventListener("change", function(){ loadVideoFile(this.files[0]); this.value = ""; });
+      $("btnPickMusic").addEventListener("click", function(){ $("fileMusic").click(); });
+      $("fileMusic").addEventListener("change", function(){ loadMusicFile(this.files[0]); this.value = ""; });
+
+      /* drag & drop */
+      var dragCount = 0;
+      window.addEventListener("dragenter", function(e){ e.preventDefault(); dragCount++; $("dropVeil").hidden = false; $("dropzone").classList.add("dragging"); });
+      window.addEventListener("dragleave", function(e){ dragCount--; if(dragCount <= 0){ dragCount = 0; $("dropVeil").hidden = true; $("dropzone").classList.remove("dragging"); } });
+      window.addEventListener("dragover", function(e){ e.preventDefault(); });
+      window.addEventListener("drop", function(e){
+        e.preventDefault(); dragCount = 0;
+        $("dropVeil").hidden = true; $("dropzone").classList.remove("dragging");
+        var files = e.dataTransfer && e.dataTransfer.files;
+        if(files && files.length){
+          var f = files[0];
+          if(f.type.indexOf("audio/") === 0 && S.loaded) loadMusicFile(f);
+          else loadVideoFile(f);
+        }
+      });
+
+      /* ---------- transport controls ---------- */
+      $("btnPlay").addEventListener("click", function(){
+        if(video.paused) playAll(); else pauseAll();
+      });
+      seekBar.addEventListener("input", function(){
+        video.currentTime = parseFloat(this.value);
+        if(S.musicLoaded && !video.paused) syncMusicStart();
+        dirty = true; updateTransport();
+      });
+      document.addEventListener("keydown", function(e){
+        if(!S.loaded || $("studio").hidden) return;
+        var tag = (e.target && e.target.tagName) || "";
+        if(tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if(e.code === "Space"){ e.preventDefault(); if(video.paused) playAll(); else pauseAll(); }
+      });
+
+      /* ---------- trim ---------- */
+      function updateTrimUI(){
+        $("outTrimStart").textContent = fmt(S.trimStart);
+        $("outTrimEnd").textContent = fmt(S.trimEnd);
+        var len = Math.max(0, S.trimEnd - S.trimStart);
+        var out = len / S.speed;
+        $("trimInfo").textContent = "Đoạn xuất: " + fmt(len) + " · sau khi đổi tốc độ còn khoảng " + fmt(out);
+      }
+      $("trimStart").addEventListener("input", function(){
+        var v = parseFloat(this.value);
+        if(v > S.trimEnd - 0.2) v = S.trimEnd - 0.2;
+        S.trimStart = Math.max(0, v);
+        this.value = S.trimStart;
+        if(video.currentTime < S.trimStart) video.currentTime = S.trimStart;
+        updateTrimUI(); dirty = true;
+      });
+      $("trimEnd").addEventListener("input", function(){
+        var v = parseFloat(this.value);
+        if(v < S.trimStart + 0.2) v = S.trimStart + 0.2;
+        S.trimEnd = Math.min(S.duration, v);
+        this.value = S.trimEnd;
+        if(video.currentTime > S.trimEnd) video.currentTime = S.trimEnd;
+        updateTrimUI(); dirty = true;
+      });
+      $("btnTrimReset").addEventListener("click", function(){
+        S.trimStart = 0; S.trimEnd = S.duration;
+        $("trimStart").value = 0; $("trimEnd").value = S.duration;
+        updateTrimUI(); dirty = true;
+      });
+
+      /* ---------- frame controls ---------- */
+      $("aspectChips").addEventListener("click", function(e){
+        var b = e.target.closest("[data-aspect]"); if(!b) return;
+        S.aspect = b.getAttribute("data-aspect");
+        var chips = this.querySelectorAll(".chip");
+        for(var i = 0; i < chips.length; i++) chips[i].classList.toggle("on", chips[i] === b);
+        refreshCanvasSize();
+      });
+      $("posX").addEventListener("input", function(){ S.posX = parseFloat(this.value); $("outPosX").textContent = S.posX + "%"; dirty = true; });
+      $("posY").addEventListener("input", function(){ S.posY = parseFloat(this.value); $("outPosY").textContent = S.posY + "%"; dirty = true; });
+      $("quality").addEventListener("change", function(){ S.quality = this.value; refreshCanvasSize(); });
+      $("btnFlip").addEventListener("click", function(){
+        S.flip = !S.flip; this.classList.toggle("on", S.flip); dirty = true;
+      });
+      $("btnRotate").addEventListener("click", function(){
+        S.rot = (S.rot + 90) % 360; refreshCanvasSize();
+      });
+
+      /* ---------- speed ---------- */
+      function setSpeed(v, fromSlider){
+        S.speed = Math.min(2, Math.max(0.25, v));
+        if(!fromSlider) $("speed").value = S.speed;
+        $("outSpeed").textContent = S.speed.toFixed(2) + "x";
+        video.playbackRate = S.speed;
+        var chips = $("speedChips").querySelectorAll(".chip");
+        for(var i = 0; i < chips.length; i++)
+          chips[i].classList.toggle("on", Math.abs(parseFloat(chips[i].getAttribute("data-speed")) - S.speed) < 0.001);
+        updateTrimUI();
+      }
+      $("speed").addEventListener("input", function(){ setSpeed(parseFloat(this.value), true); });
+      $("speedChips").addEventListener("click", function(e){
+        var b = e.target.closest("[data-speed]"); if(!b) return;
+        setSpeed(parseFloat(b.getAttribute("data-speed")), false);
+      });
+
+      /* ---------- color ---------- */
+      function bindColor(id, outId, key){
+        $(id).addEventListener("input", function(){
+          S[key] = parseFloat(this.value);
+          $(outId).textContent = S[key] + "%";
+          dirty = true;
+        });
+      }
+      bindColor("bright", "outBright", "bright");
+      bindColor("contrast", "outContrast", "contrast");
+      bindColor("sat", "outSat", "sat");
+      $("btnColorReset").addEventListener("click", function(){
+        S.bright = S.contrast = S.sat = 100;
+        $("bright").value = $("contrast").value = $("sat").value = 100;
+        $("outBright").textContent = $("outContrast").textContent = $("outSat").textContent = "100%";
+        dirty = true;
+      });
+
+      /* ---------- text ---------- */
+      $("textInput").addEventListener("input", function(){ S.text = this.value; dirty = true; });
+      $("textSize").addEventListener("input", function(){
+        S.textSize = parseFloat(this.value);
+        $("outTextSize").textContent = S.textSize + "%";
+        dirty = true;
+      });
+      function setTextColor(c){
+        S.textColor = c; $("textColor").value = c;
+        var sw = document.querySelectorAll(".swatch");
+        for(var i = 0; i < sw.length; i++) sw[i].classList.toggle("on", sw[i].getAttribute("data-color") === c);
+        dirty = true;
+      }
+      document.querySelectorAll(".swatch").forEach(function(el){
+        el.addEventListener("click", function(){ setTextColor(el.getAttribute("data-color")); });
+      });
+      $("textColor").addEventListener("input", function(){ setTextColor(this.value); });
+      $("textPosChips").addEventListener("click", function(e){
+        var b = e.target.closest("[data-pos]"); if(!b) return;
+        S.textPos = b.getAttribute("data-pos");
+        var chips = this.querySelectorAll(".chip");
+        for(var i = 0; i < chips.length; i++) chips[i].classList.toggle("on", chips[i] === b);
+        dirty = true;
+      });
+      $("btnTextBg").addEventListener("click", function(){
+        S.textBg = !S.textBg; this.classList.toggle("on", S.textBg); dirty = true;
+      });
+      $("btnTextBold").addEventListener("click", function(){
+        S.textBold = !S.textBold; this.classList.toggle("on", S.textBold); dirty = true;
+      });
+
+      /* ---------- audio controls ---------- */
+      $("musicVol").addEventListener("input", function(){
+        S.musicVol = parseFloat(this.value);
+        $("outMusicVol").textContent = S.musicVol + "%";
+        applyVolumes();
+      });
+      $("videoVol").addEventListener("input", function(){
+        S.videoVol = parseFloat(this.value);
+        $("outVideoVol").textContent = S.videoVol + "%";
+        applyVolumes();
+      });
+
+      /* ---------- export ---------- */
+      var recorder = null, recChunks = [], recMime = "", exportCancelled = false, lastBlobUrl = null;
+      function pickMime(){
+        var candidates = [
+          "video/mp4;codecs=avc1.640028,mp4a.40.2",
+          "video/mp4",
+          "video/webm;codecs=vp9,opus",
+          "video/webm;codecs=vp8,opus",
+          "video/webm"
+        ];
+        if(typeof MediaRecorder === "undefined") return "";
+        for(var i = 0; i < candidates.length; i++){
+          try{ if(MediaRecorder.isTypeSupported(candidates[i])) return candidates[i]; }catch(e){}
+        }
+        return "";
+      }
+      function showExportPanel(which){
+        $("exportOverlay").hidden = false;
+        $("exportRunning").hidden = which !== "run";
+        $("exportDone").hidden = which !== "done";
+        $("exportError").hidden = which !== "error";
+      }
+      function exportError(msg){
+        exporting = false;
+        $("exportErrorMsg").textContent = msg;
+        showExportPanel("error");
+      }
+      $("btnExport").addEventListener("click", function(){
+        if(!S.loaded || exporting) return;
+        if(typeof MediaRecorder === "undefined" || !canvas.captureStream){
+          showExportPanel("error");
+          $("exportErrorMsg").textContent = "Trình duyệt này chưa hỗ trợ ghi video (MediaRecorder). Thử mở trang bằng Chrome hoặc Safari bản mới nhất nhé.";
+          return;
+        }
+        recMime = pickMime();
+        if(!recMime){
+          showExportPanel("error");
+          $("exportErrorMsg").textContent = "Trình duyệt không hỗ trợ định dạng ghi video nào. Thử Chrome trên máy tính nhé.";
+          return;
+        }
+        startExport();
+      });
+      function startExport(){
+        exportCancelled = false;
+        pauseAll();
+        var hasAudio = ensureAudioGraph();
+        if(actx && actx.state === "suspended") actx.resume();
+        if(S.musicLoaded && actx) attachMusicNode();
+        applyVolumes();
+        video.pause(); music.pause();
+        video.playbackRate = S.speed;
+        video.currentTime = S.trimStart;
+        showExportPanel("run");
+        $("exportBar").style.width = "0%";
+        $("exportPct").textContent = "0%";
+        var onSeeked = function(){
+          video.removeEventListener("seeked", onSeeked);
+          try{
+            var canvasStream = canvas.captureStream(30);
+            var tracks = canvasStream.getVideoTracks().slice();
+            if(hasAudio && audioDest) tracks = tracks.concat(audioDest.stream.getAudioTracks());
+            var combined = new MediaStream(tracks);
+            recChunks = [];
+            recorder = new MediaRecorder(combined, {
+              mimeType: recMime,
+              videoBitsPerSecond: 9000000,
+              audioBitsPerSecond: 192000
+            });
+            recorder.ondataavailable = function(e){ if(e.data && e.data.size) recChunks.push(e.data); };
+            recorder.onstop = onRecorderStop;
+            exporting = true;
+            drawFrame();
+            recorder.start(250);
+            if(S.musicLoaded){ syncMusicStart(); var pm = music.play(); if(pm && pm.catch) pm.catch(function(){}); }
+            var pv = video.play(); if(pv && pv.catch) pv.catch(function(){});
+            setPlayIcon(true);
+          }catch(err){
+            exportError("Không ghi được video: " + (err && err.message ? err.message : err));
+          }
+        };
+        if(Math.abs(video.currentTime - S.trimStart) < 0.05 && video.readyState >= 3) onSeeked();
+        else video.addEventListener("seeked", onSeeked);
+      }
+      function finishExport(cancelled){
+        if(!exporting) return;
+        exportCancelled = cancelled;
+        exporting = false;
+        video.pause(); music.pause();
+        setPlayIcon(false);
+        if(recorder && recorder.state !== "inactive"){
+          try{ recorder.stop(); }catch(e){ onRecorderStop(); }
+        } else onRecorderStop();
+      }
+      function onRecorderStop(){
+        recorder = null;
+        if(exportCancelled){
+          $("exportOverlay").hidden = true;
+          video.currentTime = S.trimStart;
+          toast("Đã huỷ xuất video.");
+          return;
+        }
+        var type = recMime.split(";")[0] || "video/webm";
+        var blob = new Blob(recChunks, { type: type });
+        recChunks = [];
+        if(lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+        lastBlobUrl = URL.createObjectURL(blob);
+        var ext = type.indexOf("mp4") >= 0 ? "mp4" : "webm";
+        $("exportPreview").src = lastBlobUrl;
+        var dl = $("btnDownload");
+        dl.href = lastBlobUrl;
+        dl.setAttribute("download", S.fileName + "-da-chinh-sua." + ext);
+        $("exportMeta").textContent = "Định dạng " + ext.toUpperCase() + " · dung lượng " + fmtSize(blob.size) + " · " + canvas.width + "×" + canvas.height +
+          (ext === "webm" ? " · WebM phát tốt trên Chrome/Android; nếu cần đăng iPhone thì chuyển sang MP4 bằng app CapCut hoặc VLC." : "");
+        showExportPanel("done");
+        video.currentTime = S.trimStart;
+        dirty = true;
+      }
+      $("btnCancelExport").addEventListener("click", function(){ finishExport(true); });
+      $("btnCloseExport").addEventListener("click", function(){ $("exportOverlay").hidden = true; });
+      $("btnCloseError").addEventListener("click", function(){ $("exportOverlay").hidden = true; });
+
+      if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ dirty = true; });
+    })();
+    </script>
+  </body>
+</html>
