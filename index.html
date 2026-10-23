@@ -834,6 +834,43 @@
       .lp-foot nav{ margin-left:auto; display:flex; gap:4px; }
       .lp-foot nav a{ color:var(--ink-faint); text-decoration:none; font-weight:600; padding:5px 9px; border-radius:8px; transition:color .12s ease, background .12s ease; }
       .lp-foot nav a:hover{ color:var(--ink); background:var(--hover); }
+
+      /* ---------- Video free có sẵn ---------- */
+      .free-strip{ margin-top:16px; }
+      .free-head{ font-size:14px; font-weight:700; margin:0 0 10px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+      .free-head span{ font-size:12px; font-weight:500; color:var(--ink-soft); }
+      .free-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+      .free-row.panel{ grid-template-columns:repeat(2,1fr); }
+      .free-card{
+        text-align:left; font:inherit; color:var(--ink); cursor:pointer;
+        background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:7px;
+        transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+      }
+      .free-card:hover{ transform:translateY(-2px); border-color:rgba(0,201,212,.45); box-shadow:0 10px 22px rgba(0,0,0,.3); }
+      .free-card:active{ transform:scale(.98); }
+      .free-thumb{ position:relative; display:block; border-radius:8px; overflow:hidden; aspect-ratio:16/9; background:#0b0d12; }
+      .free-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+      .free-thumb img.hide{ display:none; }
+      .free-play{
+        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        width:30px; height:30px; border-radius:50%;
+        background:rgba(10,12,16,.68); border:1px solid rgba(255,255,255,.35);
+        display:flex; align-items:center; justify-content:center; color:#fff;
+      }
+      .free-play svg{ width:13px; height:13px; margin-left:2px; }
+      .free-dur{ position:absolute; right:5px; bottom:5px; background:rgba(0,0,0,.74); color:#fff; font-size:10.5px; font-weight:600; padding:1px 6px; border-radius:6px; }
+      .free-name{ display:block; font-size:12px; font-weight:600; margin:6px 2px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .free-status{ display:block; font-size:11px; color:var(--accent); margin:1px 2px 1px; min-height:14px; }
+      .free-card.loading{ opacity:.8; pointer-events:none; }
+      .free-spin{
+        width:15px; height:15px; border-radius:50%;
+        border:2.5px solid rgba(255,255,255,.3); border-top-color:#fff;
+        animation:freeSpin .7s linear infinite;
+      }
+      @keyframes freeSpin{ to{ transform:rotate(360deg); } }
+      .free-src{ font-size:10.5px; color:var(--ink-faint); margin:9px 0 0; }
+      @media (max-width:560px){ .free-row{ grid-template-columns:repeat(2,1fr); } }
+      @media (prefers-reduced-motion: reduce){ .free-spin{ animation-duration:1.8s; } .free-card{ transition:none; } }
     </style>
   </head>
   <body>
@@ -922,6 +959,12 @@
             <b>Kéo thả video vào đây</b>
             <span>Thả file là bắt đầu chỉnh sửa ngay</span>
           </div>
+        </div>
+
+        <div class="free-strip lp-anim lp-d4">
+          <p class="free-head">Video free có sẵn <span>— chưa có file? Bấm một clip là mở ngay trong studio</span></p>
+          <div class="free-row" id="freeRowLanding"></div>
+          <p class="free-src">Nguồn: MDN (CC0) · Blender Foundation (CC BY)</p>
         </div>
 
         <div class="lp-trust lp-anim lp-d4" aria-label="Cam kết">
@@ -1335,6 +1378,16 @@
                 Xoay 90°
               </button>
             </div>
+          </section>
+
+          <!-- FREE STOCK CLIPS -->
+          <section class="card">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor" stroke="none"/></svg>
+              Video free
+            </h2>
+            <p class="hint" style="margin:0 0 11px">Bấm một clip để thêm vào cuối dự án đang làm.</p>
+            <div class="free-row panel" id="freeRowPanel"></div>
+            <p class="free-src">Nguồn: MDN (CC0) · Blender Foundation (CC BY)</p>
           </section>
           </div>
 
@@ -2384,6 +2437,90 @@
         }
         next();
       }
+
+      /* ---------- video free có sẵn (thư mục clips/ cạnh trang) ---------- */
+      var FREE_CLIPS = [
+        { file: "hoa.mp4",      name: "Hoa nở",       dur: "0:05" },
+        { file: "sua-bien.mp4", name: "Sứa biển",     dur: "0:10" },
+        { file: "tho.mp4",      name: "Thỏ hoạt hình", dur: "0:10" },
+        { file: "sintel.mp4",   name: "Sintel",       dur: "0:10" }
+      ];
+      function freeCardHTML(fc){
+        return "<span class=\"free-thumb\">" +
+          "<img alt=\"\" loading=\"lazy\" class=\"hide\" />" +
+          "<span class=\"free-play\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M8 5.5v13l11-6.5z\"/></svg></span>" +
+          "<span class=\"free-dur\">" + fc.dur + "</span></span>" +
+          "<span class=\"free-name\"></span><span class=\"free-status\"></span>";
+      }
+      /* File clip/poster đóng gói dạng text base64 cạnh trang (clips/<tên>.mp4.b64 / .jpg.b64): fetch text → bỏ khoảng trắng → atob → Blob */
+      function b64ToBlob(text, type){
+        var clean = String(text || "").replace(/\s+/g, "");
+        var bin = atob(clean);
+        var bytes = new Uint8Array(bin.length);
+        for(var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return new Blob([bytes], { type: type });
+      }
+      var freePosterCache = {};
+      function loadFreePoster(img, base){
+        if(!img) return;
+        if(!freePosterCache[base]){
+          freePosterCache[base] = fetch("clips/" + base + ".jpg.b64").then(function(r){
+            if(!r.ok) throw new Error("http " + r.status);
+            return r.text();
+          }).then(function(text){
+            return URL.createObjectURL(b64ToBlob(text, "image/jpeg"));
+          });
+        }
+        freePosterCache[base].then(function(url){
+          img.src = url;
+          img.classList.remove("hide");
+        }).catch(function(){ /* poster lỗi/chưa có: giữ nền tối + nút phát, thẻ vẫn bấm được */ });
+      }
+      function renderFreeClips(){
+        [ $("freeRowLanding"), $("freeRowPanel") ].forEach(function(row){
+          if(!row) return;
+          row.innerHTML = "";
+          FREE_CLIPS.forEach(function(fc){
+            var b = document.createElement("button");
+            b.type = "button";
+            b.className = "free-card";
+            b.setAttribute("data-free", fc.file);
+            b.innerHTML = freeCardHTML(fc);
+            b.querySelector(".free-name").textContent = fc.name;
+            b.addEventListener("click", function(){ loadFreeClip(fc); });
+            row.appendChild(b);
+            loadFreePoster(b.querySelector(".free-thumb img"), fc.file.replace(/\.mp4$/i, ""));
+          });
+        });
+      }
+      function setFreeLoading(file, on){
+        document.querySelectorAll("[data-free=\"" + file + "\"]").forEach(function(card){
+          card.classList.toggle("loading", on);
+          var st = card.querySelector(".free-status");
+          if(st) st.textContent = on ? "Đang tải…" : "";
+          var play = card.querySelector(".free-play");
+          if(play) play.innerHTML = on
+            ? "<span class=\"free-spin\"></span>"
+            : "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M8 5.5v13l11-6.5z\"/></svg>";
+        });
+      }
+      function loadFreeClip(fc){
+        setFreeLoading(fc.file, true);
+        fetch("clips/" + fc.file + ".b64").then(function(r){
+          if(!r.ok) throw new Error("http " + r.status);
+          return r.text();
+        }).then(function(text){
+          var blob = b64ToBlob(text, "video/mp4");
+          var f = new File([blob], fc.file, { type: "video/mp4" });
+          addVideoFiles([f]);
+        }).catch(function(){
+          toast("Không tải được video mẫu");
+        }).then(function(){
+          setFreeLoading(fc.file, false);
+        });
+      }
+      renderFreeClips();
+
       function loadMusicFile(file){
         if(!file) return;
         musicFile = file;
