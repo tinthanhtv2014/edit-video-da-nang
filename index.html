@@ -553,7 +553,6 @@
               </div>
             </div>
             <div class="tl-menu" id="tlMenu" hidden></div>
-            <p class="hint">Kéo thước / đầu phát để tua · <b>nhấn đúp</b> (trên điện thoại: <b>chạm đúp</b>) vào bất kỳ điểm nào trên dòng thời gian — thước hay bất kỳ track nào — là đầu phát nhảy ngay tới điểm đó và phát tiếp từ đó · phần đã phát qua được tô nhẹ ngay trên timeline, thanh tua dưới khung xem trước luôn đồng bộ hai chiều với đầu phát · bấm đoạn để chọn — kéo thân đoạn để dời vị trí tự do, kéo hai mép để cắt ngắn / kéo dài · phím Delete xoá đoạn, S tách tại điểm phát · chuột phải vào đoạn để mở menu · Cắt / xoá / cắt ngắn KHÔNG tự dồn các đoạn khác: chỗ trống để lại thành khoảng trống (hình đen, tiếng im lặng) — muốn lấp thì bấm vào khoảng trống hoặc chuột phải vào đoạn, chọn "Đóng khoảng trống" · Track Video và track Tiếng gốc ĐỘC LẬP nhau: tách / cắt / dời / xoá đoạn tiếng không đụng tới hình, và ngược lại — chỗ không có đoạn tiếng phủ lên thì im lặng dù đang có hình, chỗ có tiếng mà không có hình thì hình đen nhưng tiếng vẫn phát · kéo mép trái thanh nhạc để cắt đầu nhạc.</p>
           </div>
         </div>
 
@@ -595,9 +594,8 @@
             </button>
             <button class="btn" id="btnDetachAudio" style="width:100%;justify-content:center;margin-bottom:8px">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg>
-              Tách âm thanh của clip này
+              Trích xuất âm thanh
             </button>
-            <p class="hint" style="margin:0 0 13px">Tiếng của mỗi clip là đoạn độc lập trên track Tiếng gốc: tách, cắt mép, kéo dời, xoá riêng — không ảnh hưởng hình, và cắt / xoá hình cũng không đụng tới tiếng.</p>
             <div class="two-col">
               <div class="field">
                 <label>Chuyển cảnh sang clip sau</label>
@@ -679,7 +677,6 @@
                 <button class="btn on" id="btnFillCrop">Cắt đầy khung</button>
                 <button class="btn" id="btnFillBlur">Nền mờ</button>
               </div>
-              <p class="hint">Nền mờ: video hiển thị nguyên khung, phần thừa hai bên là chính video đó làm mờ — kiểu CapCut khi bỏ clip ngang vào khung dọc.</p>
             </div>
             <div class="field">
               <label>Dịch khung ngang <output id="outPosX">50%</output></label>
@@ -793,7 +790,6 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 13.5h4M7 16.5h7M14 13.5h3M13 16.5h4"/></svg>
                 Tạo phụ đề từ các câu trên
               </button>
-              <p class="hint">Tạo xong, từng câu phụ đề là một lớp chữ riêng ở danh sách phía trên — bấm vào để sửa chữ hoặc chỉnh lại giây hiện / ẩn.</p>
             </div>
           </section>
 
@@ -827,7 +823,6 @@
                 </div>
               </div>
               <button class="btn danger" id="btnDelOver" style="width:100%;justify-content:center">Xoá ảnh này</button>
-              <p class="hint">Mẹo: kéo trực tiếp ảnh trên khung xem trước để đặt vào vị trí mong muốn.</p>
             </div>
           </section>
 
@@ -846,7 +841,6 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg>
                 <span id="asegMuteLabel">Tắt tiếng đoạn này</span>
               </button>
-              <p class="hint" style="margin:0 0 13px">Đoạn tiếng này độc lập với hình: tách / cắt / dời / xoá nó ở track Tiếng gốc trên dòng thời gian, hình không đổi.</p>
             </div>
             <button class="btn" id="btnPickMusic" style="width:100%;justify-content:center">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 20h16"/></svg>
@@ -863,7 +857,6 @@
                 <input type="number" id="musicOffsetIn" min="0" step="0.5" value="0" />
               </div>
             </div>
-            <p class="hint" style="margin-top:0">Cũng có thể kéo trực tiếp thanh nhạc trên track Nhạc nền của dòng thời gian để dời lúc bắt đầu.</p>
             <div class="field" style="margin-top:13px">
               <label>Âm lượng nhạc <output id="outMusicVol">80%</output></label>
               <input type="range" id="musicVol" min="0" max="100" step="1" value="80" />
@@ -882,7 +875,6 @@
                 <input type="range" id="fadeOut" min="0" max="5" step="0.5" value="0" />
               </div>
             </div>
-            <p class="hint">Nhạc sẽ tự lặp nếu ngắn hơn video, và tự cắt khi video hết.</p>
           </section>
         </aside>
       </div>
@@ -1866,6 +1858,7 @@
           if(act === "closegap" && tlGap) closeGapRange(tlGap.s, tlGap.e);
           return;
         }
+        if(act === "split"){ splitSelectedAtPlayhead(); return; }
         if(act === "closegap" && (kind === "clip" || kind === "text")){
           var gb = gapBeforeSeg(kind, tlSel.id);
           if(!gb || gb.e - gb.s <= 0.01){ toast("Không có khoảng trống ngay trước đoạn này."); return; }
@@ -1874,8 +1867,7 @@
         }
         if(kind === "clip"){
           var c = findClip(tlSel.id); if(!c) return;
-          if(act === "split") splitAtPlayhead();
-          else if(act === "dup") duplicateClip(c);
+          if(act === "dup") duplicateClip(c);
           else if(act === "mute"){
             var nm = !clipAudioState(c).muted;
             c.muted = nm;
@@ -1885,8 +1877,7 @@
           else if(act === "del") deleteClip(c);
         } else if(kind === "audio"){
           var a = findAseg(tlSel.id); if(!a) return;
-          if(act === "split") splitAsegAtPlayhead(a);
-          else if(act === "dup") duplicateAseg(a);
+          if(act === "dup") duplicateAseg(a);
           else if(act === "mute"){
             a.muted = !a.muted;
             syncAsegPanel(); updateAudioLevels(); renderStrip(); pushHistory();
@@ -1894,8 +1885,7 @@
           else if(act === "del") deleteAseg(a);
         } else if(kind === "text"){
           var t = findText(tlSel.id); if(!t) return;
-          if(act === "split") splitTextAtPlayhead(t);
-          else if(act === "dup") duplicateText(t);
+          if(act === "dup") duplicateText(t);
           else if(act === "vis"){ t.hidden = !t.hidden; renderStrip(); renderTextList(); pushHistory(); dirty = true; }
           else if(act === "del") deleteText(t);
         } else if(kind === "music"){
@@ -2838,9 +2828,7 @@
         if(e.code === "KeyS" || ((e.ctrlKey || e.metaKey) && e.code === "KeyB")){
           if(e.code === "KeyS" && (e.ctrlKey || e.metaKey)) return;
           e.preventDefault();
-          if(tlSel.kind === "text"){ var tt = findText(tlSel.id); if(tt) splitTextAtPlayhead(tt); }
-          else if(tlSel.kind === "audio"){ var ta = findAseg(tlSel.id); if(ta) splitAsegAtPlayhead(ta); }
-          else splitAtPlayhead();
+          splitSelectedAtPlayhead();
           return;
         }
         if(e.code === "Escape"){ hideTlMenu(); if(tlSel.kind) clearTimelineSelection(); }
@@ -3070,6 +3058,20 @@
         toast(asegsOf(c.id).length ? "Đã xoá clip — đoạn tiếng của clip vẫn nằm trên track Tiếng gốc, xoá riêng nếu không cần." : "Đã xoá clip.");
       }
       $("btnDelClip").addEventListener("click", function(){ deleteClip(selClip()); });
+      /* MỘT nút Tách duy nhất: tách đúng đoạn ĐANG CHỌN tại đầu phát — chọn đoạn nào tách đoạn đó (video / tiếng / chữ), không cần biết thuộc track nào */
+      function splitSelectedAtPlayhead(){
+        if(tlSel.kind === "audio"){
+          var a = findAseg(tlSel.id);
+          if(a){ splitAsegAtPlayhead(a); return; }
+        }
+        if(tlSel.kind === "text"){
+          var t = findText(tlSel.id);
+          if(t){ splitTextAtPlayhead(t); return; }
+        }
+        if(tlSel.kind === "music"){ toast("Nhạc nền không tách được — kéo thanh nhạc trên track Nhạc nền để dời lúc bắt đầu."); return; }
+        if(tlSel.kind === "gap"){ toast("Đang chọn khoảng trống — bấm vào một đoạn rồi bấm Tách."); return; }
+        splitAtPlayhead();
+      }
       function splitAtPlayhead(){
         if(!clips.length) return;
         var i = clipIndexAt(playhead);
@@ -3097,7 +3099,7 @@
         afterClipStructure(); pushHistory();
         toast("Đã tách clip tại điểm phát.");
       }
-      $("btnSplitTop").addEventListener("click", splitAtPlayhead);
+      $("btnSplitTop").addEventListener("click", splitSelectedAtPlayhead);
 
       /* ---------- frame controls ---------- */
       $("aspectChips").addEventListener("click", function(e){
@@ -3328,7 +3330,7 @@
         renderStripLight();
         pushHistory();
       });
-      /* ---------- đoạn tiếng độc lập đang chọn: panel + nút Tách âm thanh ---------- */
+      /* ---------- đoạn tiếng độc lập đang chọn: panel + nút Trích xuất âm thanh ---------- */
       function syncAsegPanel(){
         var a = selAseg();
         var box = $("asegEditor");
