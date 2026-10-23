@@ -184,7 +184,7 @@
         font-size:9.5px; color:var(--ink-faint); padding:3px 0 0 4px; font-variant-numeric:tabular-nums;
         pointer-events:none; white-space:nowrap;
       }
-      .tl-track{ position:relative; margin-top:4px; }
+      .tl-track{ position:relative; margin-top:4px; touch-action:pan-x; }
       .tl-vtrack{ height:54px; }
       .tl-atrack{ height:26px; }
       .tl-mtrack{ height:30px; }
@@ -231,6 +231,11 @@
       .tl-mempty{
         position:absolute; left:8px; top:50%; transform:translateY(-50%);
         font-size:11.5px; color:var(--ink-faint); white-space:nowrap;
+      }
+      .tl-played{
+        position:absolute; top:0; bottom:0; left:0; width:0;
+        background:var(--accent); opacity:.11; pointer-events:none; z-index:1;
+        border-right:1px solid rgba(232,80,30,.25);
       }
       .tl-playhead{
         position:absolute; top:0; bottom:0; left:0; width:2px; background:var(--accent);
@@ -541,13 +546,14 @@
                   <div class="tl-track tl-atrack" id="tlAudioTrack"></div>
                   <div class="tl-track tl-mtrack" id="tlMusicTrack"></div>
                   <div class="tl-track tl-ttrack" id="tlTextTrack"></div>
+                  <div class="tl-played" id="tlPlayed"></div>
                   <div class="tl-playhead" id="tlPlayhead"><span></span></div>
                   <div class="tl-tip" id="tlTip" hidden></div>
                 </div>
               </div>
             </div>
             <div class="tl-menu" id="tlMenu" hidden></div>
-            <p class="hint">Kéo thước / đầu phát để tua · bấm đoạn để chọn — kéo thân đoạn để dời vị trí tự do, kéo hai mép để cắt ngắn / kéo dài · phím Delete xoá đoạn, S tách tại điểm phát · chuột phải vào đoạn để mở menu · Cắt / xoá / cắt ngắn KHÔNG tự dồn các đoạn khác: chỗ trống để lại thành khoảng trống (hình đen, tiếng im lặng) — muốn lấp thì bấm vào khoảng trống hoặc chuột phải vào đoạn, chọn "Đóng khoảng trống" · Track Video và track Tiếng gốc ĐỘC LẬP nhau: tách / cắt / dời / xoá đoạn tiếng không đụng tới hình, và ngược lại — chỗ không có đoạn tiếng phủ lên thì im lặng dù đang có hình, chỗ có tiếng mà không có hình thì hình đen nhưng tiếng vẫn phát · kéo mép trái thanh nhạc để cắt đầu nhạc.</p>
+            <p class="hint">Kéo thước / đầu phát để tua · <b>nhấn đúp</b> (trên điện thoại: <b>chạm đúp</b>) vào bất kỳ điểm nào trên dòng thời gian — thước hay bất kỳ track nào — là đầu phát nhảy ngay tới điểm đó và phát tiếp từ đó · phần đã phát qua được tô nhẹ ngay trên timeline, thanh tua dưới khung xem trước luôn đồng bộ hai chiều với đầu phát · bấm đoạn để chọn — kéo thân đoạn để dời vị trí tự do, kéo hai mép để cắt ngắn / kéo dài · phím Delete xoá đoạn, S tách tại điểm phát · chuột phải vào đoạn để mở menu · Cắt / xoá / cắt ngắn KHÔNG tự dồn các đoạn khác: chỗ trống để lại thành khoảng trống (hình đen, tiếng im lặng) — muốn lấp thì bấm vào khoảng trống hoặc chuột phải vào đoạn, chọn "Đóng khoảng trống" · Track Video và track Tiếng gốc ĐỘC LẬP nhau: tách / cắt / dời / xoá đoạn tiếng không đụng tới hình, và ngược lại — chỗ không có đoạn tiếng phủ lên thì im lặng dù đang có hình, chỗ có tiếng mà không có hình thì hình đen nhưng tiếng vẫn phát · kéo mép trái thanh nhạc để cắt đầu nhạc.</p>
           </div>
         </div>
 
@@ -1490,8 +1496,11 @@
         return 600;
       }
       function updateTlPlayhead(){
+        var x = Math.round(playhead * (lastPps || 8));
         var ph = $("tlPlayhead");
-        if(ph) ph.style.transform = "translateX(" + Math.round(playhead * (lastPps || 8)) + "px)";
+        if(ph) ph.style.transform = "translateX(" + x + "px)";
+        var pl = $("tlPlayed");
+        if(pl) pl.style.width = x + "px";
       }
       function renderStrip(){
         var inner = $("tlInner");
@@ -1604,6 +1613,35 @@
       });
       $("tlRuler").addEventListener("pointerup", function(){ scrubbing = false; });
       $("tlRuler").addEventListener("pointercancel", function(){ scrubbing = false; });
+
+      /* ---------- Nhấn đúp / chạm đúp vào timeline: đầu phát nhảy ngay tới điểm đó ----------
+         Áp dụng cho mọi vị trí trên timeline (thước + mọi track). Chỉ tua khi nhấn đúp thật:
+         bấm 1 lần vẫn là chọn đoạn, kéo vẫn là dời / cắt đoạn như cũ. seekTo() tự đồng bộ
+         thanh tua dưới khung xem trước + khung hình tại điểm đó; đang phát thì phát tiếp từ đó. */
+      var tlSuppressSegSeek = false;   // chạm đúp trên đoạn: đừng để cú nhả chuột seek về đầu đoạn, ghi đè điểm vừa tua
+      function tlSeekToPoint(e){
+        seekTo(tlTimeFromEvent(e));
+        if(playing) syncElements();
+      }
+      $("tlInner").addEventListener("dblclick", function(e){
+        if(!clips.length || exporting) return;
+        if(e.target.closest("[data-add]")) return;
+        tlSeekToPoint(e);
+        e.preventDefault();
+      });
+      /* Điện thoại / cảm ứng: tự nhận diện chạm đúp vì dblclick trên cảm ứng không ổn định */
+      var lastTlTap = { t: 0, x: 0, y: 0 };
+      $("tlInner").addEventListener("pointerdown", function(e){
+        if(e.pointerType === "mouse" || !clips.length || exporting) return;
+        var now = Date.now();
+        var isDbl = (now - lastTlTap.t) < 350 &&
+          Math.abs(e.clientX - lastTlTap.x) < 36 && Math.abs(e.clientY - lastTlTap.y) < 36;
+        lastTlTap = { t: now, x: e.clientX, y: e.clientY };
+        if(isDbl && !e.target.closest("[data-add]")){
+          tlSuppressSegSeek = true;
+          tlSeekToPoint(e);
+        }
+      });
 
       /* ---------- Tương tác trực tiếp trên timeline: chọn / kéo dời / kéo mép cắt ---------- */
       function segKindOf(el){
@@ -2183,6 +2221,13 @@
         var d = tlDrag; tlDrag = null;
         hideTlTip(); hideDropMark();
         if(!d.moved){
+          if(tlSuppressSegSeek){
+            /* Vừa chạm đúp để tua tới điểm đó — giữ nguyên điểm đã tua, không nhảy về đầu đoạn */
+            tlSuppressSegSeek = false;
+            renderStrip();
+            dirty = true;
+            return;
+          }
           if(d.kind === "clip"){ var c0 = findClip(d.id); if(c0) seekTo(L.starts[clips.indexOf(c0)]); }
           else if(d.kind === "audio"){ var a0 = findAseg(d.id); if(a0) seekTo(a0.start || 0); }
           else if(d.kind === "text"){ var t0 = findText(d.id); if(t0) seekTo(t0.start); }
@@ -2190,6 +2235,7 @@
           dirty = true;
           return;
         }
+        tlSuppressSegSeek = false;
         if(d.kind === "clip" && d.mode === "move"){
           var cmv = findClip(d.id);
           sortClips();
