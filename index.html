@@ -1595,8 +1595,13 @@
       }
       function renderStripLight(){ renderStrip(); }
       function tlTimeFromEvent(e){
+        /* Hình học: tlInner là nội dung nằm trong khung cuộn ngang, nên rect.left của nó
+           ĐÃ trừ sẵn độ cuộn hiện tại; lastPps là px/giây ở mức phóng to hiện tại.
+           => (clientX - rect.left) / pps = đúng thời điểm nằm dưới con trỏ, kể cả khi
+           timeline đang cuộn ngang và zoom khác 1x (vd clip 4:28 cuộn tới phút 3, zoom 3x). */
         var r = $("tlInner").getBoundingClientRect();
-        return clamp((e.clientX - r.left) / (lastPps || 8), 0, L.total);
+        var pps = lastPps > 0 ? lastPps : pxPerSec();
+        return clamp((e.clientX - r.left) / pps, 0, L.total);
       }
       $("tlRuler").addEventListener("pointerdown", function(e){
         if(!clips.length) return;
@@ -1629,17 +1634,35 @@
         tlSeekToPoint(e);
         e.preventDefault();
       });
-      /* Điện thoại / cảm ứng: tự nhận diện chạm đúp vì dblclick trên cảm ứng không ổn định */
-      var lastTlTap = { t: 0, x: 0, y: 0 };
+      /* Tự nhận diện nhấn đúp NGAY TẠI pointerdown — cho chuột lẫn cảm ứng — thay vì chỉ
+         trông vào sự kiện dblclick gốc: mỗi lần nhấn xuống, handler kéo đoạn gọi renderStrip()
+         dựng lại DOM của đoạn, nút bị thay giữa hai cú click nên dblclick gốc có thể không
+         bao giờ bắn (nhất là khi nhấn đúp ngay trên một đoạn video), và cú nhả chuột của
+         handler kéo sẽ tua về đầu đoạn, ghi đè điểm cần tới. Handler này đăng ký TRƯỚC
+         handler kéo nên chạy trước: ở cú nhấn thứ hai nó tua thẳng tới điểm dưới con trỏ
+         và đặt cờ suppress để cú nhả chuột sau đó KHÔNG tua về đầu đoạn nữa.
+         Hai cú click lẻ vẫn được chọn đoạn như cũ — kết quả cuối cùng là thanh mốc
+         nằm đúng điểm đã nhấn đúp. */
+      var lastTlPress = { t: 0, x: 0, y: 0 };
       $("tlInner").addEventListener("pointerdown", function(e){
-        if(e.pointerType === "mouse" || !clips.length || exporting) return;
+        if(!clips.length || exporting) return;
+        if(e.button !== undefined && e.button !== 0) return;   // chỉ nút trái / chạm chính
+        if(e.target.closest("[data-add]")){ lastTlPress.t = 0; return; }
+        var isMouse = e.pointerType === "mouse";
+        var win = isMouse ? 450 : 350;        // khoảng thời gian tối đa giữa 2 cú nhấn
+        var tol = isMouse ? 8 : 36;           // độ lệch vị trí tối đa giữa 2 cú nhấn (px)
         var now = Date.now();
-        var isDbl = (now - lastTlTap.t) < 350 &&
-          Math.abs(e.clientX - lastTlTap.x) < 36 && Math.abs(e.clientY - lastTlTap.y) < 36;
-        lastTlTap = { t: now, x: e.clientX, y: e.clientY };
-        if(isDbl && !e.target.closest("[data-add]")){
+        var isDbl = (now - lastTlPress.t) < win &&
+          Math.abs(e.clientX - lastTlPress.x) < tol && Math.abs(e.clientY - lastTlPress.y) < tol;
+        if(isDbl){
+          lastTlPress = { t: 0, x: 0, y: 0 };  // reset: cú nhấn thứ ba không bị tính nối thành nhấn đúp nữa
           tlSuppressSegSeek = true;
           tlSeekToPoint(e);
+        } else {
+          /* Nhấn đơn mới: dọn cờ suppress còn sót (vd nhấn đúp trên khoảng trống không tạo
+             thao tác kéo nên không ai tiêu thụ cờ) để cú nhả của lần nhấn này không bị nuốt mất. */
+          tlSuppressSegSeek = false;
+          lastTlPress = { t: now, x: e.clientX, y: e.clientY };
         }
       });
 
