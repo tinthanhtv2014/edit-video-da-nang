@@ -210,8 +210,10 @@
       }
       .tl-aseg{
         position:absolute; top:0; height:26px; border-radius:6px; overflow:hidden;
-        background:#274435; border:1.5px solid rgba(255,255,255,.12); cursor:pointer;
+        background:#274435; border:1.5px solid rgba(255,255,255,.12); cursor:grab; touch-action:none;
       }
+      .tl-aseg:active{ cursor:grabbing; }
+      .tl-gap.noact{ pointer-events:none; }
       .tl-aseg.muted{ opacity:.45; }
       .tl-wave-clip{ position:absolute; top:0; bottom:0; overflow:hidden; display:block; }
       .tl-wave-clip img{ height:100%; width:100%; display:block; opacity:.95; }
@@ -545,7 +547,7 @@
               </div>
             </div>
             <div class="tl-menu" id="tlMenu" hidden></div>
-            <p class="hint">Kéo thước / đầu phát để tua · bấm đoạn để chọn — kéo thân đoạn để dời vị trí tự do, kéo hai mép để cắt ngắn / kéo dài · phím Delete xoá đoạn, S tách tại điểm phát · chuột phải vào đoạn để mở menu · Cắt / xoá / cắt ngắn KHÔNG tự dồn các đoạn khác: chỗ trống để lại thành khoảng trống (hình đen, tiếng im lặng) — muốn lấp thì bấm vào khoảng trống hoặc chuột phải vào đoạn, chọn "Đóng khoảng trống" · track Tiếng gốc đi theo clip, kéo mép trái thanh nhạc để cắt đầu nhạc.</p>
+            <p class="hint">Kéo thước / đầu phát để tua · bấm đoạn để chọn — kéo thân đoạn để dời vị trí tự do, kéo hai mép để cắt ngắn / kéo dài · phím Delete xoá đoạn, S tách tại điểm phát · chuột phải vào đoạn để mở menu · Cắt / xoá / cắt ngắn KHÔNG tự dồn các đoạn khác: chỗ trống để lại thành khoảng trống (hình đen, tiếng im lặng) — muốn lấp thì bấm vào khoảng trống hoặc chuột phải vào đoạn, chọn "Đóng khoảng trống" · Track Video và track Tiếng gốc ĐỘC LẬP nhau: tách / cắt / dời / xoá đoạn tiếng không đụng tới hình, và ngược lại — chỗ không có đoạn tiếng phủ lên thì im lặng dù đang có hình, chỗ có tiếng mà không có hình thì hình đen nhưng tiếng vẫn phát · kéo mép trái thanh nhạc để cắt đầu nhạc.</p>
           </div>
         </div>
 
@@ -585,6 +587,11 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg>
               <span id="clipMuteLabel">Tắt tiếng clip</span>
             </button>
+            <button class="btn" id="btnDetachAudio" style="width:100%;justify-content:center;margin-bottom:8px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg>
+              Tách âm thanh của clip này
+            </button>
+            <p class="hint" style="margin:0 0 13px">Tiếng của mỗi clip là đoạn độc lập trên track Tiếng gốc: tách, cắt mép, kéo dời, xoá riêng — không ảnh hưởng hình, và cắt / xoá hình cũng không đụng tới tiếng.</p>
             <div class="two-col">
               <div class="field">
                 <label>Chuyển cảnh sang clip sau</label>
@@ -823,6 +830,18 @@
             <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>
               Âm thanh &amp; nhạc nền
             </h2>
+            <div id="asegEditor" hidden>
+              <p class="music-name" style="margin:0 0 10px">Đoạn tiếng đang chọn: <b id="asegNameLabel"></b></p>
+              <div class="field">
+                <label>Âm lượng đoạn tiếng <output id="outAsegVol">100%</output></label>
+                <input type="range" id="asegVol" min="0" max="150" step="1" value="100" />
+              </div>
+              <button class="btn" id="btnAsegMute" style="width:100%;justify-content:center;margin-bottom:13px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg>
+                <span id="asegMuteLabel">Tắt tiếng đoạn này</span>
+              </button>
+              <p class="hint" style="margin:0 0 13px">Đoạn tiếng này độc lập với hình: tách / cắt / dời / xoá nó ở track Tiếng gốc trên dòng thời gian, hình không đổi.</p>
+            </div>
             <button class="btn" id="btnPickMusic" style="width:100%;justify-content:center">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 20h16"/></svg>
               <span id="pickMusicLabel">Thêm file nhạc (MP3, WAV…)</span>
@@ -923,15 +942,19 @@
         musicVol:80, videoVol:100, fadeIn:0, fadeOut:0, musicLoaded:false, musicStart:0, musicOffset:0
       };
       var clips = [];        // {id,url,name,duration,vw,vh,trimStart,trimEnd,speed,transType,transDur,kb,filter,thumb,start} — start = vị trí tuyệt đối trên timeline (giây); cắt/xoá không tự dồn các đoạn khác
+      var asegs = [];        // đoạn tiếng gốc ĐỘC LẬP: {id,clipId,url,name,fileDur,start,trimStart,trimEnd,speed,vol,muted} — lúc tạo nằm đúng vị trí clip gốc, từ đó tách/cắt/dời/xoá riêng, KHÔNG dính tới clip video
       var texts = [];        // {id,kind:"text"|"sub",text,start,end,size,color,pos,bg,bold}
       var overs = [];        // {id,url,x,y,scale,opacity,start,end,img}
-      var selClipId = null, selTextId = null, selOverId = null;
-      var tlSel = { kind: null, id: null };   // đoạn đang chọn trên timeline: "clip" | "text" | "music" | "gap"
+      var selClipId = null, selTextId = null, selOverId = null, selAsegId = null;
+      var tlSel = { kind: null, id: null };   // đoạn đang chọn trên timeline: "clip" | "audio" | "text" | "music" | "gap"
       var tlGap = null;      // khoảng trống đang chọn trên track video: {s, e}
       var playhead = 0, playing = false, exporting = false, dirty = true;
       var L = { starts:[], trs:[], total:0 };
       var clipEls = {};      // id -> <video>
       var clipGains = {};    // id -> {src,gain} in WebAudio graph
+      var asegEls = {};      // id đoạn tiếng -> <video> chỉ để phát tiếng của đoạn đó
+      var asegGains = {};    // id đoạn tiếng -> {src,gain} in WebAudio graph
+      var waveCache = {}, waveBusyUrls = {}, waveFailUrls = {};   // url file -> ảnh sóng âm
       var uidSeq = 1;
       function uid(p){ return p + (uidSeq++) + "_" + Date.now().toString(36); }
 
@@ -956,10 +979,15 @@
       function findText(id){ for(var i=0;i<texts.length;i++) if(texts[i].id===id) return texts[i]; return null; }
       function findOver(id){ for(var i=0;i<overs.length;i++) if(overs[i].id===id) return overs[i]; return null; }
       function selClip(){ return selClipId ? findClip(selClipId) : null; }
+      function findAseg(id){ for(var i=0;i<asegs.length;i++) if(asegs[i].id===id) return asegs[i]; return null; }
+      function selAseg(){ return selAsegId ? findAseg(selAsegId) : null; }
+      function asegsOf(clipId){ return asegs.filter(function(a){ return a.clipId === clipId; }); }
 
       /* ---------- timeline layout ---------- */
       function clipOut(c){ return Math.max(0.05, (c.trimEnd - c.trimStart) / c.speed); }
       function sortClips(){ clips.sort(function(a, b){ return (a.start || 0) - (b.start || 0); }); }
+      function asegOut(a){ return Math.max(0.05, (a.trimEnd - a.trimStart) / (a.speed || 1)); }
+      function sortAsegs(){ asegs.sort(function(a, b){ return (a.start || 0) - (b.start || 0); }); }
       function clipsEnd(){
         var e = 0;
         for(var i = 0; i < clips.length; i++) e = Math.max(e, (clips[i].start || 0) + clipOut(clips[i]));
@@ -969,6 +997,18 @@
       function computeGaps(){
         var iv = [];
         for(var i = 0; i < clips.length; i++) iv.push({ s: clips[i].start || 0, e: (clips[i].start || 0) + clipOut(clips[i]) });
+        iv.sort(function(a, b){ return a.s - b.s; });
+        var gaps = [], cur = 0;
+        for(var j = 0; j < iv.length; j++){
+          if(iv[j].s > cur + 0.01) gaps.push({ s: cur, e: iv[j].s });
+          if(iv[j].e > cur) cur = iv[j].e;
+        }
+        return gaps;
+      }
+      /* Khoảng im lặng trên track Tiếng gốc: tính từ các đoạn tiếng độc lập, không liên quan track Video */
+      function computeAudioGaps(){
+        var iv = [];
+        for(var i = 0; i < asegs.length; i++) iv.push({ s: asegs[i].start || 0, e: (asegs[i].start || 0) + asegOut(asegs[i]) });
         iv.sort(function(a, b){ return a.s - b.s; });
         var gaps = [], cur = 0;
         for(var j = 0; j < iv.length; j++){
@@ -995,6 +1035,11 @@
         for(var j = 0; j < texts.length; j++){
           if(excludeKind === "text" && texts[j].id === excludeId) continue;
           tg.push(texts[j].start); tg.push(texts[j].end);
+        }
+        for(var k = 0; k < asegs.length; k++){
+          if(excludeKind === "audio" && asegs[k].id === excludeId) continue;
+          tg.push(asegs[k].start || 0);
+          tg.push((asegs[k].start || 0) + asegOut(asegs[k]));
         }
         if(S.musicLoaded && excludeKind !== "music") tg.push(S.musicStart);
         return tg;
@@ -1027,6 +1072,7 @@
           if(ov > 0) L.trs[i] = Math.min(clips[i].transDur, ov, clipOut(clips[i]) * 0.45, clipOut(clips[i+1]) * 0.45);
         }
         /* Tổng thời lượng = điểm kết thúc của đoạn cuối cùng trên mọi track (kể cả khi đầu timeline trống) */
+        for(i = 0; i < asegs.length; i++){ var aEnd = (asegs[i].start || 0) + asegOut(asegs[i]); if(aEnd > total) total = aEnd; }
         for(i = 0; i < texts.length; i++) if(texts[i].end > total) total = texts[i].end;
         for(i = 0; i < overs.length; i++) if(overs[i].end > total) total = overs[i].end;
         L.total = total;
@@ -1106,6 +1152,29 @@
         }
         delete clipGains[id];
       }
+      /* Element riêng cho từng đoạn tiếng độc lập: phát đúng phần tiếng của đoạn, không lệ thuộc element hình của clip */
+      function getAsegEl(a){
+        var el = asegEls[a.id];
+        if(el) return el;
+        el = document.createElement("video");
+        el.className = "hidden-media";
+        el.setAttribute("playsinline", "");
+        el.preload = "auto";
+        el.src = a.url;
+        pool.appendChild(el);
+        asegEls[a.id] = el;
+        if(actx) attachAsegAudio(a.id, el);
+        return el;
+      }
+      function disposeAsegEl(id){
+        var el = asegEls[id];
+        if(el){
+          try{ el.pause(); el.removeAttribute("src"); el.load(); }catch(e){}
+          if(el.parentNode) el.parentNode.removeChild(el);
+          delete asegEls[id];
+        }
+        delete asegGains[id];
+      }
 
       /* ---------- thumbnails ---------- */
       function captureThumb(c){
@@ -1154,14 +1223,22 @@
           return oc.decodeAudioData(buf);
         }).then(function(ab){ done(peaksDataURL(ab)); }).catch(function(){ done(null); });
       }
-      function computeWave(c){
-        if(c.wave || c.waveBusy || c.waveFail || !c.url) return;
-        c.waveBusy = true;
-        decodePeaks(fetch(c.url).then(function(r){ return r.arrayBuffer(); }), function(url){
-          c.waveBusy = false;
-          if(url){ c.wave = url; renderStrip(); }
-          else c.waveFail = true;
+      function ensureWave(url){
+        if(!url || waveCache[url] || waveBusyUrls[url] || waveFailUrls[url]) return;
+        waveBusyUrls[url] = true;
+        decodePeaks(fetch(url).then(function(r){ return r.arrayBuffer(); }), function(u){
+          delete waveBusyUrls[url];
+          if(u){
+            waveCache[url] = u;
+            clips.forEach(function(c){ if(c.url === url) c.wave = u; });
+            renderStrip();
+          } else waveFailUrls[url] = true;
         });
+      }
+      function computeWave(c){
+        if(c.wave || !c.url) return;
+        if(waveCache[c.url]){ c.wave = waveCache[c.url]; return; }
+        ensureWave(c.url);
       }
       function computeMusicWave(file){
         musicWave = null;
@@ -1218,6 +1295,9 @@
             if(c){
               c.start = Math.round(clipsEnd() * 100) / 100;
               clips.push(c);
+              /* Tiếng gốc của clip trở thành đoạn tiếng ĐỘC LẬP ngay từ đầu: nằm đúng vị trí/thời lượng clip, từ đây tách/cắt/dời/xoá riêng */
+              asegs.push({ id: uid("a"), clipId: c.id, url: c.url, name: c.name, fileDur: c.duration,
+                start: c.start, trimStart: 0, trimEnd: c.duration, speed: 1, vol: 100, muted: false });
               if(!firstNew) firstNew = c;
               captureThumb(c);
               getEl(c);
@@ -1277,6 +1357,11 @@
               transType:c.transType, transDur:c.transDur, kb:c.kb, filter:c.filter,
               vol:(c.vol == null ? 100 : c.vol), muted:!!c.muted, thumb:c.thumb };
           }),
+          asegs: asegs.map(function(a){
+            return { id:a.id, clipId:a.clipId, url:a.url, name:a.name, fileDur:a.fileDur, start:(a.start || 0),
+              trimStart:a.trimStart, trimEnd:a.trimEnd, speed:(a.speed || 1),
+              vol:(a.vol == null ? 100 : a.vol), muted:!!a.muted };
+          }),
           texts: texts.map(function(t){
             return { id:t.id, kind:t.kind, text:t.text, start:t.start, end:t.end, size:t.size, color:t.color, pos:t.pos, bg:t.bg, bold:t.bold, hidden:!!t.hidden };
           }),
@@ -1287,7 +1372,7 @@
           S: { aspect:S.aspect, posX:S.posX, posY:S.posY, quality:S.quality, blurBg:S.blurBg, flip:S.flip, rot:S.rot,
                bright:S.bright, contrast:S.contrast, sat:S.sat, musicVol:S.musicVol, videoVol:S.videoVol, fadeIn:S.fadeIn, fadeOut:S.fadeOut,
                musicStart:S.musicStart, musicOffset:S.musicOffset },
-          selClipId: selClipId, selTextId: selTextId, selOverId: selOverId
+          selClipId: selClipId, selTextId: selTextId, selOverId: selOverId, selAsegId: selAsegId
         });
       }
       function pushHistory(){
@@ -1313,6 +1398,20 @@
         clips = st.clips;
         clips.forEach(function(c){ if(c.vol == null) c.vol = 100; if(c.muted == null) c.muted = false; });
         (function(){ var acc = 0; clips.forEach(function(c){ if(c.start == null) c.start = acc; acc = Math.max(acc, (c.start || 0) + clipOut(c)); }); sortClips(); })();
+        /* Snapshot cũ (trước khi có track tiếng độc lập): suy đoạn tiếng từ chính các clip */
+        if(!st.asegs){
+          st.asegs = st.clips.map(function(c){
+            return { id: uid("a"), clipId: c.id, url: c.url, name: c.name, fileDur: c.duration,
+              start: (c.start || 0), trimStart: c.trimStart, trimEnd: c.trimEnd, speed: c.speed,
+              vol: (c.vol == null ? 100 : c.vol), muted: !!c.muted };
+          });
+        }
+        var keepA = {};
+        st.asegs.forEach(function(a){ keepA[a.id] = true; });
+        Object.keys(asegEls).forEach(function(id){ if(!keepA[id]) disposeAsegEl(id); });
+        asegs = st.asegs;
+        asegs.forEach(function(a){ if(a.start == null) a.start = 0; if(a.speed == null) a.speed = 1; if(a.vol == null) a.vol = 100; if(a.muted == null) a.muted = false; });
+        sortAsegs();
         tlGap = null;
         texts = st.texts;
         overs = st.overs.map(function(o){
@@ -1329,6 +1428,7 @@
         S.musicStart = g.musicStart || 0; S.musicOffset = g.musicOffset || 0;
         selClipId = st.selClipId && findClip(st.selClipId) ? st.selClipId : (clips[0] ? clips[0].id : null);
         selTextId = st.selTextId; selOverId = st.selOverId;
+        selAsegId = st.selAsegId && findAseg(st.selAsegId) ? st.selAsegId : null;
         if(st.music){
           var curSrc = music.getAttribute("src");
           if(st.music.loaded && st.music.src && st.music.src !== curSrc) music.src = st.music.src;
@@ -1347,6 +1447,7 @@
           }
         }
         if(selTextId && findText(selTextId)){ tlSel.kind = "text"; tlSel.id = selTextId; }
+        else if(selAsegId && findAseg(selAsegId)){ tlSel.kind = "audio"; tlSel.id = selAsegId; }
         else if(selClipId){ tlSel.kind = "clip"; tlSel.id = selClipId; }
         else if(tlSel.kind !== "music"){ tlSel.kind = null; tlSel.id = null; }
         if(tlSel.kind === "music" && !S.musicLoaded){ tlSel.kind = null; tlSel.id = null; }
@@ -1359,7 +1460,7 @@
         }
         syncGlobalUI();
         relayout(); refreshCanvasSize();
-        renderStrip(); syncClipPanel(); renderTextList(); syncTextPanel(); renderOverList(); syncOverPanel();
+        renderStrip(); syncClipPanel(); renderTextList(); syncTextPanel(); renderOverList(); syncOverPanel(); syncAsegPanel();
         applyVolumesStatic();
         dirty = true;
         applyingSnap = false;
@@ -1413,11 +1514,16 @@
           var gOn = tlSel.kind === "gap" && tlGap && Math.abs(tlGap.s - gp.s) < 0.01 && Math.abs(tlGap.e - gp.e) < 0.01;
           var gst = ' style="left:' + Math.round(gp.s * pps) + 'px;width:' + Math.max(8, Math.round((gp.e - gp.s) * pps)) + 'px"';
           vh += '<div class="tl-gap' + (gOn ? " on" : "") + '" data-gap="' + gi + '"' + gst + ' title="Khoảng trống — bấm để chọn, hoặc chuột phải để đóng khoảng trống"></div>';
-          ah += '<div class="tl-gap" data-gap="' + gi + '"' + gst + '></div>';
+        }
+        /* Khoảng im lặng của riêng track Tiếng gốc (không bám theo khoảng trống hình) */
+        var aGapList = computeAudioGaps();
+        for(var agi = 0; agi < aGapList.length; agi++){
+          var agp = aGapList[agi];
+          ah += '<div class="tl-gap noact" style="left:' + Math.round(agp.s * pps) + 'px;width:' + Math.max(8, Math.round((agp.e - agp.s) * pps)) + 'px"></div>';
         }
         for(var i = 0; i < clips.length; i++){
           var c = clips[i];
-          if(!c.wave && !c.waveBusy && !c.waveFail) computeWave(c);
+          if(!c.wave) computeWave(c);
           var left = Math.round(L.starts[i] * pps);
           var wdt = Math.max(14, Math.round(clipOut(c) * pps));
           var bg = ' style="left:' + left + 'px;width:' + wdt + 'px' + (c.thumb ? ';background-image:url(' + c.thumb + ')' : '') + '"';
@@ -1426,15 +1532,23 @@
             '<span class="tl-handle tl-hl" data-side="l"></span>' +
             '<span class="tl-seg-name"></span>' +
             '<span class="tl-handle tl-hr" data-side="r"></span></div>';
-          var span = Math.max(0.05, c.trimEnd - c.trimStart);
-          var waveHtml = "";
-          if(c.wave){
-            var wl = -(c.trimStart / span * 100), ww = (c.duration / span * 100);
-            waveHtml = '<span class="tl-wave-clip" style="left:' + wl + '%;width:' + ww + '%"><img src="' + c.wave + '" alt="" /></span>';
+        }
+        /* Track Tiếng gốc: vẽ các đoạn tiếng ĐỘC LẬP — vị trí / cắt / âm lượng của riêng chúng */
+        for(var ai = 0; ai < asegs.length; ai++){
+          var a = asegs[ai];
+          if(!waveCache[a.url]) ensureWave(a.url);
+          var aleft = Math.round((a.start || 0) * pps);
+          var awdt = Math.max(14, Math.round(asegOut(a) * pps));
+          var aspan = Math.max(0.05, a.trimEnd - a.trimStart);
+          var awave = "";
+          var aw = waveCache[a.url];
+          if(aw){
+            var awl = -(a.trimStart / aspan * 100), aww = (a.fileDur / aspan * 100);
+            awave = '<span class="tl-wave-clip" style="left:' + awl + '%;width:' + aww + '%"><img src="' + aw + '" alt="" /></span>';
           }
-          var effVol = c.muted ? 0 : (c.vol == null ? 100 : c.vol);
-          ah += '<div class="tl-aseg' + (c.muted ? " muted" : "") + (c.id === selClipId ? " on" : "") + '" data-clip="' + c.id + '" style="left:' + left + 'px;width:' + wdt + 'px">' +
-            '<span class="tl-handle tl-hl" data-side="l"></span>' + waveHtml + '<span class="tl-avol">' + (c.muted ? "Tắt tiếng" : effVol + "%") + '</span>' +
+          var aEffVol = a.muted ? 0 : (a.vol == null ? 100 : a.vol);
+          ah += '<div class="tl-aseg' + (a.muted ? " muted" : "") + (tlSel.kind === "audio" && tlSel.id === a.id ? " on" : "") + '" data-aseg="' + a.id + '" style="left:' + aleft + 'px;width:' + awdt + 'px">' +
+            '<span class="tl-handle tl-hl" data-side="l"></span>' + awave + '<span class="tl-avol">' + (a.muted ? "Tắt tiếng" : aEffVol + "%") + '</span>' +
             '<span class="tl-handle tl-hr" data-side="r"></span></div>';
         }
         vh += '<button type="button" class="tl-add" data-add="1" style="left:' + (W + 7) + 'px">+ Clip</button>';
@@ -1493,23 +1607,27 @@
 
       /* ---------- Tương tác trực tiếp trên timeline: chọn / kéo dời / kéo mép cắt ---------- */
       function segKindOf(el){
-        if(el.classList.contains("tl-seg") || el.classList.contains("tl-aseg")) return "clip";
+        if(el.classList.contains("tl-seg")) return "clip";
+        if(el.classList.contains("tl-aseg")) return "audio";
         if(el.classList.contains("tl-tseg")) return "text";
         if(el.classList.contains("tl-mseg")) return "music";
         return null;
       }
       function segStartT(kind, id){
         if(kind === "clip"){ var c = findClip(id); return c ? L.starts[clips.indexOf(c)] : 0; }
+        if(kind === "audio"){ var a = findAseg(id); return a ? (a.start || 0) : 0; }
         if(kind === "text"){ var t = findText(id); return t ? t.start : 0; }
         return S.musicStart;
       }
       function segEndT(kind, id){
         if(kind === "clip"){ var c = findClip(id); return c ? L.starts[clips.indexOf(c)] + clipOut(c) : 0; }
+        if(kind === "audio"){ var a = findAseg(id); return a ? (a.start || 0) + asegOut(a) : 0; }
         if(kind === "text"){ var t = findText(id); return t ? t.end : 0; }
         return L.total;
       }
       function tlFindSeg(kind, id){
         if(kind === "clip") return $("tlVideoTrack").querySelector('.tl-seg[data-clip="' + id + '"]');
+        if(kind === "audio") return $("tlAudioTrack").querySelector('.tl-aseg[data-aseg="' + id + '"]');
         if(kind === "text") return $("tlTextTrack").querySelector('.tl-tseg[data-text="' + id + '"]');
         return $("tlMusicSeg");
       }
@@ -1519,6 +1637,11 @@
           selClipId = id;
           syncClipPanel();
           if(seek){ var c = findClip(id); if(c) seekTo(L.starts[clips.indexOf(c)]); }
+        } else if(kind === "audio"){
+          selAsegId = id;
+          syncAsegPanel();
+          var a = findAseg(id);
+          if(a && seek) seekTo(a.start || 0);
         } else if(kind === "text"){
           selTextId = id;
           renderTextList(); syncTextPanel();
@@ -1561,7 +1684,6 @@
           rh += '<span class="tl-tick" style="left:' + Math.round(t * pps) + 'px">' + fmt(t) + '</span>';
         ruler.innerHTML = rh;
         var vsegs = $("tlVideoTrack").querySelectorAll(".tl-seg");
-        var asegs = $("tlAudioTrack").querySelectorAll(".tl-aseg");
         for(var i = 0; i < clips.length; i++){
           var left = Math.round(L.starts[i] * pps), wdt = Math.max(14, Math.round(clipOut(clips[i]) * pps));
           if(vsegs[i]){
@@ -1569,7 +1691,11 @@
             var nm = vsegs[i].querySelector(".tl-seg-name");
             if(nm) nm.textContent = (i + 1) + " · " + clips[i].name + " · " + fmt(clipOut(clips[i]));
           }
-          if(asegs[i]){ asegs[i].style.left = left + "px"; asegs[i].style.width = wdt + "px"; }
+        }
+        var adom = $("tlAudioTrack").querySelectorAll(".tl-aseg");
+        for(var ai2 = 0; ai2 < asegs.length && ai2 < adom.length; ai2++){
+          adom[ai2].style.left = Math.round((asegs[ai2].start || 0) * pps) + "px";
+          adom[ai2].style.width = Math.max(14, Math.round(asegOut(asegs[ai2]) * pps)) + "px";
         }
         var add = $("tlVideoTrack").querySelector(".tl-add");
         if(add) add.style.left = (W + 7) + "px";
@@ -1584,13 +1710,17 @@
           ms.style.width = Math.max(20, Math.round((L.total - S.musicStart) * pps)) + "px";
         }
         var gapsNow = computeGaps();
-        ["tlVideoTrack", "tlAudioTrack"].forEach(function(tid){
-          var gels = $(tid).querySelectorAll(".tl-gap");
-          for(var gi2 = 0; gi2 < gels.length && gi2 < gapsNow.length; gi2++){
-            gels[gi2].style.left = Math.round(gapsNow[gi2].s * pps) + "px";
-            gels[gi2].style.width = Math.max(8, Math.round((gapsNow[gi2].e - gapsNow[gi2].s) * pps)) + "px";
-          }
-        });
+        var vgels = $("tlVideoTrack").querySelectorAll(".tl-gap");
+        for(var gi2 = 0; gi2 < vgels.length && gi2 < gapsNow.length; gi2++){
+          vgels[gi2].style.left = Math.round(gapsNow[gi2].s * pps) + "px";
+          vgels[gi2].style.width = Math.max(8, Math.round((gapsNow[gi2].e - gapsNow[gi2].s) * pps)) + "px";
+        }
+        var aGapsNow = computeAudioGaps();
+        var agels = $("tlAudioTrack").querySelectorAll(".tl-gap");
+        for(var gi3 = 0; gi3 < agels.length && gi3 < aGapsNow.length; gi3++){
+          agels[gi3].style.left = Math.round(aGapsNow[gi3].s * pps) + "px";
+          agels[gi3].style.width = Math.max(8, Math.round((aGapsNow[gi3].e - aGapsNow[gi3].s) * pps)) + "px";
+        }
         updateTlPlayhead();
       }
 
@@ -1609,12 +1739,18 @@
           bar.hidden = false;
           return;
         }
-        var name = "", canSplit = false, canDup = false, c = null, t = null;
+        var name = "", canSplit = false, canDup = false, c = null, t = null, a = null;
         if(kind === "clip"){
           c = findClip(tlSel.id);
           if(!c){ bar.hidden = true; return; }
           name = "Clip " + (clips.indexOf(c) + 1) + " · " + c.name;
           canSplit = playhead > segStartT("clip", c.id) + 0.1 && playhead < segEndT("clip", c.id) - 0.1;
+          canDup = true;
+        } else if(kind === "audio"){
+          a = findAseg(tlSel.id);
+          if(!a){ bar.hidden = true; return; }
+          name = "Đoạn tiếng · " + a.name;
+          canSplit = playhead > (a.start || 0) + 0.1 && playhead < (a.start || 0) + asegOut(a) - 0.1;
           canDup = true;
         } else if(kind === "text"){
           t = findText(tlSel.id);
@@ -1633,11 +1769,12 @@
             [0.5, 0.75, 1, 1.15, 1.5, 2].map(function(v){
               return '<option value="' + v + '"' + (Math.abs(c.speed - v) < 0.001 ? " selected" : "") + '>' + v + 'x</option>';
             }).join("") + '</select>';
-          h += '<button type="button" class="sb-btn" data-act="mute">' + (c.muted ? "Bật tiếng" : "Tắt tiếng") + '</button>';
+          h += '<button type="button" class="sb-btn" data-act="mute">' + (clipAudioState(c).muted ? "Bật tiếng" : "Tắt tiếng") + '</button>';
         }
+        if(kind === "audio" && a) h += '<button type="button" class="sb-btn" data-act="mute">' + (a.muted ? "Bật tiếng" : "Tắt tiếng") + '</button>';
         if(kind === "text" && t) h += '<button type="button" class="sb-btn" data-act="vis">' + (t.hidden ? "Hiện chữ" : "Ẩn chữ") + '</button>';
         h += '<button type="button" class="sb-btn" data-act="edit">Chỉnh đoạn…</button>';
-        h += '<button type="button" class="sb-btn danger" data-act="del">' + (kind === "music" ? "Xoá nhạc" : "Xoá đoạn") + '</button>';
+        h += '<button type="button" class="sb-btn danger" data-act="del">' + (kind === "music" ? "Xoá nhạc" : (kind === "audio" ? "Xoá đoạn tiếng" : "Xoá đoạn")) + '</button>';
         h += '<button type="button" class="sb-btn sb-x" data-act="close" aria-label="Bỏ chọn">✕</button>';
         bar.innerHTML = h;
         bar.querySelector(".sb-name").textContent = name;
@@ -1679,10 +1816,21 @@
           if(act === "split") splitAtPlayhead();
           else if(act === "dup") duplicateClip(c);
           else if(act === "mute"){
-            c.muted = !c.muted;
+            var nm = !clipAudioState(c).muted;
+            c.muted = nm;
+            asegsOf(c.id).forEach(function(a2){ a2.muted = nm; });
             syncClipAudioUI(c); updateAudioLevels(); renderStrip(); pushHistory();
           }
           else if(act === "del") deleteClip(c);
+        } else if(kind === "audio"){
+          var a = findAseg(tlSel.id); if(!a) return;
+          if(act === "split") splitAsegAtPlayhead(a);
+          else if(act === "dup") duplicateAseg(a);
+          else if(act === "mute"){
+            a.muted = !a.muted;
+            syncAsegPanel(); updateAudioLevels(); renderStrip(); pushHistory();
+          }
+          else if(act === "del") deleteAseg(a);
         } else if(kind === "text"){
           var t = findText(tlSel.id); if(!t) return;
           if(act === "split") splitTextAtPlayhead(t);
@@ -1730,6 +1878,54 @@
         pushHistory(); dirty = true;
         toast("Đã tách lớp chữ tại điểm phát.");
       }
+      /* ---------- thao tác trên đoạn tiếng độc lập: chỉ đụng track Tiếng gốc, hình đứng yên ---------- */
+      function splitAsegAtPlayhead(a){
+        if(!a) return;
+        var out = asegOut(a);
+        var local = playhead - (a.start || 0);
+        if(local < 0.15 || local > out - 0.15){
+          toast("Đưa điểm phát vào giữa đoạn tiếng rồi bấm Tách.");
+          return;
+        }
+        var srcSplit = a.trimStart + local * (a.speed || 1);
+        var second = {
+          id: uid("a"), clipId: a.clipId, url: a.url, name: a.name, fileDur: a.fileDur,
+          start: Math.round(playhead * 100) / 100, trimStart: srcSplit, trimEnd: a.trimEnd,
+          speed: (a.speed || 1), vol: (a.vol == null ? 100 : a.vol), muted: !!a.muted
+        };
+        a.trimEnd = srcSplit;
+        asegs.splice(asegs.indexOf(a) + 1, 0, second);
+        sortAsegs();
+        selAsegId = a.id; tlSel.kind = "audio"; tlSel.id = a.id;
+        relayout(); renderStrip(); syncAsegPanel();
+        pushHistory(); dirty = true;
+        toast("Đã tách đoạn tiếng tại điểm phát — hình không đổi.");
+      }
+      function duplicateAseg(a){
+        if(!a) return;
+        var copy = {
+          id: uid("a"), clipId: a.clipId, url: a.url, name: a.name, fileDur: a.fileDur,
+          start: Math.round(((a.start || 0) + asegOut(a)) * 100) / 100,
+          trimStart: a.trimStart, trimEnd: a.trimEnd, speed: (a.speed || 1),
+          vol: (a.vol == null ? 100 : a.vol), muted: !!a.muted
+        };
+        asegs.splice(asegs.indexOf(a) + 1, 0, copy);
+        sortAsegs();
+        selAsegId = copy.id; tlSel.kind = "audio"; tlSel.id = copy.id;
+        relayout(); renderStrip(); syncAsegPanel();
+        pushHistory(); dirty = true;
+        toast("Đã nhân bản đoạn tiếng.");
+      }
+      function deleteAseg(a){
+        if(!a) return;
+        asegs.splice(asegs.indexOf(a), 1);
+        disposeAsegEl(a.id);
+        if(selAsegId === a.id) selAsegId = null;
+        if(tlSel.kind === "audio" && tlSel.id === a.id){ tlSel.kind = null; tlSel.id = null; }
+        relayout(); renderStrip(); syncAsegPanel();
+        pushHistory(); dirty = true;
+        toast("Đã xoá đoạn tiếng — chỗ đó sẽ im lặng, hình vẫn chạy tiếp.");
+      }
       /* ---------- đóng khoảng trống: CHỈ khi user bấm — không bao giờ tự dồn ---------- */
       function gapBeforeSeg(kind, id){
         var s, list;
@@ -1750,6 +1946,7 @@
         var len = Math.round((ge - gs) * 100) / 100;
         if(len <= 0.01){ toast("Không có khoảng trống để đóng."); return; }
         clips.forEach(function(c){ if((c.start || 0) >= gs - 0.001) c.start = Math.max(0, Math.round(((c.start || 0) - len) * 100) / 100); });
+        asegs.forEach(function(a){ if((a.start || 0) >= gs - 0.001) a.start = Math.max(0, Math.round(((a.start || 0) - len) * 100) / 100); });
         texts.forEach(function(t){ if(t.start >= gs - 0.001){ t.start = Math.round((t.start - len) * 10) / 10; t.end = Math.round((t.end - len) * 10) / 10; } });
         overs.forEach(function(o){ if(o.start >= gs - 0.001){ o.start = Math.round((o.start - len) * 10) / 10; o.end = Math.round((o.end - len) * 10) / 10; } });
         if(S.musicLoaded && S.musicStart >= gs - 0.001) S.musicStart = Math.max(0, Math.round((S.musicStart - len) * 10) / 10);
@@ -1791,7 +1988,7 @@
           if(kind === "clip" || kind === "text") h += '<button type="button" data-mact="closegap">Đóng khoảng trống bên trái</button>';
           h += '<button type="button" data-mact="edit">Chỉnh đoạn…</button>';
           h += '<div class="sep"></div>';
-          h += '<button type="button" class="danger" data-mact="del">' + (kind === "music" ? "Xoá nhạc nền" : "Xoá đoạn") + '</button>';
+          h += '<button type="button" class="danger" data-mact="del">' + (kind === "music" ? "Xoá nhạc nền" : (kind === "audio" ? "Xoá đoạn tiếng" : "Xoá đoạn")) + '</button>';
         }
         m.innerHTML = h;
         m.hidden = false;
@@ -1813,7 +2010,7 @@
       $("tlInner").addEventListener("contextmenu", function(e){
         var segEl = e.target.closest(".tl-seg, .tl-aseg, .tl-tseg, .tl-mseg");
         if(!segEl){
-          if(e.target.closest(".tl-vtrack") || e.target.closest(".tl-atrack")){
+          if(e.target.closest(".tl-vtrack")){
             var gg = gapAtTime(tlTimeFromEvent(e));
             if(gg){
               e.preventDefault();
@@ -1826,9 +2023,10 @@
         }
         e.preventDefault();
         var kind = segKindOf(segEl);
-        var id = kind === "clip" ? segEl.getAttribute("data-clip") : (kind === "text" ? segEl.getAttribute("data-text") : null);
+        var id = kind === "clip" ? segEl.getAttribute("data-clip") : (kind === "text" ? segEl.getAttribute("data-text") : (kind === "audio" ? segEl.getAttribute("data-aseg") : null));
         tlSel.kind = kind; tlSel.id = id; tlGap = null;
         if(kind === "clip"){ selClipId = id; syncClipPanel(); }
+        else if(kind === "audio"){ selAsegId = id; syncAsegPanel(); }
         else if(kind === "text"){ selTextId = id; renderTextList(); syncTextPanel(); }
         renderStrip();
         showTlMenu(e.clientX, e.clientY, kind);
@@ -1842,7 +2040,7 @@
         if(add){ $("fileVideo").click(); return; }
         var segEl = e.target.closest(".tl-seg, .tl-aseg, .tl-tseg, .tl-mseg");
         if(!segEl){
-          if(e.target.closest(".tl-vtrack") || e.target.closest(".tl-atrack")){
+          if(e.target.closest(".tl-vtrack")){
             var gg2 = gapAtTime(tlTimeFromEvent(e));
             if(gg2){
               tlSel.kind = "gap"; tlSel.id = null; tlGap = gg2;
@@ -1854,7 +2052,7 @@
           return;
         }
         var kind = segKindOf(segEl);
-        var id = kind === "clip" ? segEl.getAttribute("data-clip") : (kind === "text" ? segEl.getAttribute("data-text") : null);
+        var id = kind === "clip" ? segEl.getAttribute("data-clip") : (kind === "text" ? segEl.getAttribute("data-text") : (kind === "audio" ? segEl.getAttribute("data-aseg") : null));
         var handle = e.target.closest(".tl-handle");
         var mode = "move";
         var r0 = segEl.getBoundingClientRect();
@@ -1865,16 +2063,19 @@
         if(kind === "music" && mode === "trim-r") mode = "move";
         tlSel.kind = kind; tlSel.id = id; tlGap = null;
         if(kind === "clip"){ selClipId = id; syncClipPanel(); }
+        else if(kind === "audio"){ selAsegId = id; syncAsegPanel(); }
         else if(kind === "text"){ selTextId = id; renderTextList(); syncTextPanel(); }
         renderStrip();
         segEl = tlFindSeg(kind, id);
         if(!segEl) return;
         var c = kind === "clip" ? findClip(id) : null;
         var tx = kind === "text" ? findText(id) : null;
+        var asg = kind === "audio" ? findAseg(id) : null;
         tlDrag = {
           kind: kind, id: id, mode: mode, el: segEl,
           x0: e.clientX, moved: false, targetIdx: -1,
           clip: c ? { trimStart: c.trimStart, trimEnd: c.trimEnd, start: c.start || 0 } : null,
+          aseg: asg ? { trimStart: asg.trimStart, trimEnd: asg.trimEnd, start: asg.start || 0 } : null,
           text: tx ? { start: tx.start, end: tx.end } : null,
           musicStart0: S.musicStart, musicOffset0: S.musicOffset,
           startT: segStartT(kind, id)
@@ -1939,6 +2140,25 @@
           positionSegsLive();
           showTlTip(tipX, tipY, fmt(t.start) + " → " + fmt(t.end) + " · dài " + fmt(t.end - t.start));
           dirty = true;
+        } else if(d.kind === "audio"){
+          /* Kéo trên đoạn tiếng: chỉ đoạn tiếng đổi — clip video đứng yên tuyệt đối */
+          var a = findAseg(d.id); if(!a) return;
+          if(d.mode === "move"){
+            var nsA = snapStart(d.aseg.start + dt, asegOut(a), snapTargetsFor("audio", d.id), pps);
+            a.start = Math.round(Math.max(0, nsA) * 100) / 100;
+          } else if(d.mode === "trim-l"){
+            var ntsA = clamp(d.aseg.trimStart + dt * (a.speed || 1), 0, d.aseg.trimEnd - 0.2);
+            var usedA = (ntsA - d.aseg.trimStart) / (a.speed || 1);
+            if(d.aseg.start + usedA < 0){ usedA = -d.aseg.start; ntsA = d.aseg.trimStart + usedA * (a.speed || 1); }
+            a.trimStart = Math.round(ntsA * 100) / 100;
+            a.start = Math.round((d.aseg.start + usedA) * 100) / 100;
+          } else {
+            a.trimEnd = Math.round(clamp(d.aseg.trimEnd + dt * (a.speed || 1), d.aseg.trimStart + 0.2, a.fileDur) * 100) / 100;
+          }
+          relayout();
+          positionSegsLive();
+          showTlTip(tipX, tipY, "Tiếng " + fmt(a.start) + " → " + fmt(a.start + asegOut(a)) + " · đoạn dùng " + fmt(a.trimEnd - a.trimStart));
+          dirty = true;
         } else if(d.kind === "music"){
           if(d.mode === "trim-l"){
             var lim = Math.min(d.musicStart0, d.musicOffset0);
@@ -1964,6 +2184,7 @@
         hideTlTip(); hideDropMark();
         if(!d.moved){
           if(d.kind === "clip"){ var c0 = findClip(d.id); if(c0) seekTo(L.starts[clips.indexOf(c0)]); }
+          else if(d.kind === "audio"){ var a0 = findAseg(d.id); if(a0) seekTo(a0.start || 0); }
           else if(d.kind === "text"){ var t0 = findText(d.id); if(t0) seekTo(t0.start); }
           renderStrip();
           dirty = true;
@@ -1980,6 +2201,11 @@
           pushHistory();
         } else if(d.kind === "text"){
           relayout(); renderStrip(); renderTextList(); syncTextPanel();
+          pushHistory(); dirty = true;
+        } else if(d.kind === "audio"){
+          sortAsegs();
+          relayout(); renderStrip(); syncAsegPanel();
+          if(!playing) syncPausedFrame();
           pushHistory(); dirty = true;
         } else if(d.kind === "music"){
           renderStrip();
@@ -2022,11 +2248,7 @@
         $("outTransDur").textContent = c.transDur.toFixed(1) + "s";
         $("kbSelect").value = c.kb;
         $("filterSelect").value = c.filter;
-        var cv = (c.vol == null ? 100 : c.vol);
-        $("clipVol").value = cv;
-        $("outClipVol").textContent = cv + "%";
-        $("btnClipMute").classList.toggle("on", !!c.muted);
-        $("clipMuteLabel").textContent = c.muted ? "Bật tiếng clip" : "Tắt tiếng clip";
+        syncClipAudioUI(c);
         var idx = clips.indexOf(c);
         $("btnMoveL").disabled = idx <= 0;
         $("btnMoveR").disabled = idx >= clips.length - 1;
@@ -2300,6 +2522,7 @@
           actx = new AC();
           audioDest = actx.createMediaStreamDestination();
           for(var i=0;i<clips.length;i++) attachClipAudio(clips[i].id, getEl(clips[i]));
+          for(var j=0;j<asegs.length;j++) attachAsegAudio(asegs[j].id, getAsegEl(asegs[j]));
           if(S.musicLoaded) attachMusicNode();
           return true;
         }catch(e){ actx = null; return false; }
@@ -2315,6 +2538,17 @@
           clipGains[id] = { src: src, gain: g };
         }catch(e){}
       }
+      function attachAsegAudio(id, el){
+        if(!actx || asegGains[id]) return;
+        try{
+          var src = actx.createMediaElementSource(el);
+          var g = actx.createGain();
+          src.connect(g);
+          g.connect(actx.destination);
+          g.connect(audioDest);
+          asegGains[id] = { src: src, gain: g };
+        }catch(e){}
+      }
       function attachMusicNode(){
         if(!actx || musicSrcNode) return;
         try{
@@ -2327,10 +2561,11 @@
       }
       function applyVolumesStatic(){
         if(actx){
-          for(var id in clipGains){
-            var cc = findClip(id);
-            var cf = cc ? (cc.muted ? 0 : (cc.vol == null ? 100 : cc.vol) / 100) : 1;
-            clipGains[id].gain.value = (S.videoVol / 100) * cf;
+          /* Element hình của clip luôn câm — tiếng gốc phát từ các đoạn tiếng độc lập */
+          for(var id in clipGains) clipGains[id].gain.value = 0;
+          for(var i = 0; i < asegs.length; i++){
+            var ag = asegGains[asegs[i].id];
+            if(ag) ag.gain.value = (S.videoVol / 100) * asegFactor(asegs[i], playhead);
           }
           if(musicGain) musicGain.gain.value = (S.musicVol / 100) * musicFactor(playhead);
         } else {
@@ -2345,33 +2580,30 @@
         if(S.fadeOut > 0) f = Math.min(f, clamp((L.total - t) / S.fadeOut, 0, 1));
         return f;
       }
-      function clipFactor(i, t){
-        var local = t - L.starts[i];
-        var out = clipOut(clips[i]);
+      /* Hệ số tiếng của một đoạn tiếng độc lập tại thời điểm t: chỉ phụ thuộc chính đoạn đó */
+      function asegFactor(a, t){
+        var local = t - (a.start || 0);
+        var out = asegOut(a);
         if(local < 0 || local > out) return 0;
-        var f = 1;
-        if(i > 0 && L.trs[i-1] > 0 && local < L.trs[i-1]) f = local / L.trs[i-1];
-        if(i < clips.length-1 && L.trs[i] > 0){
-          var tl = t - L.starts[i+1];
-          if(tl >= 0 && tl < L.trs[i]) f = Math.min(f, 1 - tl / L.trs[i]);
-        }
-        var cvf = clips[i].muted ? 0 : (clips[i].vol == null ? 100 : clips[i].vol) / 100;
-        return clamp(f * cvf, 0, 1);
+        return a.muted ? 0 : (a.vol == null ? 100 : a.vol) / 100;
       }
       function updateAudioLevels(){
-        var i, c, el, f;
+        var i;
         if(actx){
-          for(i=0;i<clips.length;i++){
-            c = clips[i];
-            var cg = clipGains[c.id];
-            if(cg) cg.gain.value = (S.videoVol / 100) * clipFactor(i, playhead);
+          for(var id in clipGains) clipGains[id].gain.value = 0;
+          for(i=0;i<asegs.length;i++){
+            var ag = asegGains[asegs[i].id];
+            if(ag) ag.gain.value = (S.videoVol / 100) * asegFactor(asegs[i], playhead);
           }
           if(musicGain) musicGain.gain.value = (S.musicVol / 100) * musicFactor(playhead);
         } else {
           for(i=0;i<clips.length;i++){
-            c = clips[i];
-            el = clipEls[c.id];
-            if(el) el.volume = (S.videoVol / 100) * clipFactor(i, playhead);
+            var el = clipEls[clips[i].id];
+            if(el) el.volume = 0;
+          }
+          for(i=0;i<asegs.length;i++){
+            var ae = asegEls[asegs[i].id];
+            if(ae) ae.volume = (S.videoVol / 100) * asegFactor(asegs[i], playhead);
           }
           music.volume = (S.musicVol / 100) * musicFactor(playhead);
         }
@@ -2430,6 +2662,23 @@
             el.pause();
           }
         }
+        /* Tiếng gốc: phát từ element của đoạn tiếng đang phủ playhead — độc lập hoàn toàn với hình */
+        for(var ai=0;ai<asegs.length;ai++){
+          var a = asegs[ai], ael = getAsegEl(a);
+          var alocal = playhead - (a.start || 0);
+          var aout = asegOut(a);
+          var avis = alocal >= -0.002 && alocal <= aout + 0.002;
+          if(avis){
+            var asrcT = clamp(a.trimStart + clamp(alocal, 0, aout) * (a.speed || 1), 0, a.fileDur);
+            ael.playbackRate = (a.speed || 1);
+            if(ael.paused){ var apr = ael.play(); if(apr && apr.catch) apr.catch(function(){}); }
+            if(Math.abs(ael.currentTime - asrcT) > 0.35){
+              try{ ael.currentTime = asrcT; }catch(e){}
+            }
+          } else if(!ael.paused){
+            ael.pause();
+          }
+        }
         if(S.musicLoaded){
           if(music.paused){ var pm = music.play(); if(pm && pm.catch) pm.catch(function(){}); }
           syncMusic();
@@ -2448,6 +2697,10 @@
             }
           }
           if(!el.paused) el.pause();
+        }
+        for(var ai2=0;ai2<asegs.length;ai2++){
+          var ae2 = asegEls[asegs[ai2].id];
+          if(ae2 && !ae2.paused) ae2.pause();
         }
         if(!music.paused) music.pause();
       }
@@ -2517,6 +2770,7 @@
           if(e.code === "KeyS" && (e.ctrlKey || e.metaKey)) return;
           e.preventDefault();
           if(tlSel.kind === "text"){ var tt = findText(tlSel.id); if(tt) splitTextAtPlayhead(tt); }
+          else if(tlSel.kind === "audio"){ var ta = findAseg(tlSel.id); if(ta) splitAsegAtPlayhead(ta); }
           else splitAtPlayhead();
           return;
         }
@@ -2577,8 +2831,9 @@
       $("btnNewProject").addEventListener("click", function(){
         if(playing) pauseAll();
         Object.keys(clipEls).forEach(function(id){ disposeEl(id); });
-        clips = []; texts = []; overs = [];
-        selClipId = selTextId = selOverId = null;
+        Object.keys(asegEls).forEach(function(id){ disposeAsegEl(id); });
+        clips = []; texts = []; overs = []; asegs = [];
+        selClipId = selTextId = selOverId = selAsegId = null;
         playhead = 0;
         relayout();
         $("studio").hidden = true;
@@ -2743,7 +2998,7 @@
         tlSel.kind = "clip"; tlSel.id = selClipId;
         playhead = clamp(playhead, 0, L.total);
         afterClipStructure(); pushHistory();
-        toast("Đã xoá clip.");
+        toast(asegsOf(c.id).length ? "Đã xoá clip — đoạn tiếng của clip vẫn nằm trên track Tiếng gốc, xoá riêng nếu không cần." : "Đã xoá clip.");
       }
       $("btnDelClip").addEventListener("click", function(){ deleteClip(selClip()); });
       function splitAtPlayhead(){
@@ -2969,18 +3224,26 @@
       });
 
       /* ---------- per-clip audio (volume / mute on the Tiếng gốc track) ---------- */
+      /* Trạng thái tiếng "của clip" = trạng thái các đoạn tiếng độc lập thuộc clip đó */
+      function clipAudioState(c){
+        var list = asegsOf(c.id);
+        if(list.length) return { vol: (list[0].vol == null ? 100 : list[0].vol), muted: !!list[0].muted };
+        return { vol: (c.vol == null ? 100 : c.vol), muted: !!c.muted };
+      }
       function syncClipAudioUI(c){
         if(!c) return;
-        var cv = (c.vol == null ? 100 : c.vol);
-        $("clipVol").value = cv;
-        $("outClipVol").textContent = cv + "%";
-        $("btnClipMute").classList.toggle("on", !!c.muted);
-        $("clipMuteLabel").textContent = c.muted ? "Bật tiếng clip" : "Tắt tiếng clip";
+        var st = clipAudioState(c);
+        $("clipVol").value = st.vol;
+        $("outClipVol").textContent = st.vol + "%";
+        $("btnClipMute").classList.toggle("on", st.muted);
+        $("clipMuteLabel").textContent = st.muted ? "Bật tiếng clip" : "Tắt tiếng clip";
       }
       $("clipVol").addEventListener("input", function(){
         var c = selClip(); if(!c) return;
-        c.vol = parseFloat(this.value);
-        if(c.vol > 0) c.muted = false;
+        var v = parseFloat(this.value);
+        c.vol = v;
+        if(v > 0) c.muted = false;
+        asegsOf(c.id).forEach(function(a){ a.vol = v; if(v > 0) a.muted = false; });
         syncClipAudioUI(c);
         updateAudioLevels();
         renderStripLight();
@@ -2988,11 +3251,70 @@
       $("clipVol").addEventListener("change", function(){ pushHistory(); });
       $("btnClipMute").addEventListener("click", function(){
         var c = selClip(); if(!c) return;
-        c.muted = !c.muted;
+        var nm = !clipAudioState(c).muted;
+        c.muted = nm;
+        asegsOf(c.id).forEach(function(a){ a.muted = nm; });
         syncClipAudioUI(c);
         updateAudioLevels();
         renderStripLight();
         pushHistory();
+      });
+      /* ---------- đoạn tiếng độc lập đang chọn: panel + nút Tách âm thanh ---------- */
+      function syncAsegPanel(){
+        var a = selAseg();
+        var box = $("asegEditor");
+        if(box) box.hidden = !a;
+        if(!a) return;
+        $("asegNameLabel").textContent = a.name + " · " + fmt(a.start || 0) + " → " + fmt((a.start || 0) + asegOut(a));
+        var v = (a.vol == null ? 100 : a.vol);
+        $("asegVol").value = v;
+        $("outAsegVol").textContent = v + "%";
+        $("btnAsegMute").classList.toggle("on", !!a.muted);
+        $("asegMuteLabel").textContent = a.muted ? "Bật tiếng đoạn này" : "Tắt tiếng đoạn này";
+      }
+      $("asegVol").addEventListener("input", function(){
+        var a = selAseg(); if(!a) return;
+        a.vol = parseFloat(this.value);
+        if(a.vol > 0) a.muted = false;
+        $("outAsegVol").textContent = a.vol + "%";
+        $("btnAsegMute").classList.toggle("on", !!a.muted);
+        $("asegMuteLabel").textContent = a.muted ? "Bật tiếng đoạn này" : "Tắt tiếng đoạn này";
+        updateAudioLevels();
+        renderStripLight();
+      });
+      $("asegVol").addEventListener("change", function(){ pushHistory(); });
+      $("btnAsegMute").addEventListener("click", function(){
+        var a = selAseg(); if(!a) return;
+        a.muted = !a.muted;
+        syncAsegPanel();
+        updateAudioLevels();
+        renderStrip();
+        pushHistory();
+      });
+      $("btnDetachAudio").addEventListener("click", function(){
+        var c = selClip(); if(!c) return;
+        var list = asegsOf(c.id);
+        if(!list.length){
+          var na = { id: uid("a"), clipId: c.id, url: c.url, name: c.name, fileDur: c.duration,
+            start: Math.round((c.start || 0) * 100) / 100, trimStart: c.trimStart, trimEnd: c.trimEnd,
+            speed: c.speed, vol: (c.vol == null ? 100 : c.vol), muted: !!c.muted };
+          asegs.push(na);
+          sortAsegs();
+          relayout(); renderStrip();
+          pushHistory();
+          toast("Đã tạo lại đoạn tiếng độc lập cho clip này trên track Tiếng gốc.");
+        } else {
+          toast("Tiếng của clip này là đoạn độc lập trên track Tiếng gốc — tách / cắt / dời / xoá riêng, hình không đổi.");
+        }
+        var target = asegsOf(c.id)[0];
+        var all = asegsOf(c.id);
+        for(var i = 0; i < all.length; i++){
+          if(playhead >= (all[i].start || 0) && playhead <= (all[i].start || 0) + asegOut(all[i])){ target = all[i]; break; }
+        }
+        if(target){
+          selectTimeline("audio", target.id, false);
+          scrollToEditor("audio");
+        }
       });
       $("musicStartIn").addEventListener("change", function(){
         var v = parseFloat(this.value);
@@ -3022,12 +3344,7 @@
       $("videoVol").addEventListener("input", function(){
         S.videoVol = parseFloat(this.value);
         $("outVideoVol").textContent = S.videoVol + "%";
-        if(!actx){
-          for(var i = 0; i < clips.length; i++){
-            var el2 = clipEls[clips[i].id];
-            if(el2) el2.volume = (S.videoVol / 100) * clipFactor(i, playhead);
-          }
-        }
+        updateAudioLevels();
       });
       $("videoVol").addEventListener("change", function(){ pushHistory(); });
       $("fadeIn").addEventListener("input", function(){
