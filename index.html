@@ -4,8 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
-    <link rel="icon" href="data:," />
-    <title>Edit Video Đa Năng</title>
+    <meta name="theme-color" content="#232328" />
+    <meta name="description" content="Chỉnh sửa video online miễn phí ngay trên trình duyệt: cắt ghép, phụ đề, nhạc, hiệu ứng, xuất MP4 tới 1920px — không tải file lên máy chủ." />
+    <meta property="og:title" content="Edit Video Đa Năng — Sửa video online miễn phí" />
+    <meta property="og:description" content="Cắt ghép, chèn phụ đề, thêm nhạc và hiệu ứng ngay trên trình duyệt. Không tải lên máy chủ, xuất tới 1920px." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='48' y2='48' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%2300c9d4'/%3E%3Cstop offset='1' stop-color='%23a882ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='2' y='2' width='44' height='44' rx='12' fill='url(%23g)'/%3E%3Cpath d='M19 15.5v17l14-8.5z' fill='%23101014'/%3E%3C/svg%3E" />
+    <title>Edit Video Đa Năng — Sửa video online miễn phí</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -60,10 +65,10 @@
       .lp-brand{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:16.5px; letter-spacing:-.01em; white-space:nowrap; }
       .lp-logo{
         width:34px; height:34px; border-radius:10px; flex:none;
-        background:var(--accent-soft); border:1px solid rgba(0,201,212,.35);
         display:flex; align-items:center; justify-content:center;
+        filter:drop-shadow(0 5px 12px rgba(0,201,212,.28));
       }
-      .lp-logo svg{ width:19px; height:19px; color:var(--accent); }
+      .lp-logo svg{ width:34px; height:34px; }
       .lp-nav nav{ margin-left:auto; display:flex; align-items:center; gap:4px; }
       .lp-nav nav a{
         color:var(--ink-soft); text-decoration:none; font-size:13.5px; font-weight:600;
@@ -150,7 +155,7 @@
 
       /* --- Landing: dải kéo thả --- */
       .dropzone{
-        border:2px dashed var(--line); border-radius:16px; background:var(--panel);
+        border:2px dashed var(--line); border-radius:12px; background:var(--panel);
         padding:18px 22px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;
         transition:border-color .15s, background .15s;
       }
@@ -169,8 +174,8 @@
       .lp-sec h2{ font-size:23px; font-weight:800; letter-spacing:-.01em; margin:0 0 18px; }
       .lp-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
       .lp-card{
-        background:var(--panel); border:1px solid var(--line); border-radius:15px; padding:18px;
-        transition:transform .16s, border-color .16s, box-shadow .16s;
+        background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px;
+        transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
       }
       .lp-card:hover{ transform:translateY(-3px); border-color:rgba(0,201,212,.45); box-shadow:0 14px 30px rgba(0,0,0,.35); }
       .lp-card .ic{ width:38px; height:38px; border-radius:11px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
@@ -178,7 +183,7 @@
       .lp-card h3{ font-size:14.5px; margin:0 0 5px; font-weight:700; }
       .lp-card p{ margin:0; font-size:12.5px; line-height:1.55; color:var(--ink-soft); }
       .lp-steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-      .lp-step{ background:var(--panel); border:1px solid var(--line); border-radius:15px; padding:18px; display:flex; gap:13px; }
+      .lp-step{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; display:flex; gap:13px; }
       .lp-step .num{
         width:30px; height:30px; flex:none; border-radius:50%;
         background:var(--accent); color:var(--accent-ink);
@@ -221,7 +226,7 @@
         display:inline-flex; align-items:center; gap:7px;
         border:1px solid var(--line); background:var(--chip); color:var(--ink);
         border-radius:10px; padding:7px 11px; font-size:12.5px; font-weight:600;
-        transition:transform .08s, background .15s, border-color .15s, filter .15s;
+        transition:transform .12s ease, background .12s ease, border-color .12s ease, filter .12s ease, box-shadow .12s ease;
       }
       .btn:hover{ background:var(--hover); }
       .btn:active{ transform:scale(.97); }
@@ -246,7 +251,7 @@
         width:30px; height:30px; flex:none;
         display:inline-flex; align-items:center; justify-content:center;
         border:1px solid var(--line); background:var(--chip); border-radius:9px; color:var(--ink);
-        transition:background .15s, transform .08s;
+        transition:background .12s ease, transform .12s ease, border-color .12s ease;
       }
       .icon-btn:active:not(:disabled){ transform:scale(.94); }
       .icon-btn:hover:not(:disabled){ background:var(--hover); }
@@ -259,12 +264,16 @@
       @media (max-width:920px){ .studio{ grid-template-columns:1fr; } }
 
       .stage-card{
-        background:var(--panel); border:1px solid var(--line); border-radius:15px;
+        background:var(--panel); border:1px solid var(--line); border-radius:12px;
         box-shadow:var(--shadow); overflow:hidden; min-width:0;
         display:flex; flex-direction:column;
       }
       .stage{
-        background:var(--stage);
+        background:
+          radial-gradient(560px 320px at 50% 42%, rgba(0,201,212,.06), transparent 70%),
+          radial-gradient(rgba(255,255,255,.045) 1px, transparent 1.4px),
+          var(--stage);
+        background-size:auto, 22px 22px, auto;
         display:flex; align-items:center; justify-content:center;
         padding:14px; min-height:230px;
       }
@@ -683,11 +692,7 @@
         background:linear-gradient(92deg, #00c9d4 10%, #7dd7ff 55%, #b18cff 100%);
         -webkit-background-clip:text; background-clip:text; color:transparent;
       }
-      .lp-logo{
-        border:1px solid transparent;
-        background:linear-gradient(rgba(27,27,32,.92), rgba(27,27,32,.92)) padding-box,
-          linear-gradient(135deg, rgba(0,201,212,.7), rgba(168,130,255,.5)) border-box;
-      }
+      .lp-logo{ background:none; border:none; }
       .sheet{
         background:rgba(28,28,34,.92);
         backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
@@ -722,23 +727,23 @@
       /* ---------- PRO: zoom xem trước + lưới hướng dẫn (chỉ để xem) ---------- */
       .stage{ overflow:hidden; }
       .stage-wrap{ position:relative; display:inline-block; line-height:0; transition:transform .15s; }
-      .guides{ position:absolute; inset:0; pointer-events:none; z-index:4; }
-      .guides::before{
-        content:""; position:absolute; inset:0;
-        background:
-          linear-gradient(to right, transparent calc(33.33% - .5px), rgba(255,255,255,.35) 33.33%, transparent calc(33.33% + .5px)),
-          linear-gradient(to right, transparent calc(66.66% - .5px), rgba(255,255,255,.35) 66.66%, transparent calc(66.66% + .5px)),
-          linear-gradient(to bottom, transparent calc(33.33% - .5px), rgba(255,255,255,.35) 33.33%, transparent calc(33.33% + .5px)),
-          linear-gradient(to bottom, transparent calc(66.66% - .5px), rgba(255,255,255,.35) 66.66%, transparent calc(66.66% + .5px));
+      /* Lưới được JS đặt đúng lên hình chữ nhật khung hình đang hiển thị (vùng nội dung
+         sau letterbox), nên luôn bám sát 4 cạnh khung — không vẽ theo toàn bộ sân khấu. */
+      .guides{ position:absolute; pointer-events:none; z-index:4; overflow:hidden; border-radius:6px; }
+      .guides > div{ position:absolute; inset:0; }
+      .guides .g-line{ position:absolute; background:rgba(255,255,255,.25); }
+      .guides .g-v{ top:0; bottom:0; width:1px; }
+      .guides .g-h{ left:0; right:0; height:1px; }
+      .guides .g-band{ position:absolute; background:rgba(0,0,0,.16); display:block; }
+      .guides .g-top{ top:0; left:0; right:0; height:12%; border-bottom:1px solid rgba(0,201,212,.22); }
+      .guides .g-right{ top:0; right:0; bottom:0; width:14%; border-left:1px solid rgba(0,201,212,.22); }
+      .guides .g-bottom{ bottom:0; left:0; right:0; height:22%; border-top:1px solid rgba(0,201,212,.22); }
+      .guides .g-tag{
+        position:absolute; font-style:normal; font-size:10px; font-weight:600; line-height:1;
+        color:rgba(255,255,255,.75); letter-spacing:.03em; text-shadow:0 1px 3px rgba(0,0,0,.65);
       }
-      .guides .gz-r{
-        position:absolute; top:0; right:0; bottom:19%; width:12.5%;
-        background:rgba(255,80,80,.1); border-left:1.5px dashed rgba(255,110,110,.75); border-bottom:1.5px dashed rgba(255,110,110,.75);
-      }
-      .guides .gz-b{
-        position:absolute; left:0; right:0; bottom:0; height:19%;
-        background:rgba(255,80,80,.1); border-top:1.5px dashed rgba(255,110,110,.75);
-      }
+      .guides .g-right .g-tag{ top:6px; right:6px; }
+      .guides .g-bottom .g-tag{ top:6px; left:8px; }
       .pv-zoom{ display:flex; align-items:center; gap:5px; }
       .pv-zoom span{ font-size:11.5px; font-weight:700; color:var(--ink-soft); min-width:38px; text-align:center; font-variant-numeric:tabular-nums; }
       .pv-zoom .icon-btn{ width:26px; height:26px; font-size:15px; }
@@ -752,6 +757,56 @@
       .proj-row .lt{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; }
       .proj-row .lm{ color:var(--ink-faint); font-size:11px; white-space:nowrap; }
       .proj-row .btn{ padding:4px 9px; font-size:11.5px; }
+
+      /* ---------- THƯƠNG MẠI: nhận diện studio + focus + landing hoàn chỉnh ---------- */
+      .brand-mini{ display:flex; align-items:center; gap:8px; flex:none; margin-right:2px; }
+      .brand-mini svg{ width:26px; height:26px; flex:none; filter:drop-shadow(0 4px 9px rgba(0,201,212,.25)); }
+      .brand-mini .bname{ font-weight:800; font-size:13.5px; letter-spacing:-.01em; white-space:nowrap; }
+      .pro-chip{
+        font-size:10px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
+        color:#101014; background:linear-gradient(135deg, #00d6e2, #a882ff);
+        padding:3px 8px; border-radius:999px; line-height:1.2; flex:none;
+      }
+      @media (max-width:760px){ .brand-mini .bname{ display:none; } }
+
+      .btn:focus-visible, .icon-btn:focus-visible, .play-btn:focus-visible,
+      .chip:focus-visible, .tab-btn:focus-visible, a:focus-visible{
+        outline:2px solid var(--accent); outline-offset:2px;
+      }
+      input[type=range]:focus-visible{ outline:2px solid var(--accent); outline-offset:4px; }
+      canvas#preview:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+      /* Dải chip cam kết trên landing */
+      .lp-trust{
+        display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center;
+        margin-top:26px; padding:14px 16px;
+        background:var(--panel); border:1px solid var(--line); border-radius:12px;
+      }
+      .lp-trust .lp-chip{ display:inline-flex; align-items:center; gap:7px; background:var(--panel-2); }
+      .lp-trust .lp-chip svg{ width:13px; height:13px; color:var(--ok); flex:none; }
+
+      /* FAQ ngắn */
+      .lp-faq{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+      .lp-faq-item{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+      .lp-faq-item h3{ font-size:14px; margin:0 0 6px; font-weight:700; }
+      .lp-faq-item p{ margin:0; font-size:12.5px; line-height:1.6; color:var(--ink-soft); }
+      @media (max-width:760px){ .lp-faq{ grid-template-columns:1fr; } }
+
+      /* Dải CTA cuối trang */
+      .lp-endcta{
+        margin-top:44px; text-align:center;
+        background:var(--panel); border:1px solid var(--line); border-radius:12px;
+        padding:34px 20px 30px;
+      }
+      .lp-endcta h2{ font-size:22px; font-weight:800; letter-spacing:-.01em; margin:0 0 8px; }
+      .lp-endcta p{ margin:0 0 20px; font-size:13.5px; color:var(--ink-soft); }
+      .lp-endcta .btn.big{ padding:13px 24px; font-size:15px; border-radius:12px; box-shadow:0 8px 22px rgba(0,201,212,.22); }
+
+      .lp-foot .fbrand{ display:flex; align-items:center; gap:8px; }
+      .lp-foot .fbrand svg{ width:20px; height:20px; }
+      .lp-foot nav{ margin-left:auto; display:flex; gap:4px; }
+      .lp-foot nav a{ color:var(--ink-faint); text-decoration:none; font-weight:600; padding:5px 9px; border-radius:8px; transition:color .12s ease, background .12s ease; }
+      .lp-foot nav a:hover{ color:var(--ink); background:var(--hover); }
     </style>
   </head>
   <body>
@@ -771,13 +826,14 @@
         <header class="lp-nav">
           <div class="lp-brand">
             <span class="lp-logo">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 9.5h19M7 5v14M17 5v14"/><path d="M10.2 10.8v2.4l2.1-1.2z" fill="currentColor" stroke="none"/></svg>
+              <svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lgNav" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00c9d4"/><stop offset="1" stop-color="#a882ff"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="12" fill="url(#lgNav)"/><path d="M19 15.5v17l14-8.5z" fill="#101014"/></svg>
             </span>
             <span class="grad-text">Edit Video Đa Năng</span>
           </div>
           <nav>
             <a href="#tinh-nang">Tính năng</a>
             <a href="#cach-dung">Cách dùng</a>
+            <a href="#hoi-dap">Hỏi đáp</a>
             <button class="btn primary lp-cta js-pick">Bắt đầu ngay</button>
           </nav>
         </header>
@@ -795,10 +851,10 @@
               <span class="lp-or">hoặc kéo thả file vào trang</span>
             </div>
             <div class="lp-chips">
-              <span class="lp-chip">Không tải lên máy chủ</span>
-              <span class="lp-chip">Xuất tới 1920px</span>
+              <span class="lp-chip">Không cần tài khoản</span>
               <span class="lp-chip">4 tỉ lệ khung</span>
               <span class="lp-chip">MP4 / WebM</span>
+              <span class="lp-chip">Phụ đề karaoke</span>
             </div>
           </div>
           <div class="lp-visual lp-anim lp-d2" aria-hidden="true">
@@ -839,6 +895,13 @@
             <b>Kéo thả video vào đây</b>
             <span>Thả file là bắt đầu chỉnh sửa ngay</span>
           </div>
+        </div>
+
+        <div class="lp-trust lp-anim lp-d4" aria-label="Cam kết">
+          <span class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>100% chạy trên trình duyệt</span>
+          <span class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Không tải lên máy chủ</span>
+          <span class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Xuất tới 1920px</span>
+          <span class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Lưu dự án ngay trên máy</span>
         </div>
 
         <section class="lp-sec lp-anim lp-d4" id="tinh-nang">
@@ -904,9 +967,48 @@
           </div>
         </section>
 
+        <section class="lp-sec" id="hoi-dap">
+          <h2>Hỏi đáp</h2>
+          <div class="lp-faq">
+            <div class="lp-faq-item">
+              <h3>Dùng có miễn phí không?</h3>
+              <p>Miễn phí hoàn toàn và không cần tài khoản — mở trang lên là chỉnh sửa được ngay.</p>
+            </div>
+            <div class="lp-faq-item">
+              <h3>Video của tôi có bị tải lên máy chủ không?</h3>
+              <p>Không. Mọi xử lý diễn ra ngay trên trình duyệt của bạn, file video không rời khỏi máy.</p>
+            </div>
+            <div class="lp-faq-item">
+              <h3>Xuất video ra định dạng gì?</h3>
+              <p>MP4 nếu trình duyệt hỗ trợ, còn lại là WebM; độ phân giải tối đa 1920px.</p>
+            </div>
+            <div class="lp-faq-item">
+              <h3>Dùng trên điện thoại được không?</h3>
+              <p>Được, trang chạy ngay trên trình duyệt điện thoại. Với video dài, máy tính sẽ mượt hơn.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="lp-endcta">
+          <h2>Sẵn sàng sửa video đầu tiên?</h2>
+          <p>Chọn một video và bắt đầu — không cài đặt, không tải lên.</p>
+          <button class="btn primary big js-pick">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 20h16"/></svg>
+            Chọn video để bắt đầu
+          </button>
+        </section>
+
         <footer class="lp-foot">
-          <b>Edit Video Đa Năng</b>
+          <span class="fbrand">
+            <svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lgFoot" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00c9d4"/><stop offset="1" stop-color="#a882ff"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="12" fill="url(#lgFoot)"/><path d="M19 15.5v17l14-8.5z" fill="#101014"/></svg>
+            <b>Edit Video Đa Năng</b>
+          </span>
           <span>— Chỉnh sửa video ngay trên trình duyệt, miễn phí.</span>
+          <nav>
+            <a href="#tinh-nang">Tính năng</a>
+            <a href="#cach-dung">Cách dùng</a>
+            <a href="#hoi-dap">Hỏi đáp</a>
+          </nav>
         </footer>
       </div>
     </div>
@@ -914,6 +1016,11 @@
     <!-- ============ STUDIO ============ -->
     <div id="studio" hidden>
       <div class="toolbar">
+        <div class="brand-mini">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lgStudio" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00c9d4"/><stop offset="1" stop-color="#a882ff"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="12" fill="url(#lgStudio)"/><path d="M19 15.5v17l14-8.5z" fill="#101014"/></svg>
+          <span class="bname grad-text">Edit Video Đa Năng</span>
+          <span class="pro-chip">Pro</span>
+        </div>
         <div class="file-badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:18px;height:18px;color:var(--accent)"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 9.5h19M7 5v14M17 5v14"/></svg>
           <span class="fname" id="fileName">video.mp4</span>
@@ -938,10 +1045,10 @@
 
       <div class="studio">
         <div class="stage-card">
-          <div class="stage"><div class="stage-wrap" id="stageWrap"><canvas id="preview" width="640" height="360"></canvas><div class="guides" id="guides" hidden><span class="gz-r"></span><span class="gz-b"></span></div></div></div>
+          <div class="stage"><div class="stage-wrap" id="stageWrap"><canvas id="preview" width="640" height="360"></canvas><div class="guides" id="guides" hidden><div class="g-thirds" id="gThirds" hidden><span class="g-line g-v" style="left:33.333%"></span><span class="g-line g-v" style="left:66.666%"></span><span class="g-line g-h" style="top:33.333%"></span><span class="g-line g-h" style="top:66.666%"></span></div><div class="g-safe" id="gSafe" hidden><span class="g-band g-top"></span><span class="g-band g-right"><i class="g-tag">nút</i></span><span class="g-band g-bottom"><i class="g-tag">chữ</i></span></div></div></div></div>
           <div class="transport">
             <div class="transport-row">
-              <button class="play-btn" id="btnPlay" aria-label="Phát / tạm dừng">
+              <button class="play-btn" id="btnPlay" aria-label="Phát / tạm dừng" title="Phát / tạm dừng">
                 <svg id="icoPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
                 <svg id="icoPause" viewBox="0 0 24 24" fill="currentColor" hidden><rect x="6" y="5" width="4.4" height="14" rx="1.2"/><rect x="13.6" y="5" width="4.4" height="14" rx="1.2"/></svg>
               </button>
@@ -949,11 +1056,11 @@
               <span class="time-label"><b id="timeCur">0:00</b> / <span id="timeEnd">0:00</span></span>
               <div style="flex:1"></div>
               <button class="btn" id="btnSnap" style="padding:6px 10px;font-size:12px">Chụp khung</button>
-              <button class="btn" id="btnGuides" style="padding:6px 10px;font-size:12px">Lưới</button>
+              <button class="btn" id="btnGuides" style="padding:6px 10px;font-size:12px" title="Đổi chế độ lưới hướng dẫn (chỉ để căn khi xem, không vào file xuất)">Lưới: Tắt</button>
               <div class="pv-zoom">
-                <button class="icon-btn" id="btnZoomOut" aria-label="Thu nhỏ xem trước">−</button>
+                <button class="icon-btn" id="btnZoomOut" aria-label="Thu nhỏ xem trước" title="Thu nhỏ xem trước">−</button>
                 <span id="pvZoomLabel">100%</span>
-                <button class="icon-btn" id="btnZoomIn" aria-label="Phóng to xem trước">+</button>
+                <button class="icon-btn" id="btnZoomIn" aria-label="Phóng to xem trước" title="Phóng to xem trước">+</button>
               </div>
             </div>
           </div>
@@ -4313,6 +4420,7 @@
       function applyPvZoom(){
         $("stageWrap").style.transform = pvZoom !== 1 ? ("scale(" + pvZoom + ")") : "";
         $("pvZoomLabel").textContent = Math.round(pvZoom * 100) + "%";
+        if(typeof layoutGuides === "function") layoutGuides();
       }
       $("btnZoomIn").addEventListener("click", function(){
         pvZoom = clamp(Math.round((pvZoom + 0.25) * 100) / 100, 1, 3);
@@ -4322,11 +4430,38 @@
         pvZoom = clamp(Math.round((pvZoom - 0.25) * 100) / 100, 1, 3);
         applyPvZoom();
       });
-      $("btnGuides").addEventListener("click", function(){
+      /* Lưới hướng dẫn: đặt đúng lên hình chữ nhật khung hình đang hiển thị thật.
+         Sân khấu letterbox quanh canvas, nên lấy hình chữ nhật của chính canvas trong
+         hệ toạ độ của stageWrap (offset* — không bị ảnh hưởng bởi transform zoom của
+         wrap, và lưới nằm trong wrap nên tự phóng to theo) — bám sát 4 cạnh khung. */
+      function layoutGuides(){
+        var g = $("guides"); if(!g || g.hidden) return;
+        if(!canvas.offsetWidth || !canvas.offsetHeight) return;
+        g.style.left = canvas.offsetLeft + "px";
+        g.style.top = canvas.offsetTop + "px";
+        g.style.width = canvas.offsetWidth + "px";
+        g.style.height = canvas.offsetHeight + "px";
+      }
+      var guideMode = 0;   /* 0 tắt · 1 lưới 1/3 · 2 vùng an toàn · 3 cả hai */
+      var GUIDE_LABELS = ["Lưới: Tắt", "Lưới: 1/3", "Lưới: An toàn", "Lưới: Cả hai"];
+      function applyGuideMode(){
         var g = $("guides");
-        g.hidden = !g.hidden;
-        this.classList.toggle("on", !g.hidden);
+        g.hidden = guideMode === 0;
+        $("gThirds").hidden = !(guideMode === 1 || guideMode === 3);
+        $("gSafe").hidden = !(guideMode === 2 || guideMode === 3);
+        var b = $("btnGuides");
+        b.textContent = GUIDE_LABELS[guideMode];
+        b.classList.toggle("on", guideMode !== 0);
+        layoutGuides();
+      }
+      $("btnGuides").addEventListener("click", function(){
+        guideMode = (guideMode + 1) % 4;
+        applyGuideMode();
       });
+      window.addEventListener("resize", layoutGuides);
+      if(window.ResizeObserver){
+        new ResizeObserver(function(){ layoutGuides(); }).observe(canvas);
+      }
       function syncElements(){
         for(var i=0;i<clips.length;i++){
           var c = clips[i];
