@@ -5196,8 +5196,16 @@
       /* ---------- playback engine ---------- */
       var seekBar = $("seekBar");
       function setPlayIcon(p){
-        $("icoPlay").hidden = p;
-        $("icoPause").hidden = !p;
+        /* Dùng set/removeAttribute thay cho .hidden: phần tử <svg> không phản
+           ánh thuộc tính .hidden thành attribute trong nhiều trình duyệt
+           (Safari/iOS), khiến icon tạm dừng không bao giờ hiện khi đang phát. */
+        if(p){
+          $("icoPlay").setAttribute("hidden", "");
+          $("icoPause").removeAttribute("hidden");
+        } else {
+          $("icoPlay").removeAttribute("hidden");
+          $("icoPause").setAttribute("hidden", "");
+        }
       }
       function updateTransport(){
         seekBar.value = playhead;
