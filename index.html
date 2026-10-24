@@ -317,6 +317,7 @@
       .play-btn:hover{ filter:brightness(1.1); }
       .play-btn:active{ transform:scale(.95); }
       .play-btn svg{ width:16px; height:16px; }
+      .play-btn svg[hidden]{ display:none !important; }
       .time-label{ font-size:11.5px; font-variant-numeric:tabular-nums; color:var(--ink-soft); white-space:nowrap; }
       .time-label b{ color:var(--ink); font-weight:700; }
       input[type=range].seek{ flex:1; }
@@ -1189,7 +1190,7 @@
           <div class="stage"><div class="stage-wrap" id="stageWrap"><canvas id="preview" width="640" height="360"></canvas><div class="guides" id="guides" hidden><div class="g-thirds" id="gThirds" hidden><span class="g-line g-v" style="left:33.333%"></span><span class="g-line g-v" style="left:66.666%"></span><span class="g-line g-h" style="top:33.333%"></span><span class="g-line g-h" style="top:66.666%"></span></div><div class="g-safe" id="gSafe" hidden><span class="g-band g-top"></span><span class="g-band g-right"><i class="g-tag">nút</i></span><span class="g-band g-bottom"><i class="g-tag">chữ</i></span></div></div></div></div>
           <div class="transport">
             <div class="transport-row">
-              <button class="play-btn" id="btnPlay" aria-label="Phát / tạm dừng" title="Phát / tạm dừng">
+              <button class="play-btn" id="btnPlay" aria-label="Phát" title="Phát">
                 <svg id="icoPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
                 <svg id="icoPause" viewBox="0 0 24 24" fill="currentColor" hidden><rect x="6" y="5" width="4.4" height="14" rx="1.2"/><rect x="13.6" y="5" width="4.4" height="14" rx="1.2"/></svg>
               </button>
@@ -5196,15 +5197,23 @@
       /* ---------- playback engine ---------- */
       var seekBar = $("seekBar");
       function setPlayIcon(p){
-        /* Dùng set/removeAttribute thay cho .hidden: phần tử <svg> không phản
-           ánh thuộc tính .hidden thành attribute trong nhiều trình duyệt
-           (Safari/iOS), khiến icon tạm dừng không bao giờ hiện khi đang phát. */
+        /* Đồng bộ icon + nhãn nút phát theo trạng thái p (true = đang phát).
+           Gán thẳng style.display kèm attribute hidden: chỉ dựa vào hidden
+           trên <svg> không ăn ở một số trình duyệt (rule svg{display:block}
+           thắng rule [hidden] mặc định, Safari/iOS cũng không phản ánh
+           .hidden trên svg), nên nút cứ đứng mãi ở biểu tượng ▶. */
+        var ip = $("icoPlay"), ipa = $("icoPause"), bp = $("btnPlay");
+        if(!ip || !ipa) return;
         if(p){
-          $("icoPlay").setAttribute("hidden", "");
-          $("icoPause").removeAttribute("hidden");
+          ip.setAttribute("hidden", ""); ip.style.display = "none";
+          ipa.removeAttribute("hidden"); ipa.style.display = "block";
         } else {
-          $("icoPlay").removeAttribute("hidden");
-          $("icoPause").setAttribute("hidden", "");
+          ip.removeAttribute("hidden"); ip.style.display = "block";
+          ipa.setAttribute("hidden", ""); ipa.style.display = "none";
+        }
+        if(bp){
+          bp.title = p ? "Tạm dừng" : "Phát";
+          bp.setAttribute("aria-label", p ? "Tạm dừng" : "Phát");
         }
       }
       function updateTransport(){
