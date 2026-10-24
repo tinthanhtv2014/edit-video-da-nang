@@ -13,7 +13,7 @@
     <title>Edit Video Đa Năng — Sửa video online miễn phí</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Anton&family=Oswald:wght@500;700&family=Playfair+Display:wght@600;800&family=Dancing+Script:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     <style>
       :root{
         color-scheme:dark;
@@ -871,6 +871,30 @@
       .free-src{ font-size:10.5px; color:var(--ink-faint); margin:9px 0 0; }
       @media (max-width:560px){ .free-row{ grid-template-columns:repeat(2,1fr); } }
       @media (prefers-reduced-motion: reduce){ .free-spin{ animation-duration:1.8s; } .free-card{ transition:none; } }
+
+      /* ---------- Mẫu dự án (landing) + vạch nhịp trên đoạn nhạc ---------- */
+      .tpl-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+      .tpl-card{
+        text-align:left; font:inherit; color:var(--ink); cursor:pointer;
+        background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 14px;
+        transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+      }
+      .tpl-card:hover{ transform:translateY(-2px); border-color:rgba(0,201,212,.45); box-shadow:0 10px 22px rgba(0,0,0,.3); }
+      .tpl-card:active{ transform:scale(.98); }
+      .tpl-name{ display:block; font-size:13.5px; font-weight:700; margin-bottom:3px; }
+      .tpl-desc{ display:block; font-size:11.5px; line-height:1.5; color:var(--ink-soft); }
+      @media (max-width:560px){ .tpl-row{ grid-template-columns:1fr; } }
+      .tpl-ask{
+        display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+        margin-top:10px; padding:10px 12px;
+        background:var(--panel); border:1px solid rgba(0,201,212,.45); border-radius:12px;
+        font-size:12.5px; font-weight:600;
+      }
+      .tpl-ask span{ margin-right:auto; }
+      .tl-beat{
+        position:absolute; top:0; bottom:0; width:2px; margin-left:-1px;
+        background:rgba(255,214,10,.8); pointer-events:none;
+      }
     </style>
   </head>
   <body>
@@ -965,6 +989,29 @@
           <p class="free-head">Video free có sẵn <span>— chưa có file? Bấm một clip là mở ngay trong studio</span></p>
           <div class="free-row" id="freeRowLanding"></div>
           <p class="free-src">Nguồn: MDN (CC0) · Blender Foundation (CC BY)</p>
+        </div>
+
+        <div class="free-strip lp-anim lp-d4">
+          <p class="free-head">Mẫu dự án <span>— bắt đầu nhanh với cài đặt có sẵn, bạn tự thêm video của mình</span></p>
+          <div class="tpl-row" id="tplRow">
+            <button type="button" class="tpl-card" data-tpl="story">
+              <span class="tpl-name">Kể chuyện TikTok</span>
+              <span class="tpl-desc">9:16 · theme Kể chuyện ma · nhạc tự né tiếng · sẵn lớp chữ tiêu đề</span>
+            </button>
+            <button type="button" class="tpl-card" data-tpl="review">
+              <span class="tpl-name">Review sản phẩm</span>
+              <span class="tpl-desc">9:16 · theme Tươi sáng · sẵn lớp chữ tiêu đề</span>
+            </button>
+            <button type="button" class="tpl-card" data-tpl="vlog">
+              <span class="tpl-name">Vlog ngang</span>
+              <span class="tpl-desc">16:9 · theme Điện ảnh</span>
+            </button>
+          </div>
+          <div class="tpl-ask" id="tplAsk" hidden>
+            <span>Đang có dự án chưa xong — thay bằng mẫu mới?</span>
+            <button type="button" class="btn primary" id="btnTplYes">Thay bằng mẫu</button>
+            <button type="button" class="btn" id="btnTplNo">Huỷ</button>
+          </div>
         </div>
 
         <div class="lp-trust lp-anim lp-d4" aria-label="Cam kết">
@@ -1265,6 +1312,21 @@
                 <option value="down">Giảm dần</option>
               </select>
             </div>
+            <div class="two-col">
+              <div class="field">
+                <label>Hiệu ứng video</label>
+                <select id="clipFx">
+                  <option value="none">Không có</option>
+                  <option value="shake">Rung máy</option>
+                  <option value="glitch">Glitch RGB</option>
+                  <option value="leak">Rò sáng</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Cường độ <output id="outClipFxAmt">50%</output></label>
+                <input type="range" id="clipFxAmt" min="0" max="100" step="1" value="50" />
+              </div>
+            </div>
             <div class="field">
               <label>Thời gian chuyển cảnh <output id="outTransDur">0.5s</output></label>
               <input type="range" id="transDur" min="0.2" max="1.5" step="0.1" value="0.5" />
@@ -1415,6 +1477,24 @@
               </div>
             </div>
             <div class="field">
+              <label>Nền vùng đệm (khi dùng Nền mờ)</label>
+              <select id="bgModeSel">
+                <option value="blur">Mờ theo khung hình</option>
+                <option value="color">Màu đặc</option>
+                <option value="grad">Chuyển sắc</option>
+              </select>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label>Màu nền</label>
+                <input type="color" id="bgColor1" value="#101018" style="width:100%;height:28px" />
+              </div>
+              <div class="field">
+                <label>Màu nền 2 (chuyển sắc)</label>
+                <input type="color" id="bgColor2" value="#26324a" style="width:100%;height:28px" />
+              </div>
+            </div>
+            <div class="field">
               <label>Dịch khung ngang <output id="outPosX">50%</output></label>
               <input type="range" id="posX" min="0" max="100" step="1" value="50" />
             </div>
@@ -1441,6 +1521,26 @@
             <div class="field">
               <label>Bão hoà màu <output id="outSat">100%</output></label>
               <input type="range" id="sat" min="0" max="220" step="1" value="100" />
+            </div>
+            <div class="field">
+              <label>Nhiệt độ (lạnh ↔ ấm) <output id="outTemp">0</output></label>
+              <input type="range" id="temp" min="-100" max="100" step="1" value="0" />
+            </div>
+            <div class="field">
+              <label>Sắc độ (hue) <output id="outHue">0°</output></label>
+              <input type="range" id="hue" min="-180" max="180" step="1" value="0" />
+            </div>
+            <div class="field">
+              <label>Nhạt màu (fade) <output id="outFade">0%</output></label>
+              <input type="range" id="fade" min="0" max="100" step="1" value="0" />
+            </div>
+            <div class="field">
+              <label>Tối góc <output id="outVignette">0%</output></label>
+              <input type="range" id="vignette" min="0" max="100" step="1" value="0" />
+            </div>
+            <div class="field">
+              <label>Hạt nhiễu <output id="outGrain">0%</output></label>
+              <input type="range" id="grain" min="0" max="100" step="1" value="0" />
             </div>
             <div class="field">
               <label>Bộ lọc màu cho clip</label>
@@ -1489,6 +1589,28 @@
               <div class="field">
                 <label>Nội dung chữ</label>
                 <input type="text" id="ltText" placeholder="Nhập chữ…" maxlength="160" />
+              </div>
+              <div class="field">
+                <label>Font chữ</label>
+                <select id="ltFont">
+                  <option value="">Mặc định</option>
+                  <option value="Anton">Anton — tiêu đề đậm</option>
+                  <option value="Oswald">Oswald — gọn cao</option>
+                  <option value="Playfair Display">Playfair — sang</option>
+                  <option value="Dancing Script">Dancing — viết tay</option>
+                  <option value="Space Mono">Space Mono — máy chữ</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Style nhanh</label>
+                <div class="chips" id="ltStyleRow">
+                  <button type="button" class="chip" data-tstyle="std">Chuẩn</button>
+                  <button type="button" class="chip" data-tstyle="yellow">Vàng viền đen</button>
+                  <button type="button" class="chip" data-tstyle="neon">Neon</button>
+                  <button type="button" class="chip" data-tstyle="shadow">Bóng đổ mạnh</button>
+                  <button type="button" class="chip" data-tstyle="outline">Viền trắng</button>
+                  <button type="button" class="chip" data-tstyle="box">Hộp đen mờ</button>
+                </div>
               </div>
               <div class="two-col">
                 <div class="field">
@@ -1645,6 +1767,33 @@
                   <input type="range" id="ovMaskFeather" min="0" max="100" step="1" value="0" />
                 </div>
               </div>
+              <div class="field">
+                <label>Chế độ hoà trộn</label>
+                <select id="ovBlend">
+                  <option value="normal">Thường</option>
+                  <option value="screen">Sáng (screen)</option>
+                  <option value="multiply">Nhân tối (multiply)</option>
+                  <option value="overlay">Phủ sáng (overlay)</option>
+                  <option value="soft-light">Ánh sáng mềm</option>
+                  <option value="difference">Khác biệt</option>
+                </select>
+              </div>
+              <div class="sub-box" id="ovChromaBox" style="margin-top:2px">
+                <h3>Tách nền (chroma key)</h3>
+                <div class="row-btns" style="margin-bottom:8px">
+                  <button class="btn" id="btnOvChroma">Tách nền: Tắt</button>
+                </div>
+                <div class="two-col">
+                  <div class="field">
+                    <label>Màu cần tách</label>
+                    <input type="color" id="ovChromaColor" value="#00ff00" style="width:100%;height:28px" />
+                  </div>
+                  <div class="field">
+                    <label>Dung sai <output id="outOvChromaTol">35</output></label>
+                    <input type="range" id="ovChromaTol" min="0" max="100" step="1" value="35" />
+                  </div>
+                </div>
+              </div>
               <div class="two-col">
                 <div class="field">
                   <label>Hiện từ giây</label>
@@ -1735,6 +1884,14 @@
                 <label>Vang (echo) <output id="outAsegEcho">0%</output></label>
                 <input type="range" id="asegEcho" min="0" max="100" step="1" value="0" />
               </div>
+              <div class="sub-box" style="margin-top:2px">
+                <h3>◆ Keyframe âm lượng</h3>
+                <div class="row-btns">
+                  <button class="btn" id="btnAsegKfPin">◆ Ghim mức</button>
+                  <button class="btn" id="btnAsegKfDel">Xoá điểm</button>
+                </div>
+                <p class="hint" id="asegKfInfo" style="margin:6px 0 0">Chưa có điểm mức nào.</p>
+              </div>
             </div>
             <button class="btn" id="btnPickMusic" style="width:100%;justify-content:center">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 20h16"/></svg>
@@ -1778,6 +1935,11 @@
                 <label>Mức nhạc khi né <output id="outDuckLevel">30%</output></label>
                 <input type="range" id="duckLevel" min="0" max="90" step="1" value="30" />
               </div>
+            </div>
+            <div class="sub-box">
+              <h3>Nhịp nhạc nền</h3>
+              <button class="btn" id="btnBeats" style="width:100%;justify-content:center">Tìm nhịp</button>
+              <p class="hint" id="beatInfo" style="margin:6px 0 0">Phân tích file nhạc, đánh dấu vạch nhịp trên đoạn nhạc — kéo đoạn sẽ tự bám nhịp.</p>
             </div>
           </section>
           </div>
@@ -1876,12 +2038,15 @@
         aspect:"orig", posX:50, posY:50, quality:"1280", blurBg:false,
         flip:false, rot:0,
         bright:100, contrast:100, sat:100,
+        temp:0, hue:0, fade:0, vignette:0, grain:0,
+        bgMode:"blur", bgColor:"#101018", bgColor2:"#26324a",
         musicVol:80, videoVol:100, fadeIn:0, fadeOut:0, musicLoaded:false, musicStart:0, musicOffset:0,
-        duck:false, duckLevel:30
+        duck:false, duckLevel:30,
+        musicBeats:[]
       };
       /* Style phụ đề mặc định — theme video ghi vào đây; trình tạo phụ đề
          (theo câu + nhập SRT) dùng các giá trị này cho lớp phụ đề mới. */
-      var subStyle = { size:5.5, color:"#ffd60a", bg:false, bold:true, pos:"bottom" };
+      var subStyle = { size:5.5, color:"#ffd60a", bg:false, bold:true, pos:"bottom", font:"" };
       var clips = [];        // {id,url,name,duration,vw,vh,trimStart,trimEnd,speed,ramp,transType,transDur,kb,filter,thumb,start,freeze,imgUrl,img} — start = vị trí tuyệt đối trên timeline (giây); cắt/xoá không tự dồn các đoạn khác. freeze=true: đoạn hình tĩnh chụp từ khung hình (img), duration = thời lượng đóng băng
       var asegs = [];        // đoạn tiếng gốc ĐỘC LẬP: {id,clipId,url,name,fileDur,start,trimStart,trimEnd,speed,vol,muted,fadeIn,fadeOut} — lúc tạo nằm đúng vị trí clip gốc, từ đó tách/cắt/dời/xoá riêng, KHÔNG dính tới clip video
       var texts = [];        // {id,kind:"text"|"sub",text,start,end,size,color,pos,bg,bold,anim,animDur}
@@ -1961,6 +2126,105 @@
       function kfCopy(kfs){
         if(!kfs) return null;
         return kfs.map(function(k){ return { t: k.t, x: k.x, y: k.y, s: k.s, o: k.o }; });
+      }
+      /* ---------- Keyframe ÂM LƯỢNG cho đoạn tiếng: điểm {t (giây cục bộ), v (% âm lượng)} nội suy tuyến tính ---------- */
+      function vkfCopy(kfs){
+        if(!kfs) return null;
+        return kfs.map(function(k){ return { t: k.t, v: k.v }; });
+      }
+      function vkfEval(a, local){
+        var base = (a.vol == null ? 100 : a.vol);
+        if(!a.vkfs || !a.vkfs.length) return base;
+        var ks = a.vkfs;
+        if(local <= ks[0].t) return ks[0].v;
+        var last = ks[ks.length - 1];
+        if(local >= last.t) return last.v;
+        for(var i = 0; i < ks.length - 1; i++){
+          if(local >= ks[i].t && local <= ks[i + 1].t){
+            var f = (local - ks[i].t) / Math.max(0.0001, ks[i + 1].t - ks[i].t);
+            return ks[i].v + (ks[i + 1].v - ks[i].v) * f;
+          }
+        }
+        return base;
+      }
+      function vkfUpsert(a, t, v){
+        if(!a.vkfs) a.vkfs = [];
+        t = Math.max(0, Math.round(t * 100) / 100);
+        v = clamp(Math.round(v), 0, 150);
+        for(var i = 0; i < a.vkfs.length; i++){
+          if(Math.abs(a.vkfs[i].t - t) < 0.05){ a.vkfs[i].v = v; return; }
+        }
+        a.vkfs.push({ t: t, v: v });
+        a.vkfs.sort(function(x, y){ return x.t - y.t; });
+      }
+      function vkfRemoveNear(a, t){
+        if(!a.vkfs || !a.vkfs.length) return false;
+        var best = -1, bestD = 0.26;
+        for(var i = 0; i < a.vkfs.length; i++){
+          var d = Math.abs(a.vkfs[i].t - t);
+          if(d < bestD){ bestD = d; best = i; }
+        }
+        if(best < 0) return false;
+        a.vkfs.splice(best, 1);
+        return true;
+      }
+      /* ---------- Chế độ hoà trộn của lớp phủ → globalCompositeOperation ---------- */
+      function blendOp(name){
+        switch(name){
+          case "screen": return "screen";
+          case "multiply": return "multiply";
+          case "overlay": return "overlay";
+          case "soft-light": return "soft-light";
+          case "difference": return "difference";
+          default: return "source-over";
+        }
+      }
+      /* ---------- Font của lớp chữ (rơi về mặc định nếu font không tải được) ---------- */
+      function fontFam(t){
+        return (t && t.font) ? ("'" + t.font + "', 'Be Vietnam Pro', sans-serif") : "'Be Vietnam Pro', sans-serif";
+      }
+      /* ---------- Canvas nhiễu hạt tĩnh (tiền tạo 1 lần — xem trước = xuất) + canvas phụ cho glitch / chroma ---------- */
+      var noiseCv = document.createElement("canvas");
+      (function(){
+        noiseCv.width = 300; noiseCv.height = 300;
+        var ng = noiseCv.getContext("2d");
+        try{
+          var nid = ng.createImageData(300, 300);
+          for(var ni = 0; ni < nid.data.length; ni += 4){
+            var nv = Math.floor(Math.random() * 255);
+            nid.data[ni] = nv; nid.data[ni + 1] = nv; nid.data[ni + 2] = nv; nid.data[ni + 3] = 255;
+          }
+          ng.putImageData(nid, 0, 0);
+        }catch(e){}
+      })();
+      var glitchCv = document.createElement("canvas");
+      var glitchTmpA = document.createElement("canvas");
+      var glitchTmpB = document.createElement("canvas");
+      var ovKeyCv = document.createElement("canvas");
+      /* Tách nền: vẽ nguồn vào canvas tạm đúng cỡ hiển thị, alpha giảm dần theo khoảng cách màu tới màu cần tách (viền mềm theo dung sai) */
+      function chromaKeyed(src, w, h, colorHex, tol){
+        w = Math.max(2, Math.round(w)); h = Math.max(2, Math.round(h));
+        if(ovKeyCv.width !== w || ovKeyCv.height !== h){ ovKeyCv.width = w; ovKeyCv.height = h; }
+        var g = ovKeyCv.getContext("2d");
+        g.clearRect(0, 0, w, h);
+        try{ g.drawImage(src, 0, 0, w, h); }catch(e){ return ovKeyCv; }
+        var hex = /^#[0-9a-f]{6}$/i.test(colorHex || "") ? colorHex : "#00ff00";
+        var cr = parseInt(hex.slice(1, 3), 16), cg = parseInt(hex.slice(3, 5), 16), cb = parseInt(hex.slice(5, 7), 16);
+        var img;
+        try{ img = g.getImageData(0, 0, w, h); }catch(e){ return ovKeyCv; }
+        var d = img.data;
+        var t0 = (tol / 100) * 165;            // trong ngưỡng này: trong suốt hẳn
+        var t1 = t0 + 46 + (tol / 100) * 60;   // ngoài ngưỡng này: giữ nguyên — khoảng giữa là viền mềm
+        for(var i = 0; i < d.length; i += 4){
+          var dr = d[i] - cr, dg = d[i + 1] - cg, db = d[i + 2] - cb;
+          var dist = Math.sqrt(dr * dr + dg * dg + db * db);
+          if(dist < t1){
+            var f = dist <= t0 ? 0 : (dist - t0) / Math.max(1, t1 - t0);
+            d[i + 3] = Math.round(d[i + 3] * f);
+          }
+        }
+        g.putImageData(img, 0, 0);
+        return ovKeyCv;
       }
       /* ---------- PRO: mặt nạ (mask) hình + mờ viền cho clip / lớp phủ ---------- */
       var maskCv = document.createElement("canvas");
@@ -2102,6 +2366,13 @@
           tg.push((asegs[k].start || 0) + asegOut(asegs[k]));
         }
         if(S.musicLoaded && excludeKind !== "music") tg.push(S.musicStart);
+        /* Vạch nhịp của nhạc nền cũng là mốc bám khi kéo đoạn (quy về giờ timeline) */
+        if(S.musicLoaded && S.musicBeats && excludeKind !== "music"){
+          for(var bi = 0; bi < S.musicBeats.length; bi++){
+            var bt2 = S.musicStart + (S.musicBeats[bi] - S.musicOffset);
+            if(bt2 >= 0 && bt2 <= L.total) tg.push(bt2);
+          }
+        }
         return tg;
       }
       function snapStart(newStart, dur, targets, pps){
@@ -2526,6 +2797,8 @@
         musicFile = file;
         music.src = URL.createObjectURL(file);
         S.musicLoaded = true;
+        S.musicBeats = [];
+        $("beatInfo").textContent = "Phân tích file nhạc, đánh dấu vạch nhịp trên đoạn nhạc — kéo đoạn sẽ tự bám nhịp.";
         musicFileName = file.name;
         computeMusicWave(file);
         $("musicName").hidden = false;
@@ -2571,30 +2844,35 @@
               vol:(c.vol == null ? 100 : c.vol), muted:!!c.muted, thumb:c.thumb,
               freeze:!!c.freeze, imgUrl:c.imgUrl || null,
               kx:(c.kx || 0), ky:(c.ky || 0), ks:(c.ks == null ? 100 : c.ks), ko:(c.ko == null ? 100 : c.ko),
-              kfs:kfCopy(c.kfs), mask:(c.mask || "none"), maskFeather:(c.maskFeather || 0) };
+              kfs:kfCopy(c.kfs), mask:(c.mask || "none"), maskFeather:(c.maskFeather || 0),
+              fx:(c.fx || "none"), fxAmt:(c.fxAmt == null ? 50 : c.fxAmt) };
           }),
           asegs: asegs.map(function(a){
             return { id:a.id, clipId:a.clipId, url:a.url, name:a.name, fileDur:a.fileDur, start:(a.start || 0),
               trimStart:a.trimStart, trimEnd:a.trimEnd, speed:(a.speed || 1),
               vol:(a.vol == null ? 100 : a.vol), muted:!!a.muted, fadeIn:(a.fadeIn || 0), fadeOut:(a.fadeOut || 0),
-              echo:(a.echo || 0) };
+              echo:(a.echo || 0), vkfs:vkfCopy(a.vkfs) };
           }),
           texts: texts.map(function(t){
             return { id:t.id, kind:t.kind, text:t.text, start:t.start, end:t.end, size:t.size, color:t.color, pos:t.pos, bg:t.bg, bold:t.bold, hidden:!!t.hidden,
-              anim:(t.anim || "none"), animDur:(t.animDur == null ? 0.5 : t.animDur), karaoke:!!t.karaoke };
+              anim:(t.anim || "none"), animDur:(t.animDur == null ? 0.5 : t.animDur), karaoke:!!t.karaoke,
+              font:(t.font || ""), stroke:(t.stroke || null), glow:(t.glow || null), shadow:!!t.shadow };
           }),
           markers: markers.slice(),
-          music: { loaded: S.musicLoaded, name: musicFileName, src: S.musicLoaded ? music.getAttribute("src") : null, wave: musicWave },
+          music: { loaded: S.musicLoaded, name: musicFileName, src: S.musicLoaded ? music.getAttribute("src") : null, wave: musicWave, beats: (S.musicBeats || []).slice() },
           overs: overs.map(function(o){
             return { id:o.id, url:o.url, emoji:o.emoji || null, x:o.x, y:o.y, scale:o.scale, opacity:o.opacity, start:o.start, end:o.end,
               animIn:(o.animIn || "none"), animOut:(o.animOut || "none"), animDur:(o.animDur == null ? 0.5 : o.animDur), loop:(o.loop || "none"),
               isVideo:!!o.isVideo, name:o.name || null, vol:(o.vol == null ? 100 : o.vol), muted:!!o.muted, vloop:!!o.vloop, vdur:(o.vdur || 0),
-              kfs:kfCopy(o.kfs), mask:(o.mask || "none"), maskFeather:(o.maskFeather || 0) };
+              kfs:kfCopy(o.kfs), mask:(o.mask || "none"), maskFeather:(o.maskFeather || 0),
+              blend:(o.blend || "normal"), chroma:!!o.chroma, chromaColor:(o.chromaColor || "#00ff00"), chromaTol:(o.chromaTol == null ? 35 : o.chromaTol) };
           }),
           S: { aspect:S.aspect, posX:S.posX, posY:S.posY, quality:S.quality, blurBg:S.blurBg, flip:S.flip, rot:S.rot,
                bright:S.bright, contrast:S.contrast, sat:S.sat, musicVol:S.musicVol, videoVol:S.videoVol, fadeIn:S.fadeIn, fadeOut:S.fadeOut,
+               temp:(S.temp || 0), hue:(S.hue || 0), fade:(S.fade || 0), vignette:(S.vignette || 0), grain:(S.grain || 0),
+               bgMode:(S.bgMode || "blur"), bgColor:(S.bgColor || "#101018"), bgColor2:(S.bgColor2 || "#26324a"),
                musicStart:S.musicStart, musicOffset:S.musicOffset, duck:!!S.duck, duckLevel:(S.duckLevel == null ? 30 : S.duckLevel),
-               subStyle:{ size:subStyle.size, color:subStyle.color, bg:!!subStyle.bg, bold:!!subStyle.bold, pos:subStyle.pos } },
+               subStyle:{ size:subStyle.size, color:subStyle.color, bg:!!subStyle.bg, bold:!!subStyle.bold, pos:subStyle.pos, font:(subStyle.font || "") } },
           selClipId: selClipId, selTextId: selTextId, selOverId: selOverId, selAsegId: selAsegId
         });
       }
@@ -2629,6 +2907,7 @@
           if(c.ks == null) c.ks = 100; if(c.ko == null) c.ko = 100;
           if(c.kfs == null) c.kfs = null;
           if(c.mask == null) c.mask = "none"; if(c.maskFeather == null) c.maskFeather = 0;
+          if(c.fx == null) c.fx = "none"; if(c.fxAmt == null) c.fxAmt = 50;
           if(c.animIn == null) c.animIn = "none"; if(c.animOut == null) c.animOut = "none"; if(c.animDur == null) c.animDur = 0.5;
           if(c.freeze && c.imgUrl){
             var fim = new Image();
@@ -2650,12 +2929,12 @@
         st.asegs.forEach(function(a){ keepA[a.id] = true; });
         Object.keys(asegEls).forEach(function(id){ if(!keepA[id]) disposeAsegEl(id); });
         asegs = st.asegs;
-        asegs.forEach(function(a){ if(a.start == null) a.start = 0; if(a.speed == null) a.speed = 1; if(a.vol == null) a.vol = 100; if(a.muted == null) a.muted = false; if(a.fadeIn == null) a.fadeIn = 0; if(a.fadeOut == null) a.fadeOut = 0; if(a.echo == null) a.echo = 0; applyEcho(a); });
+        asegs.forEach(function(a){ if(a.start == null) a.start = 0; if(a.speed == null) a.speed = 1; if(a.vol == null) a.vol = 100; if(a.muted == null) a.muted = false; if(a.fadeIn == null) a.fadeIn = 0; if(a.fadeOut == null) a.fadeOut = 0; if(a.echo == null) a.echo = 0; if(a.vkfs == null) a.vkfs = null; applyEcho(a); });
         sortAsegs();
         markers = st.markers || [];
         tlGap = null;
         texts = st.texts;
-        texts.forEach(function(t){ if(t.anim == null) t.anim = "none"; if(t.animDur == null) t.animDur = 0.5; if(t.karaoke == null) t.karaoke = false; });
+        texts.forEach(function(t){ if(t.anim == null) t.anim = "none"; if(t.animDur == null) t.animDur = 0.5; if(t.karaoke == null) t.karaoke = false; if(t.font == null) t.font = ""; if(t.stroke == null) t.stroke = null; if(t.glow == null) t.glow = null; if(t.shadow == null) t.shadow = false; });
         var overFiles = {};
         overs.forEach(function(o){ if(o.file) overFiles[o.id] = o.file; });
         var keepO = {};
@@ -2667,6 +2946,8 @@
           if(o.animDur == null) o.animDur = 0.5; if(o.loop == null) o.loop = "none";
           if(o.kfs == null) o.kfs = null;
           if(o.mask == null) o.mask = "none"; if(o.maskFeather == null) o.maskFeather = 0;
+          if(o.blend == null) o.blend = "normal";
+          if(o.chroma == null) o.chroma = false; if(o.chromaColor == null) o.chromaColor = "#00ff00"; if(o.chromaTol == null) o.chromaTol = 35;
           if(o.vol == null) o.vol = 100; if(o.muted == null) o.muted = false; if(o.vloop == null) o.vloop = false;
           if(o.emoji){ o.img = null; return o; }
           if(o.isVideo){ o.img = null; return o; }
@@ -2682,7 +2963,9 @@
         S.musicVol=g.musicVol; S.videoVol=g.videoVol; S.fadeIn=g.fadeIn; S.fadeOut=g.fadeOut;
         S.musicStart = g.musicStart || 0; S.musicOffset = g.musicOffset || 0;
         S.duck = !!g.duck; S.duckLevel = (g.duckLevel == null ? 30 : g.duckLevel);
-        if(g.subStyle) subStyle = { size:(g.subStyle.size || 5.5), color:(g.subStyle.color || "#ffd60a"), bg:!!g.subStyle.bg, bold:!!g.subStyle.bold, pos:(g.subStyle.pos || "bottom") };
+        S.temp = g.temp || 0; S.hue = g.hue || 0; S.fade = g.fade || 0; S.vignette = g.vignette || 0; S.grain = g.grain || 0;
+        S.bgMode = g.bgMode || "blur"; S.bgColor = g.bgColor || "#101018"; S.bgColor2 = g.bgColor2 || "#26324a";
+        if(g.subStyle) subStyle = { size:(g.subStyle.size || 5.5), color:(g.subStyle.color || "#ffd60a"), bg:!!g.subStyle.bg, bold:!!g.subStyle.bold, pos:(g.subStyle.pos || "bottom"), font:(g.subStyle.font || "") };
         selClipId = st.selClipId && findClip(st.selClipId) ? st.selClipId : (clips[0] ? clips[0].id : null);
         selTextId = st.selTextId; selOverId = st.selOverId;
         selAsegId = st.selAsegId && findAseg(st.selAsegId) ? st.selAsegId : null;
@@ -2693,6 +2976,9 @@
           S.musicLoaded = !!st.music.loaded;
           musicFileName = st.music.name || "";
           musicWave = st.music.wave || null;
+          S.musicBeats = st.music.beats || [];
+          var biEl = $("beatInfo");
+          if(biEl) biEl.textContent = S.musicBeats.length ? ("Đã có " + S.musicBeats.length + " vạch nhịp trên đoạn nhạc — kéo đoạn sẽ tự bám nhịp.") : "Phân tích file nhạc, đánh dấu vạch nhịp trên đoạn nhạc — kéo đoạn sẽ tự bám nhịp.";
           $("musicName").hidden = !S.musicLoaded;
           if(S.musicLoaded){
             $("musicName").innerHTML = "Đã thêm nhạc: <b></b>";
@@ -2820,8 +3106,14 @@
             awave = '<span class="tl-wave-clip" style="left:' + awl + '%;width:' + aww + '%"><img src="' + aw + '" alt="" /></span>';
           }
           var aEffVol = a.muted ? 0 : (a.vol == null ? 100 : a.vol);
+          var vkHtml = "";
+          if(a.vkfs && a.vkfs.length){
+            for(var vki = 0; vki < a.vkfs.length; vki++){
+              vkHtml += '<i class="tl-kf" style="left:' + clamp(a.vkfs[vki].t / Math.max(0.05, asegOut(a)) * 100, 0, 100) + '%"></i>';
+            }
+          }
           ah += '<div class="tl-aseg' + (a.muted ? " muted" : "") + (tlSel.kind === "audio" && tlSel.id === a.id ? " on" : "") + '" data-aseg="' + a.id + '" style="left:' + aleft + 'px;width:' + awdt + 'px">' +
-            '<span class="tl-handle tl-hl" data-side="l"></span>' + awave + '<span class="tl-avol">' + (a.muted ? "Tắt tiếng" : aEffVol + "%") + '</span>' +
+            '<span class="tl-handle tl-hl" data-side="l"></span>' + awave + vkHtml + '<span class="tl-avol">' + (a.muted ? "Tắt tiếng" : aEffVol + "%") + '</span>' +
             '<span class="tl-handle tl-hr" data-side="r"></span></div>';
         }
         vh += '<button type="button" class="tl-add" data-add="1" style="left:' + (W + 7) + 'px">+ Clip</button>';
@@ -2853,8 +3145,16 @@
         var left = Math.round(S.musicStart * pps);
         var wdt = Math.max(20, Math.round((L.total - S.musicStart) * pps));
         var bg = musicWave ? 'background-image:url(' + musicWave + ');' : "";
+        var beatHtml = "";
+        if(S.musicBeats && S.musicBeats.length){
+          for(var bti = 0; bti < S.musicBeats.length; bti++){
+            var bRel = (S.musicBeats[bti] - S.musicOffset) * pps;
+            if(bRel < 0 || bRel > wdt) continue;
+            beatHtml += '<i class="tl-beat" style="left:' + Math.round(bRel) + 'px"></i>';
+          }
+        }
         mt.innerHTML = '<div class="tl-mseg' + (tlSel.kind === "music" ? " on" : "") + '" id="tlMusicSeg" title="Kéo để dời lúc nhạc bắt đầu" style="left:' + left + 'px;width:' + wdt + 'px;' + bg + '">' +
-          '<span class="tl-handle tl-hl" data-side="l"></span><span class="tl-mlab"></span></div>';
+          '<span class="tl-handle tl-hl" data-side="l"></span>' + beatHtml + '<span class="tl-mlab"></span></div>';
         mt.querySelector(".tl-mlab").textContent = "♪ " + (musicFileName || "Nhạc nền") + " · từ " + fmt(S.musicStart);
       }
       function renderStripLight(){ renderStrip(); }
@@ -3260,7 +3560,8 @@
         var copy = JSON.parse(JSON.stringify({
           kind: t.kind, text: t.text, start: t.start, end: t.end, size: t.size,
           color: t.color, pos: t.pos, bg: t.bg, bold: t.bold, hidden: !!t.hidden,
-          anim: (t.anim || "none"), animDur: (t.animDur == null ? 0.5 : t.animDur), karaoke: !!t.karaoke
+          anim: (t.anim || "none"), animDur: (t.animDur == null ? 0.5 : t.animDur), karaoke: !!t.karaoke,
+          font: (t.font || ""), stroke: (t.stroke || null), glow: (t.glow || null), shadow: !!t.shadow
         }));
         copy.id = uid("t");
         texts.splice(texts.indexOf(t) + 1, 0, copy);
@@ -3286,7 +3587,8 @@
         var second = JSON.parse(JSON.stringify({
           kind: t.kind, text: t.text, start: cut, end: t.end, size: t.size,
           color: t.color, pos: t.pos, bg: t.bg, bold: t.bold, hidden: !!t.hidden,
-          anim: (t.anim || "none"), animDur: (t.animDur == null ? 0.5 : t.animDur), karaoke: !!t.karaoke
+          anim: (t.anim || "none"), animDur: (t.animDur == null ? 0.5 : t.animDur), karaoke: !!t.karaoke,
+          font: (t.font || ""), stroke: (t.stroke || null), glow: (t.glow || null), shadow: !!t.shadow
         }));
         second.id = uid("t");
         t.end = cut;
@@ -3309,8 +3611,12 @@
           id: uid("a"), clipId: a.clipId, url: a.url, name: a.name, fileDur: a.fileDur,
           start: Math.round(playhead * 100) / 100, trimStart: srcSplit, trimEnd: a.trimEnd,
           speed: (a.speed || 1), vol: (a.vol == null ? 100 : a.vol), muted: !!a.muted,
-          fadeIn: 0, fadeOut: (a.fadeOut || 0), echo: (a.echo || 0)
+          fadeIn: 0, fadeOut: (a.fadeOut || 0), echo: (a.echo || 0),
+          vkfs: (a.vkfs || []).filter(function(k){ return k.t > local + 0.001; }).map(function(k){
+            return { t: Math.round((k.t - local) * 100) / 100, v: k.v };
+          })
         };
+        if(a.vkfs) a.vkfs = a.vkfs.filter(function(k){ return k.t <= local + 0.001; });
         a.trimEnd = srcSplit;
         a.fadeOut = 0;
         asegs.splice(asegs.indexOf(a) + 1, 0, second);
@@ -3327,7 +3633,8 @@
           start: Math.round(((a.start || 0) + asegOut(a)) * 100) / 100,
           trimStart: a.trimStart, trimEnd: a.trimEnd, speed: (a.speed || 1),
           vol: (a.vol == null ? 100 : a.vol), muted: !!a.muted,
-          fadeIn: (a.fadeIn || 0), fadeOut: (a.fadeOut || 0), echo: (a.echo || 0)
+          fadeIn: (a.fadeIn || 0), fadeOut: (a.fadeOut || 0), echo: (a.echo || 0),
+          vkfs: vkfCopy(a.vkfs)
         };
         asegs.splice(asegs.indexOf(a) + 1, 0, copy);
         sortAsegs();
@@ -3386,7 +3693,8 @@
         music.removeAttribute("src");
         try{ music.load(); }catch(e){}
         S.musicLoaded = false; musicFileName = ""; musicWave = null;
-        S.musicStart = 0; S.musicOffset = 0;
+        S.musicStart = 0; S.musicOffset = 0; S.musicBeats = [];
+        $("beatInfo").textContent = "Phân tích file nhạc, đánh dấu vạch nhịp trên đoạn nhạc — kéo đoạn sẽ tự bám nhịp.";
         $("musicName").hidden = true;
         $("pickMusicLabel").textContent = "Thêm file nhạc (MP3, WAV…)";
         $("musicStartIn").value = 0;
@@ -3684,6 +3992,9 @@
         $("outClipAnimDur").textContent = (c.animDur == null ? 0.5 : c.animDur).toFixed(1) + "s";
         $("kbSelect").value = c.kb;
         $("filterSelect").value = c.filter;
+        $("clipFx").value = c.fx || "none";
+        $("clipFxAmt").value = c.fxAmt == null ? 50 : c.fxAmt;
+        $("outClipFxAmt").textContent = (c.fxAmt == null ? 50 : c.fxAmt) + "%";
         $("clipMaskSel").value = c.mask || "none";
         $("clipMaskFeather").value = c.maskFeather || 0;
         $("outClipMaskFeather").textContent = (c.maskFeather || 0);
@@ -3802,6 +4113,7 @@
         $("btnLtBg").classList.toggle("on", t.bg);
         $("btnLtBold").classList.toggle("on", t.bold);
         $("btnLtKaraoke").classList.toggle("on", !!t.karaoke);
+        $("ltFont").value = t.font || "";
         $("ltAnim").value = t.anim || "none";
         $("ltAnimDur").value = t.animDur == null ? 0.5 : t.animDur;
         $("outLtAnimDur").textContent = (t.animDur == null ? 0.5 : t.animDur).toFixed(1) + "s";
@@ -3858,6 +4170,13 @@
         $("ovMaskSel").value = o.mask || "none";
         $("ovMaskFeather").value = o.maskFeather || 0;
         $("outOvMaskFeather").textContent = (o.maskFeather || 0);
+        $("ovBlend").value = o.blend || "normal";
+        $("ovChromaBox").hidden = !!o.emoji;
+        $("btnOvChroma").classList.toggle("on", !!o.chroma);
+        $("btnOvChroma").textContent = o.chroma ? "Tách nền: Bật" : "Tách nền: Tắt";
+        $("ovChromaColor").value = o.chromaColor || "#00ff00";
+        $("ovChromaTol").value = o.chromaTol == null ? 35 : o.chromaTol;
+        $("outOvChromaTol").textContent = (o.chromaTol == null ? 35 : o.chromaTol);
         syncOverKfUI(o);
       }
       /* ---------- PRO: keyframe của lớp phủ ---------- */
@@ -3902,6 +4221,14 @@
         $("fadeOut").value = S.fadeOut; $("outFadeOut").textContent = S.fadeOut + "s";
         $("musicStartIn").value = S.musicStart;
         $("musicOffsetIn").value = S.musicOffset;
+        $("temp").value = S.temp || 0; $("outTemp").textContent = (S.temp || 0);
+        $("hue").value = S.hue || 0; $("outHue").textContent = (S.hue || 0) + "°";
+        $("fade").value = S.fade || 0; $("outFade").textContent = (S.fade || 0) + "%";
+        $("vignette").value = S.vignette || 0; $("outVignette").textContent = (S.vignette || 0) + "%";
+        $("grain").value = S.grain || 0; $("outGrain").textContent = (S.grain || 0) + "%";
+        $("bgModeSel").value = S.bgMode || "blur";
+        $("bgColor1").value = S.bgColor || "#101018";
+        $("bgColor2").value = S.bgColor2 || "#26324a";
         syncDuckUI();
       }
 
@@ -3909,9 +4236,18 @@
       function filterString(c){
         var parts = [];
         if(FILTERS[c.filter]) parts.push(FILTERS[c.filter]);
-        parts.push("brightness(" + S.bright + "%)");
-        parts.push("contrast(" + S.contrast + "%)");
+        /* Chỉnh màu nâng cao: fade nâng điểm đen (giảm tương phản + tăng sáng nhẹ),
+           nhiệt độ ấm = sepia nhẹ, lạnh = sepia xoay sắc về xanh, hue xoay trực tiếp */
+        var fadeF = (S.fade || 0) / 100;
+        var bEff = S.bright + fadeF * 14;
+        var cEff = S.contrast * (1 - fadeF * 0.28);
+        parts.push("brightness(" + bEff.toFixed(1) + "%)");
+        parts.push("contrast(" + cEff.toFixed(1) + "%)");
         parts.push("saturate(" + S.sat + "%)");
+        if(S.hue) parts.push("hue-rotate(" + S.hue + "deg)");
+        var tp = (S.temp || 0) / 100;
+        if(tp > 0.01) parts.push("sepia(" + (tp * 0.38).toFixed(3) + ")");
+        else if(tp < -0.01) parts.push("sepia(" + (-tp * 0.22).toFixed(3) + ") hue-rotate(190deg) saturate(" + (1 + (-tp) * 0.35).toFixed(2) + ")");
         return parts.join(" ");
       }
       function roundRectPath(c2, x, y, w, h, r){
@@ -3923,9 +4259,9 @@
         c2.arcTo(x, y, x + w, y, r);
         c2.closePath();
       }
-      function wrapLines(text, fs, bold, maxWidth){
+      function wrapLines(text, fs, bold, maxWidth, fam){
         var out = [];
-        ctx.font = (bold ? "700 " : "400 ") + fs + "px 'Be Vietnam Pro', sans-serif";
+        ctx.font = (bold ? "700 " : "400 ") + fs + "px " + (fam || "'Be Vietnam Pro', sans-serif");
         var rawLines = text.split("\n");
         for(var i = 0; i < rawLines.length; i++){
           var words = rawLines[i].split(/\s+/).filter(Boolean);
@@ -3960,8 +4296,13 @@
           disp = raw.slice(0, Math.floor(raw.length * tp));
           if(!disp) return;
         }
-        var lines = wrapLines(disp, fs, t.bold, W * 0.88);
-        ctx.font = (t.bold ? "700 " : "400 ") + fs + "px 'Be Vietnam Pro', sans-serif";
+        var fam = fontFam(t);
+        var lines = wrapLines(disp, fs, t.bold, W * 0.88, fam);
+        ctx.font = (t.bold ? "700 " : "400 ") + fs + "px " + fam;
+        /* Style chữ: viền tuỳ chỉnh (mặc định viền đen mờ khi không có nền), phát sáng neon, bóng đổ mạnh */
+        var useStroke = !!t.stroke || !t.bg;
+        var strokeCol = t.stroke || "rgba(0,0,0,0.78)";
+        var strokeW = Math.max(2, fs / (t.stroke ? 9 : 12));
         var lh = fs * 1.28, totalH = lh * lines.length;
         var centerY;
         if(t.pos === "top") centerY = H * 0.055 + totalH / 2;
@@ -4029,11 +4370,13 @@
               roundRectPath(ctx, W/2 - kMaxW/2 - kPadX, centerY - totalH/2 - kPadY, kMaxW + kPadX*2, totalH + kPadY*2, fs * 0.28);
               ctx.fill();
             }
-            if(!t.bg){
-              ctx.lineWidth = Math.max(2, fs / 12);
-              ctx.strokeStyle = "rgba(0,0,0,0.78)";
+            if(useStroke){
+              ctx.lineWidth = strokeW;
+              ctx.strokeStyle = strokeCol;
               ctx.lineJoin = "round";
             }
+            if(t.glow){ ctx.shadowColor = t.glow; ctx.shadowBlur = fs * 0.55; ctx.shadowOffsetY = 0; }
+            else if(t.shadow){ ctx.shadowColor = "rgba(0,0,0,0.85)"; ctx.shadowBlur = fs * 0.14; ctx.shadowOffsetY = fs * 0.09; }
             var kSpaceW = ctx.measureText(" ").width;
             var kWi = 0;
             for(var kl = 0; kl < lines.length; kl++){
@@ -4046,7 +4389,7 @@
                 var kWw = ctx.measureText(kWord).width;
                 var kP = kWi < kWords.length ? clamp((kElapsed - kStarts[kWi]) / Math.max(0.01, kDurs[kWi]), 0, 1) : 0;
                 ctx.fillStyle = t.color;
-                if(!t.bg) ctx.strokeText(kWord, kx, ky2);
+                if(useStroke) ctx.strokeText(kWord, kx, ky2);
                 ctx.fillText(kWord, kx, ky2);
                 if(kP > 0){
                   ctx.save();
@@ -4054,7 +4397,7 @@
                   ctx.rect(kx, ky2 - lh/2, kWw * kP, lh);
                   ctx.clip();
                   ctx.fillStyle = kAccent;
-                  if(!t.bg) ctx.strokeText(kWord, kx, ky2);
+                  if(useStroke) ctx.strokeText(kWord, kx, ky2);
                   ctx.fillText(kWord, kx, ky2);
                   ctx.restore();
                 }
@@ -4076,11 +4419,13 @@
           ctx.fill();
         }
         ctx.fillStyle = t.color;
-        if(!t.bg){
-          ctx.lineWidth = Math.max(2, fs / 12);
-          ctx.strokeStyle = "rgba(0,0,0,0.78)";
+        if(useStroke){
+          ctx.lineWidth = strokeW;
+          ctx.strokeStyle = strokeCol;
           ctx.lineJoin = "round";
         }
+        if(t.glow){ ctx.shadowColor = t.glow; ctx.shadowBlur = fs * 0.55; ctx.shadowOffsetY = 0; }
+        else if(t.shadow){ ctx.shadowColor = "rgba(0,0,0,0.85)"; ctx.shadowBlur = fs * 0.14; ctx.shadowOffsetY = fs * 0.09; }
         var waveIdx = 0;
         for(var k = 0; k < lines.length; k++){
           var y = centerY - totalH/2 + lh * (k + 0.5);
@@ -4093,14 +4438,15 @@
               var ch = lines[k][ci];
               var chw = ctx.measureText(ch).width;
               var yo = Math.sin(now * 6 + waveIdx * 0.55) * fs * 0.16;
-              if(!t.bg) ctx.strokeText(ch, cxp, y + yo);
+              if(useStroke) ctx.strokeText(ch, cxp, y + yo);
               ctx.fillText(ch, cxp, y + yo);
               cxp += chw; waveIdx++;
             }
             ctx.textAlign = "center";
           } else {
-            if(!t.bg) ctx.strokeText(lines[k], W/2, y);
+            if(useStroke) ctx.strokeText(lines[k], W/2, y);
             ctx.fillText(lines[k], W/2, y);
+            if(t.glow) ctx.fillText(lines[k], W/2, y);
           }
         }
         ctx.restore();
@@ -4122,6 +4468,39 @@
         if(S.flip) octx.scale(-1, 1);
         try{ octx.drawImage(src, -c.vw/2, -c.vh/2, c.vw, c.vh); }catch(e){}
         octx.restore();
+
+        /* Hiệu ứng video — Glitch RGB: tách kênh R / GB lệch ngang + xé dải ngang,
+           seed theo thời gian cục bộ nên xem trước khớp file xuất */
+        var fxAmt = (c.fxAmt == null ? 50 : c.fxAmt) / 100;
+        var imgSrc = off;
+        if(c.fx === "glitch" && fxAmt > 0){
+          var seedN = Math.floor(localOut * 9);
+          function grnd(n){ var x = Math.sin(seedN * 127.1 + n * 311.7) * 43758.5453; return x - Math.floor(x); }
+          if(glitchCv.width !== sw || glitchCv.height !== sh){ glitchCv.width = sw; glitchCv.height = sh; }
+          if(glitchTmpA.width !== sw || glitchTmpA.height !== sh){ glitchTmpA.width = sw; glitchTmpA.height = sh; }
+          if(glitchTmpB.width !== sw || glitchTmpB.height !== sh){ glitchTmpB.width = sw; glitchTmpB.height = sh; }
+          var ga = glitchTmpA.getContext("2d"), gb2 = glitchTmpB.getContext("2d"), gg2 = glitchCv.getContext("2d");
+          ga.globalCompositeOperation = "source-over"; ga.globalAlpha = 1;
+          ga.clearRect(0, 0, sw, sh); ga.drawImage(off, 0, 0);
+          ga.globalCompositeOperation = "multiply"; ga.fillStyle = "#ff0000"; ga.fillRect(0, 0, sw, sh);
+          gb2.globalCompositeOperation = "source-over"; gb2.globalAlpha = 1;
+          gb2.clearRect(0, 0, sw, sh); gb2.drawImage(off, 0, 0);
+          gb2.globalCompositeOperation = "multiply"; gb2.fillStyle = "#00ffff"; gb2.fillRect(0, 0, sw, sh);
+          var gdx = (grnd(1) - 0.5) * fxAmt * sw * 0.055;
+          gg2.globalCompositeOperation = "source-over"; gg2.globalAlpha = 1;
+          gg2.clearRect(0, 0, sw, sh);
+          gg2.drawImage(glitchTmpB, -gdx, 0);
+          gg2.globalCompositeOperation = "lighter";
+          gg2.drawImage(glitchTmpA, gdx, 0);
+          gg2.globalCompositeOperation = "source-over";
+          if(grnd(2) > 0.3){
+            var bandY = Math.floor(grnd(3) * sh * 0.82);
+            var bandH = Math.max(3, Math.floor(sh * (0.04 + grnd(4) * 0.1)));
+            var bandDx = (grnd(5) - 0.5) * fxAmt * sw * 0.13;
+            gg2.drawImage(off, 0, bandY, sw, bandH, bandDx, bandY, sw, bandH);
+          }
+          imgSrc = glitchCv;
+        }
 
         var p = outDur > 0 ? clamp(localOut / outDur, 0, 1) : 0;
         var kbScale = 1, kbX = 0, kbY = 0;
@@ -4157,6 +4536,13 @@
         aTy += kv.y / 100 * H;
         aSc *= kv.s / 100;
         aAlpha *= clamp(kv.o, 0, 100) / 100;
+        /* Hiệu ứng video — Rung máy: lệch vị trí bằng nhiễu mượt theo seed thời gian */
+        if(c.fx === "shake" && fxAmt > 0){
+          var shN1 = Math.sin(localOut * 12.9) * 0.55 + Math.sin(localOut * 27.7 + 1.3) * 0.3 + Math.sin(localOut * 43.1 + 2.1) * 0.15;
+          var shN2 = Math.cos(localOut * 11.3 + 0.7) * 0.55 + Math.sin(localOut * 31.9 + 2.6) * 0.3 + Math.cos(localOut * 39.7 + 0.4) * 0.15;
+          aTx += shN1 * fxAmt * W * 0.018;
+          aTy += shN2 * fxAmt * H * 0.018;
+        }
         /* PRO: mặt nạ — vẽ clip vào canvas tạm, áp mask rồi mới đổ lên khung chính */
         var dc = ctx;
         var mActive = !!(c.mask && c.mask !== "none");
@@ -4194,22 +4580,68 @@
           dc.translate(-W/2, -H/2);
         }
         if(S.blurBg && S.aspect !== "orig"){
-          try{ dc.filter = "blur(" + Math.max(8, Math.round(H * 0.035)) + "px) brightness(0.62) saturate(1.1)"; }catch(e){}
-          var bs = Math.max(W / sw, H / sh) * 1.12;
-          dc.drawImage(off, (W - sw*bs)/2, (H - sh*bs)/2, sw*bs, sh*bs);
+          /* Nền vùng đệm: mờ theo khung / màu đặc / chuyển sắc dọc */
+          if(S.bgMode === "color"){
+            dc.fillStyle = S.bgColor || "#000000";
+            dc.fillRect(0, 0, W, H);
+          } else if(S.bgMode === "grad"){
+            var bgGrd = dc.createLinearGradient(0, 0, 0, H);
+            bgGrd.addColorStop(0, S.bgColor || "#101018");
+            bgGrd.addColorStop(1, S.bgColor2 || "#26324a");
+            dc.fillStyle = bgGrd;
+            dc.fillRect(0, 0, W, H);
+          } else {
+            try{ dc.filter = "blur(" + Math.max(8, Math.round(H * 0.035)) + "px) brightness(0.62) saturate(1.1)"; }catch(e){}
+            var bs = Math.max(W / sw, H / sh) * 1.12;
+            dc.drawImage(off, (W - sw*bs)/2, (H - sh*bs)/2, sw*bs, sh*bs);
+          }
           try{ dc.filter = filterString(c) + blurSuffix; }catch(e){}
           var fs2 = Math.min(W / sw, H / sh) * kbScale;
           var fw = sw * fs2, fh = sh * fs2;
-          dc.drawImage(off, (W - fw)/2 + kbX * W, (H - fh)/2 + kbY * H, fw, fh);
+          dc.drawImage(imgSrc, (W - fw)/2 + kbX * W, (H - fh)/2 + kbY * H, fw, fh);
         } else {
           try{ dc.filter = filterString(c) + blurSuffix; }catch(e){}
           var scale = Math.max(W / sw, H / sh) * kbScale;
           var cw = W / scale, ch = H / scale;
           var cx = clamp((sw - cw) * (S.posX/100 + kbX), 0, Math.max(0, sw - cw));
           var cy = clamp((sh - ch) * (S.posY/100 + kbY), 0, Math.max(0, sh - ch));
-          dc.drawImage(off, cx, cy, cw, ch, 0, 0, W, H);
+          dc.drawImage(imgSrc, cx, cy, cw, ch, 0, 0, W, H);
         }
         try{ dc.filter = "none"; }catch(e){}
+        /* Hiệu ứng video — Rò sáng: quầng sáng ấm ở góc trên phải, trôi chậm theo thời gian */
+        if(c.fx === "leak" && fxAmt > 0){
+          var lcx = W * (0.84 + 0.07 * Math.sin(localOut * 0.35));
+          var lcy = H * (0.10 + 0.05 * Math.cos(localOut * 0.27));
+          var lr2 = Math.max(W, H) * 0.78;
+          var lg2 = dc.createRadialGradient(lcx, lcy, 0, lcx, lcy, lr2);
+          lg2.addColorStop(0, "rgba(255,170,66," + (0.5 * fxAmt).toFixed(3) + ")");
+          lg2.addColorStop(0.5, "rgba(255,94,58," + (0.20 * fxAmt).toFixed(3) + ")");
+          lg2.addColorStop(1, "rgba(255,94,58,0)");
+          dc.save();
+          dc.globalCompositeOperation = "screen";
+          dc.fillStyle = lg2;
+          dc.fillRect(0, 0, W, H);
+          dc.restore();
+        }
+        /* Chỉnh màu nâng cao — tối góc (vignette) phủ radial lên khung */
+        if(S.vignette > 0){
+          var vRad = Math.sqrt(W * W + H * H) / 2;
+          var vg = dc.createRadialGradient(W/2, H/2, vRad * 0.52, W/2, H/2, vRad);
+          vg.addColorStop(0, "rgba(0,0,0,0)");
+          vg.addColorStop(1, "rgba(0,0,0," + ((S.vignette / 100) * 0.82).toFixed(3) + ")");
+          dc.fillStyle = vg;
+          dc.fillRect(0, 0, W, H);
+        }
+        /* Chỉnh màu nâng cao — hạt nhiễu tĩnh (canvas noise tiền tạo, lát khắp khung) */
+        if(S.grain > 0){
+          dc.save();
+          dc.globalAlpha = (S.grain / 100) * 0.45;
+          dc.globalCompositeOperation = "overlay";
+          for(var gy = 0; gy < H; gy += 300){
+            for(var gx = 0; gx < W; gx += 300) dc.drawImage(noiseCv, gx, gy);
+          }
+          dc.restore();
+        }
         dc.restore();
         if(effect && effect.type === "flash"){
           dc.save();
@@ -4279,11 +4711,13 @@
             ctx.rotate(oRot);
             ctx.scale(oScl, oScl);
             ctx.globalAlpha = (oOp / 100) * oAlp;
+            ctx.globalCompositeOperation = blendOp(o.blend);
             ctx.font = es + "px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(o.emoji, 0, es * 0.04);
             if(o.id === selOverId && !exporting){
               ctx.globalAlpha = 1;
+              ctx.globalCompositeOperation = "source-over";
               ctx.strokeStyle = "rgba(0,201,212,0.95)";
               ctx.lineWidth = Math.max(2, W * 0.004);
               ctx.setLineDash([8, 6]);
@@ -4305,11 +4739,17 @@
           }
           var ow = W * oScale / 100;
           var oh = ow * oSH / oSW;
+          /* Tách nền (chroma key): xử lý pixel trên canvas tạm đúng cỡ hiển thị trước khi vẽ */
+          var drawSrc = oSrc;
+          if(o.chroma){
+            drawSrc = chromaKeyed(oSrc, Math.max(2, Math.round(ow)), Math.max(2, Math.round(oh)), o.chromaColor || "#00ff00", o.chromaTol == null ? 35 : o.chromaTol);
+          }
           ctx.save();
           ctx.translate(oX * W + oSlX * ow, oY * H + oFloatY * ow);
           ctx.rotate(oRot);
           ctx.scale(oScl, oScl);
           ctx.globalAlpha = (oOp / 100) * oAlp;
+          ctx.globalCompositeOperation = blendOp(o.blend);
           if(o.mask && o.mask !== "none"){
             /* Vẽ qua canvas tạm cỡ lớp phủ để áp mặt nạ + mờ viền */
             var iow = Math.max(2, Math.round(ow)), ioh = Math.max(2, Math.round(oh));
@@ -4317,15 +4757,16 @@
             var og = ovMaskCv.getContext("2d");
             og.save();
             og.clearRect(0, 0, iow, ioh);
-            og.drawImage(oSrc, 0, 0, iow, ioh);
+            og.drawImage(drawSrc, 0, 0, iow, ioh);
             og.restore();
             applyMaskFeather(og, iow, ioh, o.mask, o.maskFeather || 0, 0);
             ctx.drawImage(ovMaskCv, -ow/2, -oh/2, ow, oh);
           } else {
-            ctx.drawImage(oSrc, -ow/2, -oh/2, ow, oh);
+            ctx.drawImage(drawSrc, -ow/2, -oh/2, ow, oh);
           }
           if(o.id === selOverId && !exporting){
             ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = "source-over";
             ctx.strokeStyle = "rgba(0,201,212,0.95)";
             ctx.lineWidth = Math.max(2, W * 0.004);
             ctx.setLineDash([8, 6]);
@@ -4453,7 +4894,8 @@
         var local = t - (a.start || 0);
         var out = asegOut(a);
         if(local < 0 || local > out) return 0;
-        var f = a.muted ? 0 : (a.vol == null ? 100 : a.vol) / 100;
+        /* Có keyframe âm lượng thì mức nội suy tại thời điểm cục bộ THAY mức tĩnh của đoạn */
+        var f = a.muted ? 0 : ((a.vkfs && a.vkfs.length) ? vkfEval(a, local) / 100 : (a.vol == null ? 100 : a.vol) / 100);
         if(f > 0){
           if(a.fadeIn > 0) f *= clamp(local / a.fadeIn, 0, 1);
           if(a.fadeOut > 0) f *= clamp((out - local) / a.fadeOut, 0, 1);
@@ -4533,6 +4975,7 @@
         updateTransport();
         var skc = selClip(); if(skc) syncClipKfUI(skc);
         var sko = selOver(); if(sko) syncOverKfUI(sko);
+        var ska = selAseg(); if(ska) syncAsegKfUI(ska);
         dirty = true;
       }
       /* ---------- PRO: chụp khung hình tại điểm phát (độ phân giải xuất đang chọn) ---------- */
@@ -4995,6 +5438,18 @@
         c.filter = this.value;
         dirty = true; pushHistory();
       });
+      $("clipFx").addEventListener("change", function(){
+        var c = selClip(); if(!c) return;
+        c.fx = this.value;
+        dirty = true; pushHistory();
+      });
+      $("clipFxAmt").addEventListener("input", function(){
+        var c = selClip(); if(!c) return;
+        c.fxAmt = parseFloat(this.value);
+        $("outClipFxAmt").textContent = c.fxAmt + "%";
+        dirty = true;
+      });
+      $("clipFxAmt").addEventListener("change", function(){ pushHistory(); });
       $("btnMoveL").addEventListener("click", function(){
         var c = selClip(); if(!c) return;
         var sorted = clips.slice().sort(function(a, b){ return (a.start || 0) - (b.start || 0); });
@@ -5024,7 +5479,8 @@
           vol:(c.vol == null ? 100 : c.vol), muted:!!c.muted, thumb:c.thumb,
           freeze:!!c.freeze, imgUrl:c.imgUrl || null,
           kx:(c.kx || 0), ky:(c.ky || 0), ks:(c.ks == null ? 100 : c.ks), ko:(c.ko == null ? 100 : c.ko),
-          kfs:kfCopy(c.kfs), mask:(c.mask || "none"), maskFeather:(c.maskFeather || 0)
+          kfs:kfCopy(c.kfs), mask:(c.mask || "none"), maskFeather:(c.maskFeather || 0),
+          fx:(c.fx || "none"), fxAmt:(c.fxAmt == null ? 50 : c.fxAmt)
         }));
         copy.id = uid("c");
         if(copy.freeze && copy.imgUrl){
@@ -5101,6 +5557,7 @@
           freeze: !!c.freeze, imgUrl: c.imgUrl || null, img: c.img || null,
           kx: (c.kx || 0), ky: (c.ky || 0), ks: (c.ks == null ? 100 : c.ks), ko: (c.ko == null ? 100 : c.ko),
           mask: (c.mask || "none"), maskFeather: (c.maskFeather || 0),
+          fx: (c.fx || "none"), fxAmt: (c.fxAmt == null ? 50 : c.fxAmt),
           kfs: (c.kfs || []).filter(function(k){ return k.t >= local - 0.001; }).map(function(k){
             return { t: Math.round((k.t - local) * 100) / 100, x: k.x, y: k.y, s: k.s, o: k.o };
           })
@@ -5211,12 +5668,46 @@
       bindColor("bright", "outBright", "bright");
       bindColor("contrast", "outContrast", "contrast");
       bindColor("sat", "outSat", "sat");
+      /* Chỉnh màu nâng cao: nhiệt độ / hue / fade / tối góc / hạt nhiễu */
+      function bindGrade(id, outId, key, suffix){
+        $(id).addEventListener("input", function(){
+          S[key] = parseFloat(this.value);
+          $(outId).textContent = S[key] + suffix;
+          dirty = true;
+        });
+        $(id).addEventListener("change", function(){ pushHistory(); });
+      }
+      bindGrade("temp", "outTemp", "temp", "");
+      bindGrade("hue", "outHue", "hue", "°");
+      bindGrade("fade", "outFade", "fade", "%");
+      bindGrade("vignette", "outVignette", "vignette", "%");
+      bindGrade("grain", "outGrain", "grain", "%");
       $("btnColorReset").addEventListener("click", function(){
         S.bright = S.contrast = S.sat = 100;
         $("bright").value = $("contrast").value = $("sat").value = 100;
         $("outBright").textContent = $("outContrast").textContent = $("outSat").textContent = "100%";
+        S.temp = 0; S.hue = 0; S.fade = 0; S.vignette = 0; S.grain = 0;
+        $("temp").value = 0; $("outTemp").textContent = "0";
+        $("hue").value = 0; $("outHue").textContent = "0°";
+        $("fade").value = 0; $("outFade").textContent = "0%";
+        $("vignette").value = 0; $("outVignette").textContent = "0%";
+        $("grain").value = 0; $("outGrain").textContent = "0%";
         dirty = true; pushHistory();
       });
+      /* Nền vùng đệm: chọn Màu đặc / Chuyển sắc thì tự bật chế độ Nền mờ để nền hiện ra */
+      $("bgModeSel").addEventListener("change", function(){
+        S.bgMode = this.value;
+        if(S.bgMode !== "blur" && !S.blurBg){
+          S.blurBg = true;
+          $("btnFillBlur").classList.add("on");
+          $("btnFillCrop").classList.remove("on");
+        }
+        dirty = true; pushHistory();
+      });
+      $("bgColor1").addEventListener("input", function(){ S.bgColor = this.value; dirty = true; });
+      $("bgColor1").addEventListener("change", function(){ pushHistory(); });
+      $("bgColor2").addEventListener("input", function(){ S.bgColor2 = this.value; dirty = true; });
+      $("bgColor2").addEventListener("change", function(){ pushHistory(); });
 
       /* ---------- text layers ---------- */
       $("btnAddText").addEventListener("click", function(){
@@ -5298,6 +5789,7 @@
       $("btnLtSubStyle").addEventListener("click", function(){
         var t = selText(); if(!t) return;
         t.color = "#ffd60a"; t.bg = false; t.bold = true; t.pos = "bottom";
+        t.stroke = "#000000"; t.glow = null; t.shadow = false;
         if(t.size < 5.5) t.size = 5.5;
         syncTextPanel(); dirty = true; pushHistory();
         toast("Đã áp style phụ đề vàng viền đen.");
@@ -5308,6 +5800,40 @@
         this.classList.toggle("on", t.karaoke);
         dirty = true; pushHistory();
         toast(t.karaoke ? "Đã bật karaoke cho lớp chữ này." : "Đã tắt karaoke.");
+      });
+      /* Font chữ cho lớp đang chọn — chờ font tải xong mới vẽ lại; không tải được thì rơi về font mặc định */
+      function loadTextFont(name){
+        if(!name || !document.fonts || !document.fonts.load) return;
+        try{
+          document.fonts.load("700 40px '" + name + "'").then(function(){ dirty = true; });
+          document.fonts.load("400 40px '" + name + "'").then(function(){ dirty = true; });
+        }catch(e){}
+      }
+      $("ltFont").addEventListener("change", function(){
+        var t = selText(); if(!t) return;
+        t.font = this.value;
+        loadTextFont(t.font);
+        dirty = true; pushHistory();
+      });
+      /* Style chữ 1 chạm: mỗi style là bộ {font gợi ý, màu, viền, bóng, nền} áp vào các trường style sẵn có */
+      var TSTYLES = {
+        std:     { font:"",      color:"#ffffff", bg:true,  bold:true, stroke:null,      glow:null,      shadow:false },
+        yellow:  { font:"",      color:"#ffd60a", bg:false, bold:true, stroke:"#000000", glow:null,      shadow:false },
+        neon:    { font:"Anton", color:"#e8fdff", bg:false, bold:true, stroke:null,      glow:"#00e5ff", shadow:false },
+        shadow:  { font:"",      color:"#ffffff", bg:false, bold:true, stroke:null,      glow:null,      shadow:true  },
+        outline: { font:"Anton", color:"#16181d", bg:false, bold:true, stroke:"#ffffff", glow:null,      shadow:false },
+        box:     { font:"",      color:"#ffffff", bg:true,  bold:true, stroke:null,      glow:null,      shadow:false }
+      };
+      $("ltStyleRow").addEventListener("click", function(e){
+        var b = e.target.closest("[data-tstyle]"); if(!b) return;
+        var t = selText(); if(!t) return;
+        var st = TSTYLES[b.getAttribute("data-tstyle")]; if(!st) return;
+        t.font = st.font; t.color = st.color; t.bg = st.bg; t.bold = st.bold;
+        t.stroke = st.stroke; t.glow = st.glow; t.shadow = st.shadow;
+        loadTextFont(t.font);
+        syncTextPanel();
+        dirty = true; pushHistory();
+        toast("Đã áp style chữ.");
       });
       $("ltAnim").addEventListener("change", function(){
         var t = selText(); if(!t) return;
@@ -5338,7 +5864,7 @@
             start: Math.round(i * each * 10) / 10,
             end: Math.round(Math.min(total, (i+1) * each) * 10) / 10,
             size: subStyle.size, color: subStyle.color, pos: subStyle.pos, bg: subStyle.bg, bold: subStyle.bold,
-            anim: "none", animDur: 0.5
+            anim: "none", animDur: 0.5, font: (subStyle.font || ""), stroke: null, glow: null, shadow: false
           });
         });
         selTextId = texts[texts.length-1] ? texts[texts.length-1].id : null;
@@ -5398,7 +5924,7 @@
               id: uid("t"), kind: "sub", text: txt,
               start: Math.round(st * 10) / 10, end: Math.round(en * 10) / 10,
               size: subStyle.size, color: subStyle.color, pos: subStyle.pos, bg: subStyle.bg, bold: subStyle.bold,
-              anim: "none", animDur: 0.5, karaoke: false
+              anim: "none", animDur: 0.5, karaoke: false, font: (subStyle.font || ""), stroke: null, glow: null, shadow: false
             });
             added++;
           });
@@ -5492,6 +6018,32 @@
         dirty = true;
       });
       $("ovMaskFeather").addEventListener("change", function(){ pushHistory(); });
+      /* Hoà trộn + tách nền (chroma key) cho lớp phủ */
+      $("ovBlend").addEventListener("change", function(){
+        var o = selOver(); if(!o) return;
+        o.blend = this.value;
+        dirty = true; pushHistory();
+      });
+      $("btnOvChroma").addEventListener("click", function(){
+        var o = selOver(); if(!o) return;
+        o.chroma = !o.chroma;
+        syncOverPanel();
+        dirty = true; pushHistory();
+        toast(o.chroma ? "Đã bật tách nền cho lớp phủ." : "Đã tắt tách nền.");
+      });
+      $("ovChromaColor").addEventListener("input", function(){
+        var o = selOver(); if(!o) return;
+        o.chromaColor = this.value;
+        dirty = true;
+      });
+      $("ovChromaColor").addEventListener("change", function(){ pushHistory(); });
+      $("ovChromaTol").addEventListener("input", function(){
+        var o = selOver(); if(!o) return;
+        o.chromaTol = parseFloat(this.value);
+        $("outOvChromaTol").textContent = o.chromaTol;
+        dirty = true;
+      });
+      $("ovChromaTol").addEventListener("change", function(){ pushHistory(); });
       $("btnOvKfPin").addEventListener("click", function(){
         var o = selOver(); if(!o) return;
         kfUpsert(o, overLocalT(o), {
@@ -5638,7 +6190,39 @@
         $("outAsegFadeOut").textContent = (a.fadeOut || 0) + "s";
         $("asegEcho").value = a.echo || 0;
         $("outAsegEcho").textContent = (a.echo || 0) + "%";
+        syncAsegKfUI(a);
       }
+      /* Keyframe âm lượng: thanh trượt hiện mức nội suy tại điểm phát khi đoạn đã có điểm ghim */
+      function asegLocalT(a){ return clamp(playhead - (a.start || 0), 0, asegOut(a)); }
+      function syncAsegKfUI(a){
+        if(!a) return;
+        var info = $("asegKfInfo");
+        if(a.vkfs && a.vkfs.length){
+          var v = Math.round(vkfEval(a, asegLocalT(a)));
+          $("asegVol").value = v;
+          $("outAsegVol").textContent = v + "%";
+          if(info) info.textContent = "◆ " + a.vkfs.length + " điểm mức · tại điểm phát: " + fmt(asegLocalT(a)) + " → " + v + "%";
+        } else if(info){
+          info.textContent = "Chưa có điểm mức nào.";
+        }
+      }
+      $("btnAsegKfPin").addEventListener("click", function(){
+        var a = selAseg(); if(!a) return;
+        vkfUpsert(a, asegLocalT(a), parseFloat($("asegVol").value) || 0);
+        renderStrip(); syncAsegKfUI(a);
+        updateAudioLevels();
+        pushHistory(); dirty = true;
+        toast("Đã ghim mức âm lượng tại " + fmt(playhead) + ".");
+      });
+      $("btnAsegKfDel").addEventListener("click", function(){
+        var a = selAseg(); if(!a) return;
+        if(vkfRemoveNear(a, asegLocalT(a))){
+          renderStrip(); syncAsegKfUI(a);
+          updateAudioLevels();
+          pushHistory(); dirty = true;
+          toast("Đã xoá điểm mức gần điểm phát.");
+        } else toast("Không có điểm mức nào gần điểm phát.");
+      });
       /* PRO: vang (echo) cho đoạn tiếng đang chọn */
       $("asegEcho").addEventListener("input", function(){
         var a = selAseg(); if(!a) return;
@@ -5667,10 +6251,59 @@
         applyVolumesStatic();
       });
       $("duckLevel").addEventListener("change", function(){ pushHistory(); });
+      /* Tìm nhịp nhạc nền: năng lượng theo cửa sổ 50ms, chọn đỉnh cao hơn trung bình quanh nó —
+         nhịp lưu theo giây TRONG FILE nhạc, vẽ lên đoạn nhạc và làm mốc bám khi kéo đoạn */
+      $("btnBeats").addEventListener("click", function(){
+        if(!S.musicLoaded){ toast("Hãy thêm nhạc nền trước đã."); return; }
+        if(!musicFile){ toast("Chưa có file nhạc để phân tích."); return; }
+        var AC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if(!AC){ toast("Trình duyệt này không hỗ trợ phân tích nhịp."); return; }
+        toast("Đang tìm nhịp…");
+        musicFile.arrayBuffer().then(function(buf){
+          var oc = new AC(1, 44100, 44100);
+          return oc.decodeAudioData(buf);
+        }).then(function(ab){
+          var ch = ab.getChannelData(0);
+          var sr = ab.sampleRate;
+          var win = Math.max(256, Math.floor(sr * 0.05));
+          var n = Math.floor(ch.length / win);
+          var energies = [];
+          for(var i = 0; i < n; i++){
+            var s = 0, cnt = 0;
+            for(var j = 0; j < win; j += 4){ var v = ch[i * win + j]; s += v * v; cnt++; }
+            energies.push(Math.sqrt(s / Math.max(1, cnt)));
+          }
+          var beats = [];
+          for(var k = 2; k < n - 2; k++){
+            var avg = 0, ac = 0;
+            for(var m = Math.max(0, k - 16); m < Math.min(n, k + 16); m++){
+              if(m !== k){ avg += energies[m]; ac++; }
+            }
+            avg /= Math.max(1, ac);
+            if(energies[k] > avg * 1.35 && energies[k] > 0.08 && energies[k] >= energies[k - 1] && energies[k] >= energies[k + 1]){
+              var bt = Math.round(k * 0.05 * 100) / 100;
+              if(!beats.length || bt - beats[beats.length - 1] >= 0.24) beats.push(bt);
+            }
+          }
+          if(beats.length > 500){
+            var stepB = Math.ceil(beats.length / 500);
+            beats = beats.filter(function(_, ix){ return ix % stepB === 0; });
+          }
+          S.musicBeats = beats;
+          $("beatInfo").textContent = beats.length
+            ? ("Đã tìm thấy " + beats.length + " nhịp — vạch vàng trên đoạn nhạc, kéo đoạn sẽ tự bám nhịp.")
+            : "Không tìm thấy nhịp rõ ràng trong bài này.";
+          renderMusicTrack();
+          pushHistory();
+          toast(beats.length ? ("Đã tìm thấy " + beats.length + " nhịp.") : "Không tìm thấy nhịp rõ ràng trong bài này.");
+        }).catch(function(){ toast("Không phân tích được file nhạc này."); });
+      });
       $("asegVol").addEventListener("input", function(){
         var a = selAseg(); if(!a) return;
         a.vol = parseFloat(this.value);
         if(a.vol > 0) a.muted = false;
+        /* Đoạn đã có keyframe âm lượng: kéo thanh trượt = cập nhật/thêm điểm tại điểm phát */
+        if(a.vkfs && a.vkfs.length) vkfUpsert(a, asegLocalT(a), a.vol);
         $("outAsegVol").textContent = a.vol + "%";
         $("btnAsegMute").classList.toggle("on", !!a.muted);
         $("asegMuteLabel").textContent = a.muted ? "Bật tiếng đoạn này" : "Tắt tiếng đoạn này";
@@ -5966,13 +6599,15 @@
         });
       }
       /* Áp theme = ghi vào cài đặt dự án + grade lên mọi clip + style cho phụ đề
-         hiện có và mặc định cho phụ đề tạo mới — tất cả trong MỘT bước undo. */
-      function applyTheme(th){
+         hiện có và mặc định cho phụ đề tạo mới — tất cả trong MỘT bước undo.
+         silent=true (mẫu dự án dùng): không tự pushHistory/toast, để nơi gọi gộp thành 1 bước. */
+      function applyTheme(th, silent){
         S.aspect = th.aspect || "orig";
         S.blurBg = !!th.blurBg;
         S.bright = th.bright; S.contrast = th.contrast; S.sat = th.sat;
         clips.forEach(function(c){ c.filter = th.filter || "none"; });
-        subStyle = { size:(th.sub.size || 5.5), color:(th.sub.color || "#ffffff"), bg:!!th.sub.bg, bold:!!th.sub.bold, pos:(th.sub.pos || "bottom") };
+        var keepFont = subStyle.font || "";
+        subStyle = { size:(th.sub.size || 5.5), color:(th.sub.color || "#ffffff"), bg:!!th.sub.bg, bold:!!th.sub.bold, pos:(th.sub.pos || "bottom"), font:keepFont };
         texts.forEach(function(t){
           if(t.kind !== "sub") return;
           t.size = subStyle.size; t.color = subStyle.color; t.bg = subStyle.bg; t.bold = subStyle.bold; t.pos = subStyle.pos;
@@ -5980,8 +6615,10 @@
         syncGlobalUI(); syncClipPanel(); renderTextList(); syncTextPanel();
         refreshCanvasSize(); renderStrip();
         dirty = true;
-        pushHistory();
-        toast('Đã áp theme "' + th.name + '".');
+        if(!silent){
+          pushHistory();
+          toast('Đã áp theme "' + th.name + '".');
+        }
       }
       function captureTheme(name){
         var fc = selClip() || clips[0] || null;
@@ -6003,6 +6640,83 @@
         toast('Đã lưu theme "' + name + '".');
       });
       loadMyThemes(); renderThemeGrid(); renderMyThemes();
+
+      /* ---------- Mẫu dự án (màn hình bắt đầu): tạo dự án mới với cài đặt sẵn, KHÔNG tự nạp clip ---------- */
+      var TEMPLATES = {
+        story:  { label:"Kể chuyện TikTok", theme:"Kể chuyện ma", aspect:"9:16", duck:true,  title:"Tiêu đề truyện" },
+        review: { label:"Review sản phẩm",  theme:"Tươi sáng",    aspect:"9:16", duck:false, title:"Tên sản phẩm" },
+        vlog:   { label:"Vlog ngang",       theme:"Điện ảnh",     aspect:"16:9", duck:false, title:null }
+      };
+      var pendingTpl = null;
+      function applyTemplate(key, force){
+        var tpl = TEMPLATES[key]; if(!tpl) return;
+        var hasProj = clips.length > 0 || texts.length > 0 || overs.length > 0 || S.musicLoaded;
+        if(hasProj && !force){
+          /* Hỏi ngay trong trang thay vì hộp thoại hệ thống — hộp thoại bị chặn trong khung nhúng */
+          pendingTpl = key;
+          $("tplAsk").hidden = false;
+          return;
+        }
+        pendingTpl = null;
+        $("tplAsk").hidden = true;
+        if(playing) pauseAll();
+        Object.keys(clipEls).forEach(function(id){ disposeEl(id); });
+        Object.keys(asegEls).forEach(function(id){ disposeAsegEl(id); });
+        Object.keys(pipEls).forEach(function(id){ disposePipEl(id); });
+        clips = []; asegs = []; texts = []; overs = []; markers = [];
+        selClipId = selTextId = selOverId = selAsegId = null;
+        tlSel.kind = null; tlSel.id = null; tlGap = null;
+        playhead = 0;
+        try{ music.pause(); }catch(e){}
+        music.removeAttribute("src");
+        try{ music.load(); }catch(e){}
+        musicFile = null;
+        S.musicLoaded = false; musicFileName = ""; musicWave = null;
+        S.musicStart = 0; S.musicOffset = 0; S.musicBeats = [];
+        S.duck = false; S.duckLevel = 30;
+        $("musicName").hidden = true;
+        $("pickMusicLabel").textContent = "Thêm file nhạc (MP3, WAV…)";
+        $("beatInfo").textContent = "Phân tích file nhạc, đánh dấu vạch nhịp trên đoạn nhạc — kéo đoạn sẽ tự bám nhịp.";
+        var th = null;
+        for(var i = 0; i < PRESET_THEMES.length; i++) if(PRESET_THEMES[i].name === tpl.theme) th = PRESET_THEMES[i];
+        if(th) applyTheme(th, true);
+        S.aspect = tpl.aspect;
+        if(tpl.duck){ S.duck = true; S.duckLevel = 30; }
+        if(tpl.title){
+          var nt = {
+            id: uid("t"), kind: "text", text: tpl.title,
+            start: 0, end: 3,
+            size: 8, color: "#ffffff", pos: "top", bg: false, bold: true,
+            anim: "none", animDur: 0.5, karaoke: false,
+            font: "", stroke: null, glow: null, shadow: false
+          };
+          texts.push(nt);
+          selTextId = nt.id;
+          tlSel.kind = "text"; tlSel.id = nt.id;
+        }
+        $("emptyState").hidden = true;
+        $("studio").hidden = false;
+        syncGlobalUI(); syncDuckUI();
+        relayout(); refreshCanvasSize();
+        renderStrip(); renderTextList(); syncTextPanel(); renderOverList(); syncOverPanel(); syncClipPanel(); syncAsegPanel();
+        pushHistory();
+        dirty = true;
+        toast('Đã tạo mẫu "' + tpl.label + '" — thêm video của bạn để bắt đầu.');
+      }
+      $("tplRow").addEventListener("click", function(e){
+        var b = e.target.closest("[data-tpl]");
+        if(b) applyTemplate(b.getAttribute("data-tpl"));
+      });
+      $("btnTplYes").addEventListener("click", function(){
+        var k = pendingTpl;
+        pendingTpl = null;
+        $("tplAsk").hidden = true;
+        if(k) applyTemplate(k, true);
+      });
+      $("btnTplNo").addEventListener("click", function(){
+        pendingTpl = null;
+        $("tplAsk").hidden = true;
+      });
 
       /* ---------- export ---------- */
       var recorder = null, recChunks = [], recMime = "", exportCancelled = false, lastBlobUrl = null;
