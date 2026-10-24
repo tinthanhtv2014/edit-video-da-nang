@@ -719,6 +719,14 @@
         font-size:10.5px; font-weight:700; letter-spacing:.02em; white-space:nowrap;
         color:#ffd60a; background:rgba(255,214,10,.12); border:1px solid rgba(255,214,10,.45);
       }
+      /* ---------- XỊN XÒ: ghi âm lồng tiếng ---------- */
+      .rec-dot{
+        width:10px; height:10px; border-radius:50%; background:#ff453a; flex:none;
+        display:inline-block; animation:recBlink 1.1s ease-in-out infinite;
+      }
+      @keyframes recBlink{ 0%,100%{ opacity:1; } 50%{ opacity:.25; } }
+      @media (prefers-reduced-motion: reduce){ .rec-dot{ animation:none; } }
+      .rec-time{ font-weight:700; font-variant-numeric:tabular-nums; margin-right:auto; }
       .mini-prog{ margin-top:9px; }
       .mini-prog .progress-track{ margin-bottom:5px; }
       .mini-prog .mp-label{ font-size:11.5px; color:var(--ink-dim); margin-bottom:6px; }
@@ -927,11 +935,14 @@
     <!-- Hidden media elements that feed the canvas renderer -->
     <div id="clipPool"></div>
     <audio id="srcMusic" class="hidden-media" loop preload="auto"></audio>
-    <input type="file" id="fileVideo" accept="video/*,.mkv,.mov" multiple hidden />
+    <input type="file" id="fileVideo" accept="video/*,.mkv,.mov,image/*" multiple hidden />
     <input type="file" id="fileMusic" accept="audio/*" hidden />
     <input type="file" id="fileImage" accept="image/*" hidden />
     <input type="file" id="filePip" accept="video/*,.mkv,.mov" hidden />
     <input type="file" id="fileSrt" accept=".srt,text/plain" hidden />
+    <input type="file" id="fileSlides" accept="image/*" multiple hidden />
+    <input type="file" id="fileBgImg" accept="image/*" hidden />
+    <input type="file" id="fileBgVid" accept="video/*,.mkv,.mov" hidden />
 
     <!-- ============ EMPTY STATE / LANDING ============ -->
     <div class="empty-wrap" id="emptyState">
@@ -960,6 +971,10 @@
               <button class="btn primary big" id="btnPickVideo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 20h16"/></svg>
                 Chọn video
+              </button>
+              <button class="btn big" id="btnPickSlides">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m4.5 18 5-5 3 3 3.5-3.5 3.5 4"/></svg>
+                Tạo slideshow từ ảnh
               </button>
               <span class="lp-or">hoặc kéo thả file vào trang</span>
             </div>
@@ -1453,7 +1468,54 @@
                 <button class="btn" id="btnClipBgAI">Xoá nền AI: Tắt</button>
                 <span class="badge-exp">Thử nghiệm</span>
               </div>
-              <p class="hint" style="margin:0">Xoá nền AI chạy ngay trên máy bạn (tải model ở lần bật đầu) — có thể chậm trên máy yếu.</p>
+              <p class="hint" style="margin:0 0 10px">Xoá nền AI chạy ngay trên máy bạn (tải model ở lần bật đầu) — có thể chậm trên máy yếu.</p>
+              <div class="field">
+                <label>Nền thay thế (sau người đã tách nền)</label>
+                <select id="clipBgKind">
+                  <option value="none">Không — trong suốt</option>
+                  <option value="color">Màu đặc</option>
+                  <option value="img">Ảnh</option>
+                  <option value="video">Video (lặp)</option>
+                </select>
+              </div>
+              <div class="two-col">
+                <div class="field">
+                  <label>Màu nền</label>
+                  <input type="color" id="clipBgColor" value="#16324a" style="width:100%;height:28px" />
+                </div>
+                <div class="field">
+                  <label>File nền</label>
+                  <div class="row-btns">
+                    <button class="btn" id="btnClipBgImg" style="flex:1;justify-content:center">Ảnh</button>
+                    <button class="btn" id="btnClipBgVid" style="flex:1;justify-content:center">Video</button>
+                  </div>
+                </div>
+              </div>
+              <p class="hint" id="clipBgInfo" style="margin:0 0 10px">Đang trong suốt — người tách nền sẽ lộ phần phía sau khung hình.</p>
+              <div class="row-btns" style="margin-bottom:6px">
+                <button class="btn" id="btnBoomerang">Boomerang: Tắt</button>
+              </div>
+              <p class="hint" id="boomInfo" style="margin:0">Boomerang: đoạn dùng ≤ 6 giây phát xuôi–ngược lặp lại lấp đầy thời lượng clip; tiếng gốc tự tắt.</p>
+            </div>
+            <div class="sub-box" style="margin-top:2px">
+              <h3>Che mặt AI <span class="badge-exp">Thử nghiệm</span></h3>
+              <div class="row-btns" style="margin-bottom:6px">
+                <button class="btn" id="btnClipFace">Che mặt: Tắt</button>
+                <select id="faceModeSel" style="flex:1;min-width:0">
+                  <option value="blur">Mờ (blur)</option>
+                  <option value="pixel">Pixel</option>
+                </select>
+              </div>
+              <p class="hint" style="margin:0">AI tự tìm mặt trong khung hình và che theo suốt clip — áp cả xem trước lẫn file xuất.</p>
+            </div>
+            <div class="sub-box" style="margin-top:2px">
+              <h3>Cắt đoạn im lặng (clip)</h3>
+              <div class="field">
+                <label>Ngưỡng lặng <output id="outSilThrClip">4%</output></label>
+                <input type="range" id="silThrClip" min="1" max="20" step="0.5" value="4" />
+              </div>
+              <button class="btn" id="btnSilenceClip" style="width:100%;justify-content:center">Cắt đoạn lặng của clip</button>
+              <p class="hint" style="margin:6px 0 0">Tự dò khoảng lặng ≥ 0,4 giây trong tiếng của clip rồi cắt bỏ — các đoạn giữ lại nối liền nhau ngay tại chỗ, đoạn khác không xê dịch.</p>
             </div>
             <div class="row-btns" style="margin-bottom:8px">
               <button class="btn" id="btnMoveL">
@@ -1495,6 +1557,16 @@
             <p class="hint" style="margin:0 0 11px">Bấm một clip để thêm vào cuối dự án đang làm.</p>
             <div class="free-row panel" id="freeRowPanel"></div>
             <p class="free-src">Nguồn: MDN (CC0) · Blender Foundation (CC BY)</p>
+          </section>
+
+          <!-- SLIDESHOW / ẢNH THÀNH CLIP -->
+          <section class="card">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m4.5 18 5-5 3 3 3.5-3.5 3.5 4"/></svg>
+              Ảnh &amp; slideshow
+            </h2>
+            <p class="hint" style="margin:0 0 11px">Ảnh cũng thành clip được (mặc định 3 giây, kéo dài tối đa 10 giây) — dùng Ken Burns, chuyển cảnh, bộ lọc như clip thường.</p>
+            <button class="btn" id="btnSlidesPanel" style="width:100%;justify-content:center">Tạo slideshow từ nhiều ảnh</button>
+            <button class="btn" id="btnAddImages" style="width:100%;justify-content:center;margin-top:7px">Thêm ảnh thành clip</button>
           </section>
           </div>
 
@@ -1869,6 +1941,29 @@
                   <span class="badge-exp">Thử nghiệm</span>
                 </div>
                 <p class="hint" style="margin:6px 0 0">Xoá nền AI chạy ngay trên máy bạn — có thể chậm trên máy yếu.</p>
+                <div class="field" style="margin-top:10px">
+                  <label>Nền thay thế (sau người đã tách nền)</label>
+                  <select id="ovBgKind">
+                    <option value="none">Không — trong suốt</option>
+                    <option value="color">Màu đặc</option>
+                    <option value="img">Ảnh</option>
+                    <option value="video">Video (lặp)</option>
+                  </select>
+                </div>
+                <div class="two-col">
+                  <div class="field">
+                    <label>Màu nền</label>
+                    <input type="color" id="ovBgColor" value="#16324a" style="width:100%;height:28px" />
+                  </div>
+                  <div class="field">
+                    <label>File nền</label>
+                    <div class="row-btns">
+                      <button class="btn" id="btnOvBgImg" style="flex:1;justify-content:center">Ảnh</button>
+                      <button class="btn" id="btnOvBgVid" style="flex:1;justify-content:center">Video</button>
+                    </div>
+                  </div>
+                </div>
+                <p class="hint" id="ovBgInfo" style="margin:0">Đang trong suốt — người tách nền sẽ lộ lớp bên dưới.</p>
               </div>
               <div class="two-col">
                 <div class="field">
@@ -1936,6 +2031,21 @@
             <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>
               Âm thanh &amp; nhạc nền
             </h2>
+            <div class="sub-box" style="margin-bottom:13px">
+              <h3>🎙 Ghi âm lồng tiếng</h3>
+              <div id="recIdle">
+                <button class="btn" id="btnRecStart" style="width:100%;justify-content:center">🎙 Ghi âm tại điểm phát</button>
+                <p class="hint" style="margin:6px 0 0">Ghi giọng đọc qua mic, bản ghi rớt thẳng vào track Tiếng tại điểm phát.</p>
+              </div>
+              <div id="recLive" hidden>
+                <div class="row-btns" style="align-items:center">
+                  <span class="rec-dot" aria-hidden="true"></span>
+                  <span class="rec-time" id="recTime">0:00</span>
+                  <button class="btn danger" id="btnRecStop">Dừng ghi</button>
+                </div>
+                <p class="hint" style="margin:6px 0 0">Xem trước đang chạy KHÔNG tiếng — cứ đọc theo hình, bấm Dừng khi xong.</p>
+              </div>
+            </div>
             <div id="asegEditor" hidden>
               <p class="music-name" style="margin:0 0 10px">Đoạn tiếng đang chọn: <b id="asegNameLabel"></b></p>
               <div class="field">
@@ -1986,6 +2096,15 @@
                   <button class="btn" id="btnAsegClarity">Rõ giọng: Tắt</button>
                 </div>
                 <p class="hint" style="margin:6px 0 0">Rõ giọng: lọc ù dưới 80Hz + tăng độ hiện diện + nén nhẹ, hợp giọng kể chuyện.</p>
+              </div>
+              <div class="sub-box" style="margin-top:2px">
+                <h3>Cắt đoạn im lặng (đoạn tiếng)</h3>
+                <div class="field">
+                  <label>Ngưỡng lặng <output id="outSilThrAseg">4%</output></label>
+                  <input type="range" id="silThrAseg" min="1" max="20" step="0.5" value="4" />
+                </div>
+                <button class="btn" id="btnSilenceAseg" style="width:100%;justify-content:center">Cắt đoạn lặng của đoạn tiếng</button>
+                <p class="hint" style="margin:6px 0 0">Tự dò khoảng lặng ≥ 0,4 giây trong đoạn tiếng rồi cắt bỏ, các phần giữ lại nối liền nhau ngay tại chỗ.</p>
               </div>
             </div>
             <button class="btn" id="btnPickMusic" style="width:100%;justify-content:center">
@@ -2085,6 +2204,11 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0 5-5m-5 5-5-5"/><path d="M4 20h16"/></svg>
               Xuất video
             </button>
+            <button class="btn" id="btnExportWav" style="width:100%;justify-content:center;margin-top:8px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>
+              Xuất âm thanh (WAV)
+            </button>
+            <p class="hint" id="wavInfo" style="margin:6px 0 0">Render toàn bộ phần tiếng của dự án (đoạn tiếng + nhạc nền, đúng âm lượng / fade / EQ / né tiếng) thành file WAV 44,1kHz.</p>
           </section>
 
           <!-- PROJECTS (IndexedDB) -->
@@ -2402,6 +2526,8 @@
 
       /* ---------- timeline layout ---------- */
       function clipOut(c){ return Math.max(0.05, (c.trimEnd - c.trimStart) / c.speed); }
+      /* Trần độ dài đoạn dùng khi cắt: clip thường = độ dài file; đoạn đóng băng = 30s; clip ảnh = 10s */
+      function clipTrimMax(c){ return c.freeze ? (c.isImg ? 10 : 30) : c.duration; }
       function sortClips(){ clips.sort(function(a, b){ return (a.start || 0) - (b.start || 0); }); }
       /* ---------- đường cong tốc độ (speed ramp) ----------
          Hệ số tốc độ tức thời theo vị trí u (0..1) trong clip; tích phân F(u) = phần
@@ -2787,7 +2913,7 @@
         });
       }
       function computeWave(c){
-        if(c.wave || !c.url) return;
+        if(c.wave || !c.url || c.isImg) return;
         if(waveCache[c.url]){ c.wave = waveCache[c.url]; return; }
         ensureWave(c.url);
       }
@@ -2824,12 +2950,14 @@
         tv.addEventListener("error", function(){ done(null); });
       }
       function addVideoFiles(files){
-        var list = [];
+        var list = [], imgList = [];
         for(var i=0;i<files.length;i++){
           var f = files[i];
           if((f.type && f.type.indexOf("video/") === 0) || /\.(mkv|mov|avi|webm|mp4|m4v)$/i.test(f.name)) list.push(f);
+          else if((f.type && f.type.indexOf("image/") === 0) || /\.(jpe?g|png|webp|gif|bmp)$/i.test(f.name)) imgList.push(f);
         }
-        if(!list.length){ toast("Chưa thấy file video trong các file đã chọn."); return; }
+        if(imgList.length) addImageClips(imgList, false);
+        if(!list.length){ if(!imgList.length) toast("Chưa thấy file video trong các file đã chọn."); return; }
         var wasEmpty = clips.length === 0;
         var idx = 0, firstNew = null;
         function next(){
@@ -2862,6 +2990,81 @@
           $("studio").hidden = false;
         }
         next();
+      }
+
+      /* ---------- ẢNH THÀNH CLIP + SLIDESHOW: ảnh là clip tĩnh (freeze) dài mặc định 3s, trần 10s,
+         dùng chung đường vẽ nên Ken Burns / chuyển cảnh / bộ lọc / mặt nạ đều áp như clip thường ---------- */
+      function makeImageClip(file, img, url, startAt){
+        return {
+          id: uid("c"), url: url, file: file, name: file.name,
+          duration: 10, vw: img.naturalWidth || 640, vh: img.naturalHeight || 360,
+          trimStart: 0, trimEnd: 3, start: startAt,
+          speed: 1, ramp: "none", curve: [1, 1, 1, 1, 1], rev: false, boom: false, bgAI: false,
+          faceBlur: false, faceMode: "blur",
+          transType: "none", transDur: 0.5, kb: "none", filter: "none",
+          animIn: "none", animOut: "none", animDur: 0.5,
+          vol: 100, muted: true, thumb: url,
+          freeze: true, isImg: true, imgUrl: url, img: img
+        };
+      }
+      function addImageClips(files, slideshow){
+        var list = [];
+        for(var i = 0; i < files.length; i++){
+          var f = files[i];
+          if((f.type && f.type.indexOf("image/") === 0) || /\.(jpe?g|png|webp|gif|bmp)$/i.test(f.name)) list.push(f);
+        }
+        if(!list.length){ toast("Chưa thấy file ảnh nào trong các file đã chọn."); return; }
+        if(!clips.length){
+          $("emptyState").hidden = true;
+          $("studio").hidden = false;
+        }
+        var startAt = Math.round(clipsEnd() * 100) / 100;
+        var idx = 0, added = [];
+        function next(){
+          if(idx >= list.length){
+            if(added.length){
+              selClipId = added[0].id;
+              tlSel.kind = "clip"; tlSel.id = added[0].id;
+              afterClipStructure();
+              pushHistory();
+              toast(slideshow
+                ? ("Đã tạo slideshow " + added.length + " ảnh — mỗi ảnh 3 giây, Ken Burns luân phiên, mờ chồng 0,5 giây.")
+                : ("Đã thêm " + added.length + " ảnh thành clip (mỗi ảnh 3 giây)."));
+            } else {
+              toast("Không đọc được ảnh nào trong các file đã chọn.");
+              if(!clips.length){ $("studio").hidden = true; $("emptyState").hidden = false; }
+            }
+            return;
+          }
+          var file = list[idx++];
+          var url = URL.createObjectURL(file);
+          var img = new Image();
+          img.onload = function(){
+            var c = makeImageClip(file, img, url, startAt);
+            if(slideshow){
+              c.kb = (added.length % 2 === 0) ? "in" : "out";
+              if(added.length > 0){
+                /* Chồng 0,5s lên cuối clip trước + mờ chồng (fade) trên clip trước → chuyển cảnh thật theo cơ chế chồng lấn của timeline */
+                c.start = Math.round((startAt - 0.5) * 100) / 100;
+                var prev = added[added.length - 1];
+                prev.transType = "fade"; prev.transDur = 0.5;
+              }
+            }
+            clips.push(c);
+            added.push(c);
+            startAt = Math.round(((c.start || 0) + clipOut(c)) * 100) / 100;
+            next();
+          };
+          img.onerror = function(){ next(); };
+          img.src = url;
+        }
+        next();
+      }
+      /* Nút slideshow / thêm ảnh: dùng chung 1 input, khác chế độ */
+      var slidesMode = "show";
+      function pickSlides(mode){
+        slidesMode = mode;
+        $("fileSlides").click();
       }
 
       /* ---------- video free có sẵn (thư mục clips/ cạnh trang) ---------- */
@@ -3001,7 +3204,9 @@
               freeze:!!c.freeze, imgUrl:c.imgUrl || null,
               kx:(c.kx || 0), ky:(c.ky || 0), ks:(c.ks == null ? 100 : c.ks), ko:(c.ko == null ? 100 : c.ko),
               kfs:kfCopy(c.kfs), mask:(c.mask || "none"), maskFeather:(c.maskFeather || 0),
-              fx:(c.fx || "none"), fxAmt:(c.fxAmt == null ? 50 : c.fxAmt) };
+              fx:(c.fx || "none"), fxAmt:(c.fxAmt == null ? 50 : c.fxAmt),
+              boom:!!c.boom, faceBlur:!!c.faceBlur, faceMode:(c.faceMode || "blur"), isImg:!!c.isImg,
+              bgKind:(c.bgKind || "none"), bgColor:(c.bgColor || "#16324a"), bgUrl:(c.bgUrl || null) };
           }),
           asegs: asegs.map(function(a){
             return { id:a.id, clipId:a.clipId, url:a.url, name:a.name, fileDur:a.fileDur, start:(a.start || 0),
@@ -3023,7 +3228,8 @@
               isVideo:!!o.isVideo, name:o.name || null, vol:(o.vol == null ? 100 : o.vol), muted:!!o.muted, vloop:!!o.vloop, vdur:(o.vdur || 0),
               kfs:kfCopy(o.kfs), mask:(o.mask || "none"), maskFeather:(o.maskFeather || 0),
               blend:(o.blend || "normal"), chroma:!!o.chroma, chromaColor:(o.chromaColor || "#00ff00"), chromaTol:(o.chromaTol == null ? 35 : o.chromaTol),
-              bgAI:!!o.bgAI };
+              bgAI:!!o.bgAI,
+              bgKind:(o.bgKind || "none"), bgColor:(o.bgColor || "#16324a"), bgUrl:(o.bgUrl || null) };
           }),
           S: { aspect:S.aspect, posX:S.posX, posY:S.posY, quality:S.quality, blurBg:S.blurBg, flip:S.flip, rot:S.rot,
                bright:S.bright, contrast:S.contrast, sat:S.sat, musicVol:S.musicVol, videoVol:S.videoVol, fadeIn:S.fadeIn, fadeOut:S.fadeOut,
@@ -3056,14 +3262,18 @@
         st.clips.forEach(function(c){ keep[c.id] = true; });
         Object.keys(clipEls).forEach(function(id){ if(!keep[id]) disposeEl(id); });
         var clipFiles = {};
-        clips.forEach(function(c){ if(c.file) clipFiles[c.id] = c.file; });
+        var clipBgFiles = {};
+        clips.forEach(function(c){ if(c.file) clipFiles[c.id] = c.file; if(c.bgFile) clipBgFiles[c.id] = c.bgFile; });
         clips = st.clips;
         clips.forEach(function(c){
           if(clipFiles[c.id]) c.file = clipFiles[c.id];
+          if(clipBgFiles[c.id]) c.bgFile = clipBgFiles[c.id];
           if(c.vol == null) c.vol = 100; if(c.muted == null) c.muted = false;
           if(c.ramp == null) c.ramp = "none";
           if(!curveValid(c.curve)) c.curve = curveFromRamp(c.ramp);
           c.rev = !!c.rev; c.bgAI = !!c.bgAI;
+          c.boom = !!c.boom; c.faceBlur = !!c.faceBlur; if(c.faceMode == null) c.faceMode = "blur"; c.isImg = !!c.isImg;
+          if(c.bgKind == null) c.bgKind = "none"; if(c.bgColor == null) c.bgColor = "#16324a"; if(c.bgUrl === undefined) c.bgUrl = null;
           if(c.kx == null) c.kx = 0; if(c.ky == null) c.ky = 0;
           if(c.ks == null) c.ks = 100; if(c.ko == null) c.ko = 100;
           if(c.kfs == null) c.kfs = null;
@@ -3089,20 +3299,25 @@
         var keepA = {};
         st.asegs.forEach(function(a){ keepA[a.id] = true; });
         Object.keys(asegEls).forEach(function(id){ if(!keepA[id]) disposeAsegEl(id); });
+        var asegFiles = {};
+        asegs.forEach(function(a){ if(a.file) asegFiles[a.id] = a.file; });
         asegs = st.asegs;
-        asegs.forEach(function(a){ if(a.start == null) a.start = 0; if(a.speed == null) a.speed = 1; if(a.vol == null) a.vol = 100; if(a.muted == null) a.muted = false; if(a.fadeIn == null) a.fadeIn = 0; if(a.fadeOut == null) a.fadeOut = 0; if(a.echo == null) a.echo = 0; if(a.vkfs == null) a.vkfs = null; if(a.eqB == null) a.eqB = 0; if(a.eqM == null) a.eqM = 0; if(a.eqT == null) a.eqT = 0; a.clarity = !!a.clarity; applyEcho(a); applyEqAseg(a); });
+        asegs.forEach(function(a){ if(asegFiles[a.id]) a.file = asegFiles[a.id]; if(a.start == null) a.start = 0; if(a.speed == null) a.speed = 1; if(a.vol == null) a.vol = 100; if(a.muted == null) a.muted = false; if(a.fadeIn == null) a.fadeIn = 0; if(a.fadeOut == null) a.fadeOut = 0; if(a.echo == null) a.echo = 0; if(a.vkfs == null) a.vkfs = null; if(a.eqB == null) a.eqB = 0; if(a.eqM == null) a.eqM = 0; if(a.eqT == null) a.eqT = 0; a.clarity = !!a.clarity; applyEcho(a); applyEqAseg(a); });
         sortAsegs();
         markers = st.markers || [];
         tlGap = null;
         texts = st.texts;
         texts.forEach(function(t){ if(t.anim == null) t.anim = "none"; if(t.animDur == null) t.animDur = 0.5; if(t.karaoke == null) t.karaoke = false; if(t.font == null) t.font = ""; if(t.stroke == null) t.stroke = null; if(t.glow == null) t.glow = null; if(t.shadow == null) t.shadow = false; });
         var overFiles = {};
-        overs.forEach(function(o){ if(o.file) overFiles[o.id] = o.file; });
+        var overBgFiles = {};
+        overs.forEach(function(o){ if(o.file) overFiles[o.id] = o.file; if(o.bgFile) overBgFiles[o.id] = o.bgFile; });
         var keepO = {};
         st.overs.forEach(function(o){ keepO[o.id] = true; });
         Object.keys(pipEls).forEach(function(id){ if(!keepO[id]) disposePipEl(id); });
         overs = st.overs.map(function(o){
           if(overFiles[o.id]) o.file = overFiles[o.id];
+          if(overBgFiles[o.id]) o.bgFile = overBgFiles[o.id];
+          if(o.bgKind == null) o.bgKind = "none"; if(o.bgColor == null) o.bgColor = "#16324a"; if(o.bgUrl === undefined) o.bgUrl = null;
           if(o.animIn == null) o.animIn = "none"; if(o.animOut == null) o.animOut = "none";
           if(o.animDur == null) o.animDur = 0.5; if(o.loop == null) o.loop = "none";
           if(o.kfs == null) o.kfs = null;
@@ -4011,7 +4226,7 @@
               c.trimStart = Math.round(nts * 100) / 100;
               c.start = Math.round((d.clip.start + used) * 100) / 100;
             } else {
-              c.trimEnd = Math.round(clamp(d.clip.trimEnd + dt * c.speed, d.clip.trimStart + 0.2, c.freeze ? 30 : c.duration) * 100) / 100;
+              c.trimEnd = Math.round(clamp(d.clip.trimEnd + dt * c.speed, d.clip.trimStart + 0.2, clipTrimMax(c)) * 100) / 100;
             }
             relayout();
             positionSegsLive();
@@ -4138,7 +4353,7 @@
         if(!c) return;
         $("clipNameLabel").textContent = c.name;
         var ts = $("trimStart"), te = $("trimEnd");
-        ts.max = c.freeze ? 30 : c.duration; te.max = c.freeze ? 30 : c.duration;
+        ts.max = clipTrimMax(c); te.max = clipTrimMax(c);
         ts.value = c.trimStart; te.value = c.trimEnd;
         $("outTrimStart").textContent = fmt(c.trimStart);
         $("outTrimEnd").textContent = fmt(c.trimEnd);
@@ -4151,7 +4366,10 @@
         $("transType").value = c.transType;
         drawSpeedCurve();
         syncRevUI(c);
+        syncBoomUI(c);
+        syncFaceUI(c);
         syncClipBgAIUI(c);
+        syncClipBgUI(c);
         $("transDur").value = c.transDur;
         $("outTransDur").textContent = c.transDur.toFixed(1) + "s";
         $("clipAnimIn").value = c.animIn || "none";
@@ -4347,6 +4565,7 @@
         $("ovChromaColor").value = o.chromaColor || "#00ff00";
         $("ovChromaTol").value = o.chromaTol == null ? 35 : o.chromaTol;
         $("outOvChromaTol").textContent = (o.chromaTol == null ? 35 : o.chromaTol);
+        syncOvBgUI(o);
         syncOverKfUI(o);
       }
       /* ---------- PRO: keyframe của lớp phủ ---------- */
@@ -4632,16 +4851,22 @@
         if(c.freeze){
           if(!c.img || !c.img.naturalWidth || !c.vw) return;
           src = c.img;
+        } else if(c.boom && revStore[c.id] && revStore[c.id].imgs.length){
+          /* Boomerang: khung theo sóng tam giác trên thời lượng timeline của clip (xuôi nửa đầu, ngược nửa sau, lặp) */
+          var bimg = boomFrameAt(c, localOut);
+          if(!bimg) return;
+          src = bimg;
         } else if(c.rev && revStore[c.id] && revStore[c.id].imgs.length){
           /* Clip đảo: nguồn là khung JPEG đã trích, lấy theo thời gian cục bộ như nguồn thường */
           var rimg = revFrameAt(c, localOut);
           if(!rimg) return;
           src = rimg;
         } else if(!el || el.readyState < 2 || !c.vw) return;
-        /* Xoá nền AI (Thử nghiệm): thay nguồn bằng khung đã tách nền khi model sẵn sàng */
-        if(c.bgAI && !c.freeze && !c.rev && el && el.readyState >= 2){
+        /* Xoá nền AI (Thử nghiệm): thay nguồn bằng khung đã tách nền khi model sẵn sàng;
+           có nền thay thế thì ghép nền phủ kín khung nguồn TRƯỚC, người đã tách vẽ lên trên */
+        if(c.bgAI && !c.freeze && !c.rev && !c.boom && el && el.readyState >= 2){
           var sg = segApply(el, c.vw, c.vh, "c" + c.id);
-          if(sg) src = sg;
+          if(sg) src = bgComposite(c, sg, localOut);
         }
         var sw = (S.rot % 180 === 0) ? c.vw : c.vh;
         var sh = (S.rot % 180 === 0) ? c.vh : c.vw;
@@ -4686,6 +4911,8 @@
           }
           imgSrc = glitchCv;
         }
+        /* Che mặt AI (Thử nghiệm): xử lý ngay trên khung nguồn (toạ độ nguồn) trước khi áp Ken Burns / mặt nạ — xem trước = xuất */
+        if(c.faceBlur && !c.freeze) applyFaceFx(imgSrc, c, localOut);
 
         var p = outDur > 0 ? clamp(localOut / outDur, 0, 1) : 0;
         var kbScale = 1, kbX = 0, kbY = 0;
@@ -4926,10 +5153,11 @@
           var oh = ow * oSH / oSW;
           /* Tách nền (chroma key): xử lý pixel trên canvas tạm đúng cỡ hiển thị trước khi vẽ */
           var drawSrc = oSrc;
-          /* Xoá nền AI (Thử nghiệm) cho lớp phủ: mask người làm alpha, lộ lớp / nền bên dưới theo thứ tự vẽ */
+          /* Xoá nền AI (Thử nghiệm) cho lớp phủ: mask người làm alpha, lộ lớp / nền bên dưới theo thứ tự vẽ;
+             có nền thay thế thì ghép nền phủ kín khung của lớp phủ TRƯỚC, người đã tách vẽ lên trên */
           if(o.bgAI){
             var psg = segApply(oSrc, oSW, oSH, "o" + o.id);
-            if(psg) drawSrc = psg;
+            if(psg) drawSrc = bgComposite(o, psg, t - o.start);
           }
           if(o.chroma){
             drawSrc = chromaKeyed(oSrc, Math.max(2, Math.round(ow)), Math.max(2, Math.round(oh)), o.chromaColor || "#00ff00", o.chromaTol == null ? 35 : o.chromaTol);
@@ -5108,22 +5336,25 @@
         if(t < o.start - 0.001 || t > o.end + 0.001) return 0;
         return o.muted ? 0 : (o.vol == null ? 100 : o.vol) / 100;
       }
+      /* Đang ghi âm lồng tiếng: xem trước chạy KHÔNG tiếng để đọc theo hình mà không bị vọng */
+      var recMuted = false;
       function applyVolumesStatic(){
+        var rf = recMuted ? 0 : 1;
         if(actx){
           /* Element hình của clip luôn câm — tiếng gốc phát từ các đoạn tiếng độc lập */
           for(var id in clipGains) clipGains[id].gain.value = 0;
           for(var i = 0; i < asegs.length; i++){
             var ag = asegGains[asegs[i].id];
-            if(ag) ag.gain.value = (S.videoVol / 100) * asegFactor(asegs[i], playhead);
+            if(ag) ag.gain.value = rf * (S.videoVol / 100) * asegFactor(asegs[i], playhead);
           }
           for(var p = 0; p < overs.length; p++){
             var pg = pipGains[overs[p].id];
-            if(pg) pg.gain.value = pipFactor(overs[p], playhead);
+            if(pg) pg.gain.value = rf * pipFactor(overs[p], playhead);
           }
           duckSmooth = duckTargetAt(playhead);
-          if(musicGain) musicGain.gain.value = (S.musicVol / 100) * musicFactor(playhead) * duckSmooth;
+          if(musicGain) musicGain.gain.value = rf * (S.musicVol / 100) * musicFactor(playhead) * duckSmooth;
         } else {
-          music.volume = (S.musicVol / 100) * duckTargetAt(playhead);
+          music.volume = rf * (S.musicVol / 100) * duckTargetAt(playhead);
         }
       }
       function musicFactor(t){
@@ -5156,17 +5387,18 @@
         var dTgt = duckTargetAt(playhead);
         duckSmooth += (dTgt - duckSmooth) * clamp(dtF / 0.15, 0, 1);
         if(Math.abs(duckSmooth - dTgt) < 0.002) duckSmooth = dTgt;
+        var rf = recMuted ? 0 : 1;
         if(actx){
           for(var id in clipGains) clipGains[id].gain.value = 0;
           for(i=0;i<asegs.length;i++){
             var ag = asegGains[asegs[i].id];
-            if(ag) ag.gain.value = (S.videoVol / 100) * asegFactor(asegs[i], playhead);
+            if(ag) ag.gain.value = rf * (S.videoVol / 100) * asegFactor(asegs[i], playhead);
           }
           for(i=0;i<overs.length;i++){
             var pg = pipGains[overs[i].id];
-            if(pg) pg.gain.value = pipFactor(overs[i], playhead);
+            if(pg) pg.gain.value = rf * pipFactor(overs[i], playhead);
           }
-          if(musicGain) musicGain.gain.value = (S.musicVol / 100) * musicFactor(playhead) * duckSmooth;
+          if(musicGain) musicGain.gain.value = rf * (S.musicVol / 100) * musicFactor(playhead) * duckSmooth;
         } else {
           for(i=0;i<clips.length;i++){
             var el = clipEls[clips[i].id];
@@ -5174,13 +5406,13 @@
           }
           for(i=0;i<asegs.length;i++){
             var ae = asegEls[asegs[i].id];
-            if(ae) ae.volume = (S.videoVol / 100) * asegFactor(asegs[i], playhead);
+            if(ae) ae.volume = rf * (S.videoVol / 100) * asegFactor(asegs[i], playhead);
           }
           for(i=0;i<overs.length;i++){
             var pe = pipEls[overs[i].id];
-            if(pe) pe.volume = pipFactor(overs[i], playhead);
+            if(pe) pe.volume = rf * pipFactor(overs[i], playhead);
           }
-          music.volume = (S.musicVol / 100) * musicFactor(playhead) * duckSmooth;
+          music.volume = rf * (S.musicVol / 100) * musicFactor(playhead) * duckSmooth;
         }
       }
       function syncMusic(){
@@ -5628,6 +5860,10 @@
       $("btnPickVideo").addEventListener("click", function(){ $("fileVideo").click(); });
       document.querySelectorAll(".js-pick").forEach(function(b){ b.addEventListener("click", function(){ $("fileVideo").click(); }); });
       $("fileVideo").addEventListener("change", function(){ addVideoFiles(this.files); this.value = ""; });
+      $("btnPickSlides").addEventListener("click", function(){ pickSlides("show"); });
+      $("btnSlidesPanel").addEventListener("click", function(){ pickSlides("show"); });
+      $("btnAddImages").addEventListener("click", function(){ pickSlides("plain"); });
+      $("fileSlides").addEventListener("change", function(){ addImageClips(this.files, slidesMode === "show"); this.value = ""; });
       $("btnPickMusic").addEventListener("click", function(){ $("fileMusic").click(); });
       $("fileMusic").addEventListener("change", function(){ loadMusicFile(this.files[0]); this.value = ""; });
       $("btnAddImage").addEventListener("click", function(){ $("fileImage").click(); });
@@ -5695,7 +5931,7 @@
         var c = selClip(); if(!c) return;
         var v = parseFloat(this.value);
         if(v < c.trimStart + 0.2) v = c.trimStart + 0.2;
-        c.trimEnd = Math.min(c.freeze ? 30 : c.duration, v);
+        c.trimEnd = Math.min(clipTrimMax(c), v);
         this.value = c.trimEnd;
         relayout(); syncClipPanelLive(); renderStripLight();
         dirty = true;
@@ -5871,6 +6107,264 @@
           dirty = true; pushHistory();
         });
       })();
+      /* ---------- GHÉP NỀN MỚI sau xoá nền AI: nền (màu / ảnh / video lặp) vẽ phủ kín khung của nguồn
+         TRƯỚC, người đã tách nền vẽ lên trên — cùng đường vẽ nên xem trước = xuất.
+         Media nền giữ runtime theo id chủ (bgMediaCache / bgCompCache), state chỉ giữ kind/màu/url + File để lưu dự án. ---------- */
+      var bgMediaCache = {};   // id chủ -> {url, img, vid}
+      var bgCompCache = {};    // id chủ -> canvas ghép
+      function bgImgFor(owner){
+        var ent = bgMediaCache[owner.id];
+        if(!ent || ent.url !== owner.bgUrl){ ent = { url: owner.bgUrl, img: null, vid: null }; bgMediaCache[owner.id] = ent; }
+        if(!ent.img){
+          ent.img = new Image();
+          ent.img.onload = function(){ dirty = true; };
+          ent.img.src = owner.bgUrl;
+        }
+        return ent.img;
+      }
+      function bgVidFor(owner){
+        var ent = bgMediaCache[owner.id];
+        if(!ent || ent.url !== owner.bgUrl){ ent = { url: owner.bgUrl, img: null, vid: null }; bgMediaCache[owner.id] = ent; }
+        if(!ent.vid){
+          var v = document.createElement("video");
+          v.muted = true; v.loop = true; v.setAttribute("playsinline", "");
+          v.preload = "auto"; v.src = owner.bgUrl;
+          ent.vid = v;
+        }
+        return ent.vid;
+      }
+      function syncBgVid(ve, localT){
+        if(playing || exporting){
+          if(ve.paused){ var pr = ve.play(); if(pr && pr.catch) pr.catch(function(){}); }
+        } else {
+          if(!ve.paused) ve.pause();
+          var d = ve.duration;
+          if(d && isFinite(d)){
+            var tt = ((localT % d) + d) % d;
+            if(Math.abs(ve.currentTime - tt) > 0.3){ try{ ve.currentTime = tt; }catch(e){} }
+          }
+        }
+      }
+      function drawCoverPx(g, src, sw, sh, W, H){
+        var s = Math.max(W / sw, H / sh);
+        var w = sw * s, h = sh * s;
+        g.drawImage(src, (W - w) / 2, (H - h) / 2, w, h);
+      }
+      function bgComposite(owner, person, localT){
+        var kind = owner.bgKind || "none";
+        if(kind === "none" || !person) return person;
+        var W = person.width, H = person.height;
+        if(!W || !H) return person;
+        var cc = bgCompCache[owner.id];
+        if(!cc){ cc = document.createElement("canvas"); bgCompCache[owner.id] = cc; }
+        if(cc.width !== W || cc.height !== H){ cc.width = W; cc.height = H; }
+        var g = cc.getContext("2d");
+        g.save();
+        g.globalCompositeOperation = "source-over";
+        g.globalAlpha = 1;
+        g.clearRect(0, 0, W, H);
+        if(kind === "color"){
+          g.fillStyle = owner.bgColor || "#16324a";
+          g.fillRect(0, 0, W, H);
+        } else if(kind === "img" && owner.bgUrl){
+          var im = bgImgFor(owner);
+          if(im && im.naturalWidth) drawCoverPx(g, im, im.naturalWidth, im.naturalHeight, W, H);
+        } else if(kind === "video" && owner.bgUrl){
+          var ve = bgVidFor(owner);
+          if(ve && ve.readyState >= 2 && ve.videoWidth){
+            syncBgVid(ve, localT || 0);
+            drawCoverPx(g, ve, ve.videoWidth, ve.videoHeight, W, H);
+          }
+        }
+        g.drawImage(person, 0, 0);
+        g.restore();
+        return cc;
+      }
+      function bgInfoText(o, isOver){
+        var k = o.bgKind || "none";
+        if(k === "none") return isOver ? "Đang trong suốt — người tách nền sẽ lộ lớp bên dưới." : "Đang trong suốt — người tách nền sẽ lộ phần phía sau khung hình.";
+        if(k === "color") return "Nền màu đặc phủ kín khung phía sau người đã tách nền.";
+        if(k === "img") return o.bgUrl ? "Nền ảnh phủ kín khung phía sau người đã tách nền." : "Đã chọn kiểu Ảnh nhưng chưa có file — bấm nút Ảnh để chọn.";
+        return o.bgUrl ? "Nền video (lặp) phủ kín khung phía sau người đã tách nền." : "Đã chọn kiểu Video nhưng chưa có file — bấm nút Video để chọn.";
+      }
+      function syncClipBgUI(c){
+        if(!c) return;
+        $("clipBgKind").value = c.bgKind || "none";
+        $("clipBgColor").value = c.bgColor || "#16324a";
+        $("clipBgInfo").textContent = bgInfoText(c, false);
+      }
+      function syncOvBgUI(o){
+        if(!o) return;
+        $("ovBgKind").value = o.bgKind || "none";
+        $("ovBgColor").value = o.bgColor || "#16324a";
+        $("ovBgInfo").textContent = bgInfoText(o, true);
+      }
+      var bgPickOwner = null;   // "clip" | "over" — chủ đang chờ chọn file nền
+      function loadBgFile(file, kind){
+        if(!file) return;
+        var o = bgPickOwner === "clip" ? selClip() : (bgPickOwner === "over" ? selOver() : null);
+        if(!o) return;
+        if(o.emoji){ toast("Sticker không ghép nền được."); return; }
+        o.bgUrl = URL.createObjectURL(file);
+        o.bgFile = file;
+        o.bgKind = kind;
+        delete bgMediaCache[o.id];
+        delete bgCompCache[o.id];
+        if(bgPickOwner === "clip") syncClipBgUI(o); else syncOvBgUI(o);
+        dirty = true; pushHistory();
+        toast(o.bgAI ? "Đã đặt nền thay thế phía sau người đã tách nền." : "Đã đặt nền thay thế — bật Xoá nền AI để thấy nền phía sau người.");
+      }
+      $("btnClipBgImg").addEventListener("click", function(){ bgPickOwner = "clip"; $("fileBgImg").click(); });
+      $("btnClipBgVid").addEventListener("click", function(){ bgPickOwner = "clip"; $("fileBgVid").click(); });
+      $("btnOvBgImg").addEventListener("click", function(){ bgPickOwner = "over"; $("fileBgImg").click(); });
+      $("btnOvBgVid").addEventListener("click", function(){ bgPickOwner = "over"; $("fileBgVid").click(); });
+      $("fileBgImg").addEventListener("change", function(){ loadBgFile(this.files[0], "img"); this.value = ""; });
+      $("fileBgVid").addEventListener("change", function(){ loadBgFile(this.files[0], "video"); this.value = ""; });
+      $("clipBgKind").addEventListener("change", function(){
+        var c = selClip(); if(!c) return;
+        c.bgKind = this.value; syncClipBgUI(c); dirty = true; pushHistory();
+      });
+      $("clipBgColor").addEventListener("input", function(){
+        var c = selClip(); if(!c) return;
+        c.bgColor = this.value; dirty = true;
+      });
+      $("clipBgColor").addEventListener("change", function(){ pushHistory(); });
+      $("ovBgKind").addEventListener("change", function(){
+        var o = selOver(); if(!o) return;
+        o.bgKind = this.value; syncOvBgUI(o); dirty = true; pushHistory();
+      });
+      $("ovBgColor").addEventListener("input", function(){
+        var o = selOver(); if(!o) return;
+        o.bgColor = this.value; dirty = true;
+      });
+      $("ovBgColor").addEventListener("change", function(){ pushHistory(); });
+
+      /* ---------- CHE MẶT AI (Thử nghiệm) — MediaPipe Face Detector (tasks-vision, tải lười như segmenter).
+         Phân tích ở cạnh dài ≤640, cache hộp mặt theo thời gian cục bộ của clip; che trong đường vẽ chung. ---------- */
+      var faceDet = { state: "idle", det: null };
+      var faceWaiters = [];
+      function ensureFaceDetector(done){
+        if(faceDet.state === "ready"){ done(true); return; }
+        faceWaiters.push(done);
+        if(faceDet.state === "loading") return;
+        faceDet.state = "loading";
+        toast("Đang tải model che mặt AI (lần đầu cần mạng)…");
+        (async function(){
+          var ok = false;
+          try{
+            var vision = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs");
+            var fileset = await vision.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+            try{
+              faceDet.det = await vision.FaceDetector.createFromOptions(fileset, {
+                baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite", delegate: "GPU" },
+                runningMode: "IMAGE", minDetectionConfidence: 0.5
+              });
+            }catch(e1){
+              faceDet.det = await vision.FaceDetector.createFromOptions(fileset, {
+                baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite", delegate: "CPU" },
+                runningMode: "IMAGE", minDetectionConfidence: 0.5
+              });
+            }
+            ok = !!faceDet.det;
+          }catch(e){ ok = false; }
+          faceDet.state = ok ? "ready" : "idle";
+          var ws = faceWaiters; faceWaiters = [];
+          ws.forEach(function(f){ try{ f(ok); }catch(e){} });
+          if(ok) toast("Che mặt AI đã sẵn sàng.");
+          else toast("Không tải được model che mặt AI — kiểm tra mạng rồi thử lại. App vẫn chạy bình thường.");
+          dirty = true;
+        })();
+      }
+      var faceWork = document.createElement("canvas");
+      var faceTmp = document.createElement("canvas");
+      var faceCache = {};   // id clip -> {t, boxes:[{x,y,w,h}]} theo toạ độ của canvas khung nguồn đang vẽ
+      function applyFaceFx(cv, c, localOut){
+        if(!faceDet.det){
+          if(faceDet.state === "idle") ensureFaceDetector(function(){ dirty = true; });
+          return;
+        }
+        if(!cv || !cv.width || !cv.height) return;
+        var ent = faceCache[c.id];
+        if(!ent || Math.abs(ent.t - localOut) > 0.12){
+          var sc = Math.min(1, 640 / Math.max(cv.width, cv.height));
+          var dw = Math.max(2, Math.round(cv.width * sc)), dh = Math.max(2, Math.round(cv.height * sc));
+          if(faceWork.width !== dw || faceWork.height !== dh){ faceWork.width = dw; faceWork.height = dh; }
+          var wg = faceWork.getContext("2d");
+          try{ wg.drawImage(cv, 0, 0, dw, dh); }catch(e){ return; }
+          var boxes = [];
+          try{
+            var res = faceDet.det.detect(faceWork);
+            var dets = (res && res.detections) || [];
+            for(var i = 0; i < dets.length; i++){
+              var bb = dets[i].boundingBox;
+              if(!bb) continue;
+              boxes.push({ x: bb.originX / sc, y: bb.originY / sc, w: bb.width / sc, h: bb.height / sc });
+            }
+          }catch(e){ return; }
+          ent = { t: localOut, boxes: boxes };
+          faceCache[c.id] = ent;
+        }
+        if(!ent.boxes.length) return;
+        var g = cv.getContext("2d");
+        for(var k = 0; k < ent.boxes.length; k++){
+          var b = ent.boxes[k];
+          var ex = b.w * 0.15, ey = b.h * 0.15;   // nới hộp mặt ~15% mỗi phía
+          var x = Math.max(0, b.x - ex), y = Math.max(0, b.y - ey);
+          var w = Math.min(cv.width - x, b.w + ex * 2), h = Math.min(cv.height - y, b.h + ey * 2);
+          if(w < 4 || h < 4) continue;
+          if(c.faceMode === "pixel"){
+            var tw = Math.max(2, Math.round(w / 11)), th = Math.max(2, Math.round(h / 11));
+            if(faceTmp.width !== tw || faceTmp.height !== th){ faceTmp.width = tw; faceTmp.height = th; }
+            var tg = faceTmp.getContext("2d");
+            tg.clearRect(0, 0, tw, th);
+            try{ tg.drawImage(cv, x, y, w, h, 0, 0, tw, th); }catch(e){ continue; }
+            g.save();
+            g.imageSmoothingEnabled = false;
+            g.clearRect(x, y, w, h);
+            g.drawImage(faceTmp, x, y, w, h);
+            g.restore();
+          } else {
+            var bw2 = Math.max(2, Math.round(w)), bh2 = Math.max(2, Math.round(h));
+            if(faceTmp.width !== bw2 || faceTmp.height !== bh2){ faceTmp.width = bw2; faceTmp.height = bh2; }
+            var tg2 = faceTmp.getContext("2d");
+            tg2.clearRect(0, 0, bw2, bh2);
+            try{ tg2.drawImage(cv, x, y, w, h, 0, 0, bw2, bh2); }catch(e){ continue; }
+            g.save();
+            try{ g.filter = "blur(" + Math.max(6, Math.round(w * 0.09)) + "px)"; }catch(e){}
+            g.drawImage(faceTmp, x - w * 0.05, y - h * 0.05, w * 1.1, h * 1.1);
+            try{ g.filter = "none"; }catch(e){}
+            g.restore();
+          }
+        }
+      }
+      function syncFaceUI(c){
+        if(!c) return;
+        $("btnClipFace").classList.toggle("on", !!c.faceBlur);
+        $("btnClipFace").textContent = c.faceBlur ? "Che mặt: Bật" : "Che mặt: Tắt";
+        $("faceModeSel").value = c.faceMode || "blur";
+      }
+      $("btnClipFace").addEventListener("click", function(){
+        var c = selClip(); if(!c) return;
+        if(c.freeze){ toast("Clip tĩnh không có mặt chuyển động để che."); return; }
+        c.faceBlur = !c.faceBlur;
+        syncFaceUI(c);
+        dirty = true; pushHistory();
+        if(c.faceBlur){
+          ensureFaceDetector(function(ok){
+            if(!ok){
+              var cc = findClip(c.id);
+              if(cc && cc.faceBlur){ cc.faceBlur = false; syncFaceUI(cc); pushHistory(); }
+            }
+            dirty = true;
+          });
+        }
+      });
+      $("faceModeSel").addEventListener("change", function(){
+        var c = selClip(); if(!c) return;
+        c.faceMode = this.value;
+        dirty = true; pushHistory();
+      });
+
       /* ---------- XOÁ NỀN AI (Thử nghiệm) — MediaPipe ImageSegmenter, lazy-load từ CDN khi bật lần đầu.
          Tải lỗi / không mạng → toast rõ ràng, app chạy bình thường; tắt mặc định. ---------- */
       var segm = { state: "idle", segmenter: null };
@@ -5998,13 +6492,11 @@
               : "Clip được đánh dấu đảo ngược nhưng bộ khung chưa có trong phiên này — hãy bấm Đảo ngược để tạo lại. Tiếng gốc của đoạn đã tắt.")
           : "Đảo ngược áp cho đoạn dùng ≤ 12 giây (dài hơn hãy cắt ngắn trước). Khi đảo, tiếng gốc của đoạn tự tắt.";
       }
-      function startReverse(c){
+      /* Trích khung DÙNG CHUNG cho Đảo ngược & Boomerang: ≤30fps, cạnh dài ≤720, JPEG blob;
+         xong việc thì revStore[c.id] có bộ khung (theo thứ tự PHÁT của clip đảo) và gọi onOk */
+      function extractFrames(c, onOk){
         if(revBusy) return;
-        if(c.freeze){ toast("Clip đóng băng không đảo ngược được."); return; }
-        if(c.rev && revStore[c.id]){ toast("Clip này đã đảo ngược rồi."); return; }
         var span = c.trimEnd - c.trimStart;
-        if(span > 12.05){ toast("Đoạn dùng dài " + fmt(span) + " — hãy cắt ngắn còn ≤ 12 giây rồi đảo ngược."); return; }
-        if(span < 0.1){ toast("Đoạn dùng quá ngắn để đảo ngược."); return; }
         revBusy = true; revCancel = false;
         $("revProgWrap").hidden = false;
         $("btnReverse").disabled = true;
@@ -6021,11 +6513,12 @@
           revBusy = false;
           $("revProgWrap").hidden = true;
           syncRevUI(c);
+          syncBoomUI(c);
           try{ tv.removeAttribute("src"); tv.load(); }catch(e){}
         }
         function fail(msg){ cleanup(); toast(msg); }
         function finish(){
-          if(revCancel){ fail("Đã huỷ đảo ngược."); return; }
+          if(revCancel){ fail("Đã huỷ trích khung."); return; }
           if(!blobs.length){ fail("Không trích được khung hình nào từ clip này."); return; }
           blobs.reverse();   // danh sách khung theo thứ tự PHÁT của clip đảo
           var st = { blobs: blobs, imgs: [], urls: [], fps: fps, w: dw, h: dh };
@@ -6034,22 +6527,20 @@
             var u = URL.createObjectURL(b);
             st.urls.push(u);
             var im = new Image();
-            im.onload = im.onerror = function(){ loaded++; if(loaded === blobs.length) applyRev(); };
+            im.onload = im.onerror = function(){
+              loaded++;
+              if(loaded === blobs.length){
+                revStore[c.id] = st;
+                cleanup();
+                onOk(st);
+              }
+            };
             im.src = u;
             st.imgs[ix] = im;
           });
-          function applyRev(){
-            revStore[c.id] = st;
-            c.rev = true;
-            asegsOf(c.id).forEach(function(a){ a.muted = true; });
-            cleanup();
-            relayout(); renderStrip(); syncClipPanel(); syncAsegPanel();
-            pushHistory(); dirty = true;
-            toast("Đã đảo ngược clip — tiếng gốc của đoạn đã tắt.");
-          }
         }
         function step(){
-          if(revCancel){ fail("Đã huỷ đảo ngược."); return; }
+          if(revCancel){ fail("Đã huỷ trích khung."); return; }
           if(i >= n){ finish(); return; }
           $("revBar").style.width = Math.round(i / n * 100) + "%";
           $("revProgLabel").textContent = "Đang trích khung " + (i + 1) + "/" + n + "…";
@@ -6065,12 +6556,265 @@
           catch(e){ tv.removeEventListener("seeked", onSeek); i++; step(); }
         }
         tv.addEventListener("loadedmetadata", function(){ step(); });
-        tv.addEventListener("error", function(){ fail("Không đọc được video để đảo ngược."); });
+        tv.addEventListener("error", function(){ fail("Không đọc được video để trích khung."); });
       }
+      function startReverse(c){
+        if(revBusy) return;
+        if(c.freeze){ toast("Clip đóng băng không đảo ngược được."); return; }
+        if(c.rev && revStore[c.id]){ toast("Clip này đã đảo ngược rồi."); return; }
+        var span = c.trimEnd - c.trimStart;
+        if(span > 12.05){ toast("Đoạn dùng dài " + fmt(span) + " — hãy cắt ngắn còn ≤ 12 giây rồi đảo ngược."); return; }
+        if(span < 0.1){ toast("Đoạn dùng quá ngắn để đảo ngược."); return; }
+        extractFrames(c, function(){
+          c.rev = true;
+          c.boom = false;
+          asegsOf(c.id).forEach(function(a){ a.muted = true; });
+          relayout(); renderStrip(); syncClipPanel(); syncAsegPanel();
+          pushHistory(); dirty = true;
+          toast("Đã đảo ngược clip — tiếng gốc của đoạn đã tắt.");
+        });
+      }
+      /* ---------- BOOMERANG: dùng đúng bộ khung của cơ chế đảo ngược (st.imgs đang theo thứ tự ĐẢO;
+         khung xuôi thứ k = imgs[n-1-k]). Chỉ số khung theo sóng tam giác trên thời lượng timeline của clip:
+         nửa đầu phát xuôi, nửa sau phát ngược, lặp lại lấp đầy thời lượng — tiếng gốc tự tắt như đảo ngược. ---------- */
+      function boomFrameAt(c, localOut){
+        var st = revStore[c.id];
+        if(!st || !st.imgs.length) return null;
+        var n = st.imgs.length;
+        var span = c.trimEnd - c.trimStart;
+        var out = clipOut(c);
+        if(span <= 0 || n < 2 || out <= 0) return st.imgs[n - 1];
+        var ph = ((localOut % out) + out) % out / out;   // pha 0..1 trong 1 vòng của chính clip
+        var tri = ph < 0.5 ? ph * 2 : 2 - ph * 2;         // sóng tam giác 0→1→0
+        var fwd = clamp(Math.floor(tri * (n - 1)), 0, n - 1);
+        var img = st.imgs[n - 1 - fwd];
+        return (img && img.complete && img.naturalWidth) ? img : null;
+      }
+      function syncBoomUI(c){
+        if(!c) return;
+        var b = $("btnBoomerang");
+        if(!b) return;
+        b.classList.toggle("on", !!c.boom);
+        b.textContent = c.boom ? "Boomerang: Bật" : "Boomerang: Tắt";
+        b.disabled = revBusy;
+        $("boomInfo").textContent = c.boom
+          ? "Đang bật Boomerang — clip phát xuôi–ngược lặp lại, tiếng gốc đã tắt. Tắt Boomerang để phát thường (bộ khung được giữ lại)."
+          : "Boomerang: đoạn dùng ≤ 6 giây phát xuôi–ngược lặp lại lấp đầy thời lượng clip; tiếng gốc tự tắt.";
+      }
+      function applyBoom(c){
+        c.boom = true;
+        c.rev = false;
+        asegsOf(c.id).forEach(function(a){ a.muted = true; });
+        relayout(); renderStrip(); syncClipPanel(); syncAsegPanel();
+        pushHistory(); dirty = true;
+        toast("Đã bật Boomerang — tiếng gốc của đoạn đã tắt.");
+      }
+      $("btnBoomerang").addEventListener("click", function(){
+        var c = selClip(); if(!c || revBusy) return;
+        if(c.boom){
+          c.boom = false;
+          syncBoomUI(c);
+          pushHistory(); dirty = true;
+          toast("Đã tắt Boomerang — clip phát thường trở lại, bộ khung vẫn giữ để dùng lại.");
+          return;
+        }
+        if(c.freeze){ toast("Clip tĩnh không làm Boomerang được."); return; }
+        var span = c.trimEnd - c.trimStart;
+        if(span > 6.05){ toast("Đoạn dùng dài " + fmt(span) + " — Boomerang cần đoạn ≤ 6 giây, hãy cắt ngắn trước."); return; }
+        if(span < 0.2){ toast("Đoạn dùng quá ngắn để làm Boomerang."); return; }
+        if(revStore[c.id]){ applyBoom(c); return; }
+        extractFrames(c, function(){ applyBoom(c); });
+      });
       $("btnReverse").addEventListener("click", function(){
         var c = selClip(); if(c) startReverse(c);
       });
       $("btnRevCancel").addEventListener("click", function(){ revCancel = true; });
+
+      /* ---------- CẮT BỎ ĐOẠN IM LẶNG: phân tích buffer đã giải mã của chính đối tượng (clip / đoạn tiếng).
+         Cửa sổ RMS ~50ms; khoảng lặng ≥ 0,4s bị cắt; mỗi phía giữ đệm 0,1s. Áp dụng = thay đối tượng bằng
+         các đoạn GIỮ LẠI nối liền nhau từ vị trí bắt đầu gốc — chỉ bên trong đối tượng đó, track khác đứng yên.
+         Toàn bộ tính 1 bước undo (1 lần pushHistory sau khi thay xong). ---------- */
+      var silenceThrPct = 4;
+      function syncSilThrUI(){
+        $("outSilThrClip").textContent = silenceThrPct + "%";
+        $("outSilThrAseg").textContent = silenceThrPct + "%";
+        $("silThrClip").value = silenceThrPct;
+        $("silThrAseg").value = silenceThrPct;
+      }
+      function bindSilThr(id){
+        $(id).addEventListener("input", function(){
+          silenceThrPct = parseFloat(this.value) || 4;
+          syncSilThrUI();
+        });
+      }
+      bindSilThr("silThrClip");
+      bindSilThr("silThrAseg");
+      function decodeBufferFor(url){
+        return fetch(url).then(function(r){ return r.arrayBuffer(); }).then(function(buf){
+          var AC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+          if(!AC) throw new Error("no-offline-audio");
+          var oc = new AC(2, 44100, 44100);
+          return oc.decodeAudioData(buf);
+        });
+      }
+      /* Trả: null = gần như không có tiếng; [] = không có đoạn lặng đáng cắt; [{s,e}...] = các khoảng GIỮ (giờ nguồn) */
+      function detectKeeps(ab, t0, t1, thrFrac){
+        var sr = ab.sampleRate;
+        var ch0 = ab.getChannelData(0);
+        var ch1 = ab.numberOfChannels > 1 ? ab.getChannelData(1) : ch0;
+        var s0 = Math.max(0, Math.floor(t0 * sr)), s1 = Math.min(ch0.length, Math.ceil(t1 * sr));
+        if(s1 - s0 < sr * 0.3) return [];
+        var peak = 0;
+        for(var i = s0; i < s1; i += 16){
+          var v = Math.max(Math.abs(ch0[i]), Math.abs(ch1[i]));
+          if(v > peak) peak = v;
+        }
+        if(peak <= 0.0005) return null;
+        var thr = peak * thrFrac;
+        var win = Math.max(1, Math.round(0.05 * sr));
+        var nWin = Math.ceil((s1 - s0) / win);
+        var silent = [];
+        for(var w = 0; w < nWin; w++){
+          var a = s0 + w * win, b = Math.min(s1, a + win);
+          var sum = 0, cnt = 0;
+          for(var j = a; j < b; j += 8){ var x0 = ch0[j], x1 = ch1[j]; sum += x0 * x0 + x1 * x1; cnt += 2; }
+          silent.push(Math.sqrt(sum / Math.max(1, cnt)) < thr);
+        }
+        var silRanges = [];
+        var runStart = -1;
+        for(var w2 = 0; w2 <= nWin; w2++){
+          var isSil = w2 < nWin && silent[w2];
+          if(isSil && runStart < 0) runStart = w2;
+          if(!isSil && runStart >= 0){
+            if((w2 - runStart) * 0.05 >= 0.4) silRanges.push({ s: t0 + runStart * 0.05, e: t0 + w2 * 0.05 });
+            runStart = -1;
+          }
+        }
+        if(!silRanges.length) return [];
+        var keeps = [];
+        var cur = t0;
+        silRanges.forEach(function(r){
+          var ke = r.s + 0.1;
+          if(ke - cur >= 0.15) keeps.push({ s: cur, e: ke });
+          cur = Math.max(cur, r.e - 0.1);
+        });
+        if(t1 - cur >= 0.15) keeps.push({ s: cur, e: t1 });
+        return keeps;
+      }
+      function keepsCoverAll(keeps, t0, t1){
+        return keeps.length === 1 && Math.abs(keeps[0].s - t0) < 0.03 && Math.abs(keeps[0].e - t1) < 0.03;
+      }
+      function silenceCutClip(c){
+        if(!c) return;
+        if(c.freeze){ toast("Clip tĩnh không có tiếng để cắt lặng."); return; }
+        if(c.rev || c.boom){ toast("Clip đang đảo ngược / Boomerang — tắt chế độ đó trước khi cắt lặng."); return; }
+        toast("Đang phân tích tiếng của clip…");
+        decodeBufferFor(c.url).then(function(ab){
+          var keeps = detectKeeps(ab, c.trimStart, c.trimEnd, silenceThrPct / 100);
+          if(keeps === null){ toast("Clip gần như không có tiếng — không cắt được."); return; }
+          if(!keeps.length || keepsCoverAll(keeps, c.trimStart, c.trimEnd)){ toast("Không tìm thấy đoạn lặng nào ≥ 0,4 giây trong clip này."); return; }
+          /* Đoạn tiếng "gốc" của clip (cắt/ghép còn trùng khít với clip) cắt đồng bộ; đoạn tiếng đã sửa riêng thì để yên */
+          var linked = asegsOf(c.id).filter(function(a){
+            return Math.abs(a.trimStart - c.trimStart) < 0.02 && Math.abs(a.trimEnd - c.trimEnd) < 0.02 && Math.abs((a.speed || 1) - c.speed) < 0.001;
+          });
+          var idx = clips.indexOf(c);
+          if(idx < 0) return;
+          var start0 = c.start || 0;
+          var newClips = [], pieceStart = [];
+          var tcur = start0;
+          keeps.forEach(function(k, ki){
+            pieceStart.push(tcur);
+            var nc = {
+              id: uid("c"), url: c.url, file: c.file || null, name: c.name, duration: c.duration, vw: c.vw, vh: c.vh,
+              trimStart: Math.round(k.s * 100) / 100, trimEnd: Math.round(k.e * 100) / 100,
+              start: Math.round(tcur * 100) / 100, speed: c.speed, ramp: (c.ramp || "none"),
+              curve: (curveValid(c.curve) ? c.curve.slice() : null), rev: false, boom: false,
+              bgAI: !!c.bgAI, faceBlur: !!c.faceBlur, faceMode: (c.faceMode || "blur"),
+              bgKind: (c.bgKind || "none"), bgColor: (c.bgColor || "#16324a"), bgUrl: (c.bgUrl || null), bgFile: c.bgFile || null,
+              transType: ki === 0 ? c.transType : "none", transDur: c.transDur, kb: c.kb, filter: c.filter,
+              animIn: ki === 0 ? (c.animIn || "none") : "none", animOut: ki === keeps.length - 1 ? (c.animOut || "none") : "none", animDur: (c.animDur == null ? 0.5 : c.animDur),
+              vol: (c.vol == null ? 100 : c.vol), muted: !!c.muted, thumb: c.thumb,
+              freeze: false, imgUrl: null,
+              kx: (c.kx || 0), ky: (c.ky || 0), ks: (c.ks == null ? 100 : c.ks), ko: (c.ko == null ? 100 : c.ko),
+              kfs: null, mask: (c.mask || "none"), maskFeather: (c.maskFeather || 0),
+              fx: (c.fx || "none"), fxAmt: (c.fxAmt == null ? 50 : c.fxAmt)
+            };
+            newClips.push(nc);
+            tcur += (k.e - k.s) / c.speed;
+          });
+          var removedSil = (c.trimEnd - c.trimStart) - keeps.reduce(function(acc, k){ return acc + (k.e - k.s); }, 0);
+          clips.splice.apply(clips, [idx, 1].concat(newClips));
+          newClips.forEach(function(nc){ getEl(nc); });
+          if(linked.length){
+            var dropIds = {};
+            linked.forEach(function(a){ dropIds[a.id] = true; });
+            var rebuilt = [];
+            asegs.forEach(function(a){
+              if(!dropIds[a.id]){ rebuilt.push(a); return; }
+              keeps.forEach(function(k, ki){
+                rebuilt.push({
+                  id: uid("a"), clipId: newClips[ki].id, url: a.url, name: a.name, fileDur: a.fileDur,
+                  start: Math.round(pieceStart[ki] * 100) / 100,
+                  trimStart: Math.round(k.s * 100) / 100, trimEnd: Math.round(k.e * 100) / 100,
+                  speed: a.speed || 1, vol: (a.vol == null ? 100 : a.vol), muted: !!a.muted,
+                  fadeIn: ki === 0 ? (a.fadeIn || 0) : 0, fadeOut: ki === keeps.length - 1 ? (a.fadeOut || 0) : 0,
+                  echo: (a.echo || 0), vkfs: null,
+                  eqB: (a.eqB || 0), eqM: (a.eqM || 0), eqT: (a.eqT || 0), clarity: !!a.clarity
+                });
+              });
+            });
+            asegs = rebuilt;
+            sortAsegs();
+          }
+          selClipId = newClips[0].id;
+          tlSel.kind = "clip"; tlSel.id = selClipId;
+          afterClipStructure();
+          syncAsegPanel();
+          pushHistory();
+          toast("Đã cắt bỏ " + fmt(removedSil) + " đoạn lặng — clip còn " + newClips.length + " đoạn nối liền nhau.");
+        }).catch(function(){
+          toast("Không đọc được tiếng của clip để phân tích.");
+        });
+      }
+      function silenceCutAseg(a){
+        if(!a) return;
+        toast("Đang phân tích đoạn tiếng…");
+        decodeBufferFor(a.url).then(function(ab){
+          var keeps = detectKeeps(ab, a.trimStart, a.trimEnd, silenceThrPct / 100);
+          if(keeps === null){ toast("Đoạn tiếng gần như im lặng hoàn toàn — không cắt được."); return; }
+          if(!keeps.length || keepsCoverAll(keeps, a.trimStart, a.trimEnd)){ toast("Không tìm thấy đoạn lặng nào ≥ 0,4 giây trong đoạn tiếng này."); return; }
+          var idx = asegs.indexOf(a);
+          if(idx < 0) return;
+          var speed = a.speed || 1;
+          var tcur = a.start || 0;
+          var pieces = keeps.map(function(k, ki){
+            var p = {
+              id: ki === 0 ? a.id : uid("a"), clipId: a.clipId, url: a.url, file: a.file || null, name: a.name, fileDur: a.fileDur,
+              start: Math.round(tcur * 100) / 100,
+              trimStart: Math.round(k.s * 100) / 100, trimEnd: Math.round(k.e * 100) / 100,
+              speed: speed, vol: (a.vol == null ? 100 : a.vol), muted: !!a.muted,
+              fadeIn: ki === 0 ? (a.fadeIn || 0) : 0, fadeOut: ki === keeps.length - 1 ? (a.fadeOut || 0) : 0,
+              echo: (a.echo || 0), vkfs: null,
+              eqB: (a.eqB || 0), eqM: (a.eqM || 0), eqT: (a.eqT || 0), clarity: !!a.clarity
+            };
+            tcur += (k.e - k.s) / speed;
+            return p;
+          });
+          var removedSil = (a.trimEnd - a.trimStart) - keeps.reduce(function(acc, k){ return acc + (k.e - k.s); }, 0);
+          asegs.splice.apply(asegs, [idx, 1].concat(pieces));
+          sortAsegs();
+          selAsegId = pieces[0].id;
+          tlSel.kind = "audio"; tlSel.id = selAsegId;
+          relayout(); renderStrip(); syncAsegPanel();
+          applyVolumesStatic();
+          pushHistory(); dirty = true;
+          toast("Đã cắt bỏ " + fmt(removedSil) + " đoạn lặng — đoạn tiếng còn " + pieces.length + " đoạn nối liền nhau.");
+        }).catch(function(){
+          toast("Không đọc được file tiếng để phân tích.");
+        });
+      }
+      $("btnSilenceClip").addEventListener("click", function(){ silenceCutClip(selClip()); });
+      $("btnSilenceAseg").addEventListener("click", function(){ silenceCutAseg(selAseg()); });
 
       $("kbSelect").addEventListener("change", function(){
         var c = selClip(); if(!c) return;
@@ -6125,10 +6869,14 @@
           freeze:!!c.freeze, imgUrl:c.imgUrl || null,
           kx:(c.kx || 0), ky:(c.ky || 0), ks:(c.ks == null ? 100 : c.ks), ko:(c.ko == null ? 100 : c.ko),
           kfs:kfCopy(c.kfs), mask:(c.mask || "none"), maskFeather:(c.maskFeather || 0),
-          fx:(c.fx || "none"), fxAmt:(c.fxAmt == null ? 50 : c.fxAmt)
+          fx:(c.fx || "none"), fxAmt:(c.fxAmt == null ? 50 : c.fxAmt),
+          boom:!!c.boom, faceBlur:!!c.faceBlur, faceMode:(c.faceMode || "blur"), isImg:!!c.isImg,
+          bgKind:(c.bgKind || "none"), bgColor:(c.bgColor || "#16324a"), bgUrl:(c.bgUrl || null)
         }));
         copy.id = uid("c");
-        if(copy.rev && revStore[c.id]) revStore[copy.id] = revStore[c.id];   // dùng chung bộ khung đảo (chỉ đọc)
+        copy.file = c.file || null;
+        copy.bgFile = c.bgFile || null;
+        if((copy.rev || copy.boom) && revStore[c.id]) revStore[copy.id] = revStore[c.id];   // dùng chung bộ khung đảo (chỉ đọc)
         if(copy.freeze && copy.imgUrl){
           var cim = new Image();
           cim.onload = function(){ dirty = true; };
@@ -6200,7 +6948,9 @@
           transType: c.transType, transDur: c.transDur, kb: c.kb, filter: c.filter,
           animIn: "none", animOut: (c.animOut || "none"), animDur: (c.animDur == null ? 0.5 : c.animDur),
           vol: (c.vol == null ? 100 : c.vol), muted: !!c.muted, thumb: c.thumb,
-          freeze: !!c.freeze, imgUrl: c.imgUrl || null, img: c.img || null,
+          freeze: !!c.freeze, imgUrl: c.imgUrl || null, img: c.img || null, isImg: !!c.isImg,
+          boom: false, faceBlur: !!c.faceBlur, faceMode: (c.faceMode || "blur"),
+          bgKind: (c.bgKind || "none"), bgColor: (c.bgColor || "#16324a"), bgUrl: (c.bgUrl || null), bgFile: c.bgFile || null,
           kx: (c.kx || 0), ky: (c.ky || 0), ks: (c.ks == null ? 100 : c.ks), ko: (c.ko == null ? 100 : c.ko),
           mask: (c.mask || "none"), maskFeather: (c.maskFeather || 0),
           fx: (c.fx || "none"), fxAmt: (c.fxAmt == null ? 50 : c.fxAmt),
@@ -7251,6 +8001,106 @@
       $("fadeIn").addEventListener("change", function(){ pushHistory(); });
       $("fadeOut").addEventListener("change", function(){ pushHistory(); });
 
+      /* ---------- GHI ÂM LỒNG TIẾNG: getUserMedia + MediaRecorder (mime tốt nhất trình duyệt hỗ trợ).
+         Trong lúc ghi xem trước chạy từ điểm bắt đầu ghi ở chế độ KHÔNG tiếng (recMuted). Dừng ghi →
+         bản ghi thành 1 đoạn tiếng độc lập đặt tại vị trí đầu phát lúc bắt đầu ghi, đi qua đúng pipeline
+         đoạn tiếng hiện có (sóng âm, âm lượng, fade, EQ, keyframe âm lượng; File lưu kèm dự án IndexedDB). ---------- */
+      var recState = null;   // {mr, stream, chunks, startT, t0, mime, timer}
+      function recMimeBest(){
+        var cands = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus", "audio/ogg"];
+        if(typeof MediaRecorder === "undefined") return "";
+        for(var i = 0; i < cands.length; i++){
+          try{ if(MediaRecorder.isTypeSupported(cands[i])) return cands[i]; }catch(e){}
+        }
+        return "";
+      }
+      function stopRecording(){
+        if(recState && recState.mr && recState.mr.state !== "inactive"){
+          try{ recState.mr.stop(); }catch(e){ recFinish(); }
+        }
+      }
+      function recFinish(){
+        var rs = recState;
+        if(!rs) return;
+        recState = null;
+        if(rs.timer) clearInterval(rs.timer);
+        try{ rs.stream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
+        recMuted = false;
+        $("recIdle").hidden = false;
+        $("recLive").hidden = true;
+        if(playing) pauseAll();
+        updateAudioLevels();
+        var dur = Math.max(0.2, (performance.now() - rs.t0) / 1000);
+        var blob = new Blob(rs.chunks, { type: rs.mime || "audio/webm" });
+        if(!blob.size){ toast("Bản ghi trống — thử ghi lại nhé."); return; }
+        var ext = rs.mime.indexOf("mp4") >= 0 ? "m4a" : (rs.mime.indexOf("ogg") >= 0 ? "ogg" : "webm");
+        var file = null;
+        try{ file = new File([blob], "long-tieng." + ext, { type: blob.type }); }catch(e){}
+        var a = {
+          id: uid("a"), clipId: null, url: URL.createObjectURL(file || blob), file: file,
+          name: "🎙 Lồng tiếng " + new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
+          fileDur: Math.round(dur * 100) / 100,
+          start: Math.round(rs.startT * 100) / 100, trimStart: 0, trimEnd: Math.round(dur * 100) / 100,
+          speed: 1, vol: 100, muted: false, fadeIn: 0, fadeOut: 0, echo: 0, vkfs: null,
+          eqB: 0, eqM: 0, eqT: 0, clarity: false
+        };
+        asegs.push(a);
+        sortAsegs();
+        var ael = getAsegEl(a);
+        if(actx && ael) attachAsegAudio(a.id, ael);
+        selAsegId = a.id;
+        tlSel.kind = "audio"; tlSel.id = a.id;
+        relayout(); renderStrip(); syncAsegPanel();
+        seekTo(a.start);
+        applyVolumesStatic();
+        pushHistory();
+        toast("Đã thêm bản lồng tiếng " + fmt(dur) + " vào track Tiếng tại " + fmt(a.start) + ".");
+      }
+      $("btnRecStart").addEventListener("click", function(){
+        if(recState) return;
+        if(!clips.length){ toast("Hãy thêm video trước rồi mới lồng tiếng."); return; }
+        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === "undefined"){
+          toast("Trình duyệt này không hỗ trợ ghi âm — thử Chrome hoặc Safari bản mới nhất nhé.");
+          return;
+        }
+        var startT = playhead;
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream){
+          if(recState){ stream.getTracks().forEach(function(t){ t.stop(); }); return; }
+          var mime = recMimeBest();
+          var mr = null;
+          try{ mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); }
+          catch(e){
+            try{ mr = new MediaRecorder(stream); }catch(e2){}
+          }
+          if(!mr){
+            stream.getTracks().forEach(function(t){ t.stop(); });
+            toast("Không khởi động được bộ ghi âm trên trình duyệt này.");
+            return;
+          }
+          recState = { mr: mr, stream: stream, chunks: [], startT: startT, t0: performance.now(), mime: mr.mimeType || mime || "audio/webm", timer: null };
+          mr.ondataavailable = function(e){ if(e.data && e.data.size && recState) recState.chunks.push(e.data); };
+          mr.onstop = recFinish;
+          mr.start(250);
+          recMuted = true;
+          applyVolumesStatic();
+          $("recIdle").hidden = true;
+          $("recLive").hidden = false;
+          $("recTime").textContent = "0:00";
+          seekTo(startT);
+          playAll();
+          recState.timer = setInterval(function(){
+            if(!recState) return;
+            var el2 = (performance.now() - recState.t0) / 1000;
+            $("recTime").textContent = fmt(el2);
+            if(el2 >= 600) stopRecording();   // chốt an toàn 10 phút / bản ghi
+          }, 250);
+          toast("Đang ghi… xem trước đang tắt tiếng, cứ đọc theo hình.");
+        }).catch(function(){
+          toast("Không mở được micro — hãy cho phép quyền micro trong trình duyệt rồi thử lại.");
+        });
+      });
+      $("btnRecStop").addEventListener("click", stopRecording);
+
       /* ---------- PRO: lưu / mở dự án bằng IndexedDB (trạng thái + file media gốc dạng Blob) ---------- */
       var projDB = null;
       function idbOpen(done){
@@ -7307,10 +8157,17 @@
         if(!clips.length){ toast("Chưa có gì để lưu — hãy thêm video trước."); return; }
         var name = ($("projName").value || "").trim() || (clips[0] ? clips[0].name.replace(/\.[^.]+$/, "") : "Dự án");
         var media = {};
-        clips.forEach(function(c){ if(!c.freeze && c.file && c.url) media[c.url] = c.file; });
-        /* Bộ khung của clip đảo (JPEG blob) lưu kèm để mở lại dự án vẫn phát đảo được */
-        clips.forEach(function(c){ if(c.rev && revStore[c.id] && revStore[c.id].blobs.length) media["revf:" + c.id] = revStore[c.id].blobs.slice(); });
-        overs.forEach(function(o){ if(o.file && o.url) media[o.url] = o.file; });
+        clips.forEach(function(c){
+          if(c.file && c.url && (!c.freeze || c.isImg)) media[c.url] = c.file;
+          if(c.bgFile && c.bgUrl) media[c.bgUrl] = c.bgFile;
+        });
+        /* Bộ khung của clip đảo / boomerang (JPEG blob) lưu kèm để mở lại dự án vẫn phát được */
+        clips.forEach(function(c){ if((c.rev || c.boom) && revStore[c.id] && revStore[c.id].blobs.length) media["revf:" + c.id] = revStore[c.id].blobs.slice(); });
+        asegs.forEach(function(a){ if(a.file && a.url) media[a.url] = a.file; });
+        overs.forEach(function(o){
+          if(o.file && o.url) media[o.url] = o.file;
+          if(o.bgFile && o.bgUrl) media[o.bgUrl] = o.bgFile;
+        });
         if(S.musicLoaded && musicFile){
           var msrc = music.getAttribute("src");
           if(msrc) media[msrc] = musicFile;
@@ -7339,13 +8196,19 @@
             Object.keys(media).forEach(function(oldUrl){ if(media[oldUrl] instanceof Blob) urlMap[oldUrl] = URL.createObjectURL(media[oldUrl]); });
             var revBlobs = {};
             Object.keys(media).forEach(function(k){ if(k.indexOf("revf:") === 0 && Array.isArray(media[k])) revBlobs[k.slice(5)] = media[k]; });
-            var blobByClip = {}, blobByOver = {}, musicBlob = null;
+            var blobByClip = {}, blobByOver = {}, blobByAseg = {}, blobByClipBg = {}, blobByOverBg = {}, musicBlob = null;
             (st.clips || []).forEach(function(c){
               if(media[c.url]){ blobByClip[c.id] = media[c.url]; c.url = urlMap[c.url]; }
+              if(c.imgUrl && urlMap[c.imgUrl]) c.imgUrl = urlMap[c.imgUrl];
+              if(c.bgUrl && media[c.bgUrl]){ blobByClipBg[c.id] = media[c.bgUrl]; c.bgUrl = urlMap[c.bgUrl]; }
             });
-            (st.asegs || []).forEach(function(a){ if(urlMap[a.url]) a.url = urlMap[a.url]; });
+            (st.asegs || []).forEach(function(a){
+              if(media[a.url]) blobByAseg[a.id] = media[a.url];
+              if(urlMap[a.url]) a.url = urlMap[a.url];
+            });
             (st.overs || []).forEach(function(o){
               if(media[o.url]){ blobByOver[o.id] = media[o.url]; o.url = urlMap[o.url]; }
+              if(o.bgUrl && media[o.bgUrl]){ blobByOverBg[o.id] = media[o.bgUrl]; o.bgUrl = urlMap[o.bgUrl]; }
             });
             if(st.music && st.music.src && urlMap[st.music.src]){
               musicBlob = media[st.music.src];
@@ -7353,8 +8216,9 @@
             }
             if(playing) pauseAll();
             applySnap(JSON.stringify(st));
-            clips.forEach(function(c){ if(blobByClip[c.id]) c.file = blobByClip[c.id]; });
-            overs.forEach(function(o){ if(blobByOver[o.id]) o.file = blobByOver[o.id]; });
+            clips.forEach(function(c){ if(blobByClip[c.id]) c.file = blobByClip[c.id]; if(blobByClipBg[c.id]) c.bgFile = blobByClipBg[c.id]; });
+            asegs.forEach(function(a){ if(blobByAseg[a.id]) a.file = blobByAseg[a.id]; });
+            overs.forEach(function(o){ if(blobByOver[o.id]) o.file = blobByOver[o.id]; if(blobByOverBg[o.id]) o.bgFile = blobByOverBg[o.id]; });
             if(musicBlob) musicFile = musicBlob;
             /* Dựng lại bộ khung đảo ngược từ blob đã lưu */
             Object.keys(revBlobs).forEach(function(cid){
@@ -7588,6 +8452,150 @@
 
       /* ---------- export ---------- */
       var recorder = null, recChunks = [], recMime = "", exportCancelled = false, lastBlobUrl = null;
+      /* ---------- XUẤT ÂM THANH RIÊNG (WAV): render toàn bộ phần tiếng bằng OfflineAudioContext 44,1kHz —
+         đoạn tiếng + tiếng PiP + nhạc nền theo đúng vị trí / cắt / tốc độ, áp âm lượng, fade, keyframe âm lượng,
+         EQ 3 dải + rõ giọng và nhạc né tiếng theo đúng logic gain của xem trước (bỏ qua echo). Mã hoá WAV PCM16. ---------- */
+      function wavEncode(ab){
+        var nCh = Math.min(2, ab.numberOfChannels) || 1;
+        var sr = ab.sampleRate, len = ab.length;
+        var bytes = 44 + len * nCh * 2;
+        var buf = new ArrayBuffer(bytes);
+        var v = new DataView(buf);
+        function ws(off, s){ for(var i = 0; i < s.length; i++) v.setUint8(off + i, s.charCodeAt(i)); }
+        ws(0, "RIFF"); v.setUint32(4, bytes - 8, true); ws(8, "WAVE"); ws(12, "fmt ");
+        v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, nCh, true);
+        v.setUint32(24, sr, true); v.setUint32(28, sr * nCh * 2, true);
+        v.setUint16(32, nCh * 2, true); v.setUint16(34, 16, true);
+        ws(36, "data"); v.setUint32(40, len * nCh * 2, true);
+        var chans = [];
+        for(var ci = 0; ci < nCh; ci++) chans.push(ab.getChannelData(ci));
+        var off = 44;
+        for(var i = 0; i < len; i++){
+          for(var cj = 0; cj < nCh; cj++){
+            var s = clamp(chans[cj][i], -1, 1);
+            v.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            off += 2;
+          }
+        }
+        return new Blob([buf], { type: "audio/wav" });
+      }
+      function offlineEqChain(oc){
+        var low = oc.createBiquadFilter(); low.type = "lowshelf"; low.frequency.value = 200;
+        var mid = oc.createBiquadFilter(); mid.type = "peaking"; mid.frequency.value = 1000; mid.Q.value = 0.9;
+        var high = oc.createBiquadFilter(); high.type = "highshelf"; high.frequency.value = 4000;
+        var hp = oc.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 10;
+        var pres = oc.createBiquadFilter(); pres.type = "peaking"; pres.frequency.value = 3200; pres.Q.value = 0.8; pres.gain.value = 0;
+        var comp = oc.createDynamicsCompressor();
+        comp.threshold.value = 0; comp.ratio.value = 1; comp.attack.value = 0.004; comp.release.value = 0.18; comp.knee.value = 18;
+        low.connect(mid); mid.connect(high); high.connect(hp); hp.connect(pres); pres.connect(comp);
+        return { low: low, mid: mid, high: high, hp: hp, pres: pres, comp: comp, out: comp };
+      }
+      /* Gain node có đường cong lấy mẫu theo đúng hàm factor của xem trước (bước 50ms) */
+      function offlineGainCurve(oc, dest, t0, t1, fn){
+        var g = oc.createGain();
+        var dur = Math.max(0.05, t1 - t0);
+        var steps = Math.max(2, Math.ceil(dur / 0.05));
+        var arr = new Float32Array(steps + 1);
+        for(var i = 0; i <= steps; i++) arr[i] = clamp(fn(t0 + dur * i / steps), 0, 2);
+        try{ g.gain.setValueCurveAtTime(arr, Math.max(0, t0), dur); }
+        catch(e){ g.gain.value = arr[0]; }
+        g.connect(dest);
+        return g;
+      }
+      function renderWavBlob(total){
+        var sr = 44100;
+        var oc = new OfflineAudioContext(2, Math.max(1, Math.ceil(total * sr)), sr);
+        function decode(url){
+          return fetch(url).then(function(r){ return r.arrayBuffer(); }).then(function(ab){ return oc.decodeAudioData(ab); });
+        }
+        var jobs = [];
+        asegs.forEach(function(a){
+          jobs.push(decode(a.url).then(function(buf){
+            var dur = Math.min(a.trimEnd, buf.duration) - a.trimStart;
+            if(dur <= 0.01) return;
+            var src = oc.createBufferSource();
+            src.buffer = buf;
+            src.playbackRate.value = a.speed || 1;
+            var eq = offlineEqChain(oc);
+            setEqNodes(eq, a.eqB, a.eqM, a.eqT, a.clarity);
+            var t0 = a.start || 0;
+            var g = offlineGainCurve(oc, eq.low, t0, t0 + asegOut(a), function(t){
+              return (S.videoVol / 100) * asegFactor(a, t);
+            });
+            src.connect(g);
+            eq.out.connect(oc.destination);
+            src.start(t0, a.trimStart, dur);
+          }).catch(function(){}));
+        });
+        overs.forEach(function(o){
+          if(!o.isVideo) return;
+          jobs.push(decode(o.url).then(function(buf){
+            var win = Math.max(0.05, o.end - o.start);
+            var src = oc.createBufferSource();
+            src.buffer = buf;
+            src.loop = !!o.vloop;
+            var g = oc.createGain();
+            g.gain.value = pipFactor(o, o.start);
+            src.connect(g);
+            g.connect(oc.destination);
+            if(o.vloop) src.start(o.start, 0);
+            else src.start(o.start, 0, Math.min(buf.duration, win));
+          }).catch(function(){}));
+        });
+        if(S.musicLoaded){
+          var msrc = music.getAttribute("src");
+          if(msrc){
+            jobs.push(decode(msrc).then(function(buf){
+              if(!buf.duration) return;
+              var src = oc.createBufferSource();
+              src.buffer = buf;
+              src.loop = true;
+              var eq = offlineEqChain(oc);
+              setEqNodes(eq, S.musicEqB, S.musicEqM, S.musicEqT, S.musicClarity);
+              var g = offlineGainCurve(oc, eq.low, S.musicStart, total, function(t){
+                return (S.musicVol / 100) * musicFactor(t) * duckTargetAt(t);
+              });
+              src.connect(g);
+              eq.out.connect(oc.destination);
+              src.start(S.musicStart, (S.musicOffset || 0) % buf.duration);
+              try{ src.stop(total); }catch(e){}
+            }).catch(function(){}));
+          }
+        }
+        return Promise.all(jobs).then(function(){ return oc.startRendering(); }).then(function(rendered){
+          return wavEncode(rendered);
+        });
+      }
+      var wavBusy = false;
+      $("btnExportWav").addEventListener("click", function(){
+        if(wavBusy) return;
+        if(!clips.length && !asegs.length && !S.musicLoaded){ toast("Chưa có gì để xuất âm thanh."); return; }
+        var total = L.total;
+        if(total <= 0.05){ toast("Dự án đang trống."); return; }
+        if(total > 180) toast("Dự án dài " + fmt(total) + " — file WAV sẽ khá lớn (khoảng 10MB mỗi phút), đang render…");
+        wavBusy = true;
+        $("btnExportWav").disabled = true;
+        $("wavInfo").textContent = "Đang render âm thanh…";
+        renderWavBlob(total).then(function(blob){
+          wavBusy = false;
+          $("btnExportWav").disabled = false;
+          $("wavInfo").textContent = "Render toàn bộ phần tiếng của dự án (đoạn tiếng + nhạc nền, đúng âm lượng / fade / EQ / né tiếng) thành file WAV 44,1kHz.";
+          if(!blob){ toast("Không render được âm thanh."); return; }
+          var aEl = document.createElement("a");
+          aEl.href = URL.createObjectURL(blob);
+          aEl.download = (clips.length ? clips[0].name.replace(/\.[^.]+$/, "") : "du-an") + "-am-thanh.wav";
+          document.body.appendChild(aEl);
+          aEl.click();
+          setTimeout(function(){ URL.revokeObjectURL(aEl.href); aEl.remove(); }, 600);
+          toast("Đã xuất file âm thanh WAV (" + fmtSize(blob.size) + ").");
+        }).catch(function(){
+          wavBusy = false;
+          $("btnExportWav").disabled = false;
+          $("wavInfo").textContent = "Render toàn bộ phần tiếng của dự án (đoạn tiếng + nhạc nền, đúng âm lượng / fade / EQ / né tiếng) thành file WAV 44,1kHz.";
+          toast("Không render được âm thanh — thử lại nhé.");
+        });
+      });
+
       function pickMime(){
         var candidates = [
           "video/mp4;codecs=avc1.640028,mp4a.40.2",
