@@ -6,11 +6,11 @@
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#232328" />
     <meta name="description" content="Chỉnh sửa video online miễn phí ngay trên trình duyệt: cắt ghép, phụ đề, nhạc, hiệu ứng, xuất MP4 tới 1920px — không tải file lên máy chủ." />
-    <meta property="og:title" content="Edit Video Đa Năng — Sửa video online miễn phí" />
+    <meta property="og:title" content="Klip Studio — Edit video ngay trên trình duyệt" />
     <meta property="og:description" content="Cắt ghép, chèn phụ đề, thêm nhạc và hiệu ứng ngay trên trình duyệt. Không tải lên máy chủ, xuất tới 1920px." />
     <meta property="og:type" content="website" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='48' y2='48' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%2300c9d4'/%3E%3Cstop offset='1' stop-color='%23a882ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='2' y='2' width='44' height='44' rx='12' fill='url(%23g)'/%3E%3Cpath d='M19 15.5v17l14-8.5z' fill='%23101014'/%3E%3C/svg%3E" />
-    <title>Edit Video Đa Năng — Sửa video online miễn phí</title>
+    <title>Klip Studio — Edit video ngay trên trình duyệt, miễn phí</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Anton&family=Oswald:wght@500;700&family=Playfair+Display:wght@600;800&family=Dancing+Script:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -216,6 +216,97 @@
         .lp-title{ font-size:29px; }
         .lp-nav nav a{ display:none; }
         .lp-brand{ font-size:15px; }
+      }
+      /* --- Landing: hero sống động (aurora, playhead, karaoke, chip bay) --- */
+      .lp-hero::after{
+        content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+        background:
+          radial-gradient(420px 300px at 12% 18%, rgba(0,201,212,.15), transparent 70%),
+          radial-gradient(460px 320px at 88% 30%, rgba(168,130,255,.14), transparent 70%),
+          radial-gradient(380px 280px at 55% 95%, rgba(0,201,212,.07), transparent 70%);
+        animation:lpAurora 16s ease-in-out infinite alternate;
+      }
+      @keyframes lpAurora{
+        from{ background-position:0 0, 0 0, 0 0; opacity:.7; }
+        to{ background-position:56px 22px, -64px 38px, 28px -26px; opacity:1; }
+      }
+      .lp-visual::before{
+        content:""; position:absolute; inset:6% 0; z-index:-1; border-radius:50%;
+        background:radial-gradient(closest-side, rgba(0,201,212,.20), rgba(168,130,255,.10) 55%, transparent 75%);
+        filter:blur(18px); animation:lpGlowPulse 5.5s ease-in-out infinite;
+      }
+      @keyframes lpGlowPulse{ 0%,100%{ opacity:.6; transform:scale(1); } 50%{ opacity:1; transform:scale(1.05); } }
+      .lp-mock-head{ animation:lpHead 9s ease-in-out infinite alternate; }
+      @keyframes lpHead{ from{ left:5%; } to{ left:93%; } }
+      .lp-mock-cap{
+        position:absolute; left:50%; bottom:11px; transform:translateX(-50%);
+        display:flex; gap:6px; white-space:nowrap;
+        font-size:11px; font-weight:700; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.85);
+      }
+      .lp-mock-cap i{ font-style:normal; opacity:.5; animation:lpKara 4.8s linear infinite; animation-delay:var(--d, 0s); }
+      @keyframes lpKara{
+        0%{ opacity:.5; color:#fff; }
+        6%{ opacity:1; color:#ffd94d; }
+        22%{ opacity:1; color:#ffd94d; }
+        34%, 100%{ opacity:.5; color:#fff; }
+      }
+      .lp-tag{ animation:lpFloat 6s ease-in-out infinite; }
+      .lp-tag-b{ animation-delay:-2s; }
+      .lp-tag-c{ animation-delay:-4s; }
+      .lp-tag-d{ top:-12px; left:20px; color:var(--accent); border-color:rgba(0,201,212,.4); animation-delay:-1s; }
+      @keyframes lpFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
+      .lp-actions .btn.primary.big, .lp-endcta .btn.primary.big{ animation:lpCtaPulse 2.8s ease-in-out infinite; }
+      @keyframes lpCtaPulse{
+        0%,100%{ box-shadow:0 8px 22px rgba(0,201,212,.22), 0 0 0 0 rgba(0,201,212,.32); }
+        50%{ box-shadow:0 8px 22px rgba(0,201,212,.30), 0 0 0 8px rgba(0,201,212,0); }
+      }
+
+      /* --- Landing: dải marquee tính năng --- */
+      .lp-marquee{
+        overflow:hidden; margin:2px 0 26px; padding:11px 0;
+        border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+        -webkit-mask-image:linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+        mask-image:linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+      }
+      .lp-marquee-track{ display:flex; width:max-content; animation:lpScroll 32s linear infinite; }
+      .lp-marquee:hover .lp-marquee-track{ animation-play-state:paused; }
+      .lp-marquee-track span{ font-size:13px; font-weight:700; color:var(--ink-soft); white-space:nowrap; padding:0 13px; }
+      .lp-marquee-track b{ color:var(--accent); font-weight:400; margin-left:26px; }
+      @keyframes lpScroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+
+      /* --- Landing: thẻ mới / khác biệt / số liệu --- */
+      .lp-card{ position:relative; }
+      .lp-new{
+        position:absolute; top:12px; right:12px;
+        font-size:9.5px; font-weight:800; letter-spacing:.06em;
+        color:#3a2400; background:#ffd94d; border-radius:999px; padding:2.5px 8px;
+      }
+      .lp-diff{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+      .lp-diff > div{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 12px; text-align:center; }
+      .lp-diff b{ display:block; font-size:15.5px; font-weight:800; letter-spacing:-.01em; line-height:1.3; }
+      .lp-diff span{ display:block; margin-top:5px; font-size:11.5px; line-height:1.5; color:var(--ink-soft); }
+      .lp-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:12px; }
+      .lp-stats > div{ background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:16px 8px; text-align:center; }
+      .lp-stats b{ display:block; font-size:26px; font-weight:800; color:var(--accent); letter-spacing:-.02em; line-height:1.15; }
+      .lp-stats span{ font-size:11.5px; font-weight:600; color:var(--ink-soft); }
+      @media (max-width:920px){
+        .lp-diff{ grid-template-columns:repeat(3,1fr); }
+        .lp-stats{ grid-template-columns:repeat(2,1fr); }
+      }
+      @media (max-width:560px){
+        .lp-diff{ grid-template-columns:repeat(2,1fr); }
+        .lp-tag-d{ display:none; }
+      }
+
+      /* --- Landing: hiện dần khi cuộn (trạng thái ẩn do JS gắn) --- */
+      .lp-rv-init{ opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+      .lp-rv-init.in{ opacity:1; transform:none; }
+
+      @media (prefers-reduced-motion: reduce){
+        .lp-hero::after, .lp-visual::before, .lp-mock-head, .lp-mock-cap i, .lp-tag,
+        .lp-marquee-track, .lp-actions .btn.primary.big, .lp-endcta .btn.primary.big{ animation:none !important; }
+        .lp-mock-cap i{ opacity:.85; }
+        .lp-rv-init{ opacity:1; transform:none; transition:none; }
       }
       @media (prefers-reduced-motion: reduce){
         html{ scroll-behavior:auto; }
@@ -952,9 +1043,10 @@
             <span class="lp-logo">
               <svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lgNav" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00c9d4"/><stop offset="1" stop-color="#a882ff"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="12" fill="url(#lgNav)"/><path d="M19 15.5v17l14-8.5z" fill="#101014"/></svg>
             </span>
-            <span class="grad-text">Edit Video Đa Năng</span>
+            <span class="grad-text">Klip Studio</span>
           </div>
           <nav>
+            <a href="#moi-nhat">Mới nhất</a>
             <a href="#tinh-nang">Tính năng</a>
             <a href="#cach-dung">Cách dùng</a>
             <a href="#hoi-dap">Hỏi đáp</a>
@@ -997,7 +1089,7 @@
                 <div class="lp-mock-stage">
                   <div class="lp-mock-screen">
                     <span class="lp-mock-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span>
-                    <span class="lp-mock-subbar"></span>
+                    <span class="lp-mock-cap"><i style="--d:0s">Ngày</i><i style="--d:.8s">xửa</i><i style="--d:1.6s">ngày</i><i style="--d:2.4s">xưa…</i></span>
                   </div>
                   <div class="lp-mock-tl">
                     <div class="lp-mock-track v"><i class="sel" style="left:0;width:37%"></i><i style="left:39%;width:33%"></i><i style="left:74%;width:24%"></i></div>
@@ -1012,8 +1104,16 @@
             <span class="lp-tag lp-tag-a">9:16 · 1:1 · 16:9</span>
             <span class="lp-tag lp-tag-b">Phụ đề theo câu</span>
             <span class="lp-tag lp-tag-c">Xuất MP4</span>
+            <span class="lp-tag lp-tag-d">Phụ đề AI</span>
           </div>
         </section>
+
+        <div class="lp-marquee" aria-hidden="true">
+          <div class="lp-marquee-track">
+            <span>Cắt ghép<b>✦</b></span><span>Phụ đề tự động AI<b>✦</b></span><span>Xoá nền AI<b>✦</b></span><span>Keyframe<b>✦</b></span><span>Karaoke theo từ<b>✦</b></span><span>Đảo ngược clip<b>✦</b></span><span>Boomerang<b>✦</b></span><span>Ghi âm lồng tiếng<b>✦</b></span><span>Che mặt AI<b>✦</b></span><span>Cắt đoạn lặng<b>✦</b></span><span>Không watermark<b>✦</b></span><span>Xuất MP4 1920px<b>✦</b></span>
+            <span>Cắt ghép<b>✦</b></span><span>Phụ đề tự động AI<b>✦</b></span><span>Xoá nền AI<b>✦</b></span><span>Keyframe<b>✦</b></span><span>Karaoke theo từ<b>✦</b></span><span>Đảo ngược clip<b>✦</b></span><span>Boomerang<b>✦</b></span><span>Ghi âm lồng tiếng<b>✦</b></span><span>Che mặt AI<b>✦</b></span><span>Cắt đoạn lặng<b>✦</b></span><span>Không watermark<b>✦</b></span><span>Xuất MP4 1920px<b>✦</b></span>
+          </div>
+        </div>
 
         <div class="dropzone lp-anim lp-d3" id="dropzone">
           <div class="dz-icon">
@@ -1061,6 +1161,66 @@
           <span class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Lưu dự án ngay trên máy</span>
         </div>
 
+        <section class="lp-sec lp-reveal" id="moi-nhat">
+          <h2>Mới nhất</h2>
+          <div class="lp-grid">
+            <div class="lp-card">
+              <span class="lp-new">MỚI</span>
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 10.5h10M7 14h6"/></svg></div>
+              <h3>Phụ đề tự động AI</h3>
+              <p>AI nghe tiếng trong clip và tự viết phụ đề khớp thời gian.</p>
+            </div>
+            <div class="lp-card">
+              <span class="lp-new">MỚI</span>
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.8-3.4 3.4-5 6.5-5s5.7 1.6 6.5 5"/></svg></div>
+              <h3>Xoá nền AI</h3>
+              <p>Tách người khỏi nền, ghép vào cảnh khác thoải mái.</p>
+            </div>
+            <div class="lp-card">
+              <span class="lp-new">MỚI</span>
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="M9 10h.01M15 10h.01M9.2 15c.9 1 4.7 1 5.6 0"/></svg></div>
+              <h3>Che mặt AI</h3>
+              <p>Tự tìm mặt trong khung hình và làm mờ hoặc pixel.</p>
+            </div>
+            <div class="lp-card">
+              <span class="lp-new">MỚI</span>
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></div>
+              <h3>Ghi âm lồng tiếng</h3>
+              <p>Đọc và thu tiếng thẳng vào timeline, khỏi thu ngoài.</p>
+            </div>
+            <div class="lp-card">
+              <span class="lp-new">MỚI</span>
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4M7.5 7v10M12 10v4M16.5 7v10M21 10v4"/></svg></div>
+              <h3>Cắt đoạn lặng tự động</h3>
+              <p>Tự dò khoảng lặng trong clip và cắt bỏ một chạm.</p>
+            </div>
+            <div class="lp-card">
+              <span class="lp-new">MỚI</span>
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m4.5 18 5-5 3 3 3.5-3.5 3.5 4"/></svg></div>
+              <h3>Ghép nền mới</h3>
+              <p>Đặt nền màu, ảnh hoặc video sau chủ thể đã tách.</p>
+            </div>
+            <div class="lp-card">
+              <span class="lp-new">MỚI</span>
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.6-5.2L20 9M20 4v5h-5M20 12a8 8 0 0 1-13.6 5.2L4 15M4 20v-5h5"/></svg></div>
+              <h3>Boomerang</h3>
+              <p>Đoạn ngắn phát xuôi rồi ngược, lặp vòng mượt mà.</p>
+            </div>
+            <div class="lp-card">
+              <span class="lp-new">MỚI</span>
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 9.5v5l4.5-2.5z" fill="currentColor" stroke="none"/></svg></div>
+              <h3>Slideshow từ ảnh</h3>
+              <p>Nhiều ảnh thành video trình chiếu có chuyển cảnh sẵn.</p>
+            </div>
+            <div class="lp-card">
+              <span class="lp-new">MỚI</span>
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3l5 4.5v-13L7 10H4z"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg></div>
+              <h3>Xuất âm thanh WAV</h3>
+              <p>Tách riêng phần tiếng của dự án ra file WAV.</p>
+            </div>
+          </div>
+        </section>
+
         <section class="lp-sec lp-anim lp-d4" id="tinh-nang">
           <h2>Tính năng</h2>
           <div class="lp-grid">
@@ -1097,7 +1257,45 @@
           </div>
         </section>
 
-        <section class="lp-sec" id="cach-dung">
+        <section class="lp-sec lp-reveal" id="danh-cho-ban">
+          <h2>Dành cho bạn</h2>
+          <div class="lp-grid">
+            <div class="lp-card">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M10.5 18h3"/></svg></div>
+              <h3>Dân TikTok &amp; Reels</h3>
+              <p>Khung 9:16 có sẵn, phụ đề karaoke bắt mắt, xuất MP4 đăng thẳng.</p>
+            </div>
+            <div class="lp-card">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8h13l-1.1 12.2a1.5 1.5 0 0 1-1.5 1.3H8.1a1.5 1.5 0 0 1-1.5-1.3L5.5 8z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/></svg></div>
+              <h3>Bán hàng online</h3>
+              <p>Chèn chữ giá, sticker và nhạc nền cho clip sản phẩm trong vài phút.</p>
+            </div>
+            <div class="lp-card">
+              <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5v-15"/></svg></div>
+              <h3>Kể chuyện &amp; làm vlog</h3>
+              <p>Lồng tiếng ngay trong app, phụ đề AI tự bắt lời, cắt đoạn lặng một chạm.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="lp-sec lp-reveal" id="khac-biet">
+          <h2>Khác biệt</h2>
+          <div class="lp-diff">
+            <div><b>Không watermark</b><span>File xuất sạch, không chèn logo</span></div>
+            <div><b>Không cần đăng nhập</b><span>Mở trang là dùng, không tài khoản</span></div>
+            <div><b>Không lên máy chủ</b><span>Video chỉ nằm trên máy của bạn</span></div>
+            <div><b>Xuất tới 1920px</b><span>Đủ nét cho TikTok và YouTube</span></div>
+            <div><b>Miễn phí hoàn toàn</b><span>Không gói cước, không giới hạn lần xuất</span></div>
+          </div>
+          <div class="lp-stats">
+            <div><b>100%</b><span>chạy trên trình duyệt</span></div>
+            <div><b>0đ</b><span>chi phí sử dụng</span></div>
+            <div><b>1920px</b><span>độ phân giải tối đa</span></div>
+            <div><b>4</b><span>tỉ lệ khung hình</span></div>
+          </div>
+        </section>
+
+        <section class="lp-sec lp-reveal" id="cach-dung">
           <h2>Cách dùng</h2>
           <div class="lp-steps">
             <div class="lp-step">
@@ -1124,7 +1322,7 @@
           </div>
         </section>
 
-        <section class="lp-sec" id="hoi-dap">
+        <section class="lp-sec lp-reveal" id="hoi-dap">
           <h2>Hỏi đáp</h2>
           <div class="lp-faq">
             <div class="lp-faq-item">
@@ -1146,7 +1344,7 @@
           </div>
         </section>
 
-        <section class="lp-endcta">
+        <section class="lp-endcta lp-reveal">
           <h2>Sẵn sàng sửa video đầu tiên?</h2>
           <p>Chọn một video và bắt đầu — không cài đặt, không tải lên.</p>
           <button class="btn primary big js-pick">
@@ -1158,7 +1356,7 @@
         <footer class="lp-foot">
           <span class="fbrand">
             <svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lgFoot" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00c9d4"/><stop offset="1" stop-color="#a882ff"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="12" fill="url(#lgFoot)"/><path d="M19 15.5v17l14-8.5z" fill="#101014"/></svg>
-            <b>Edit Video Đa Năng</b>
+            <b>Klip Studio</b>
           </span>
           <span>— Chỉnh sửa video ngay trên trình duyệt, miễn phí.</span>
           <nav>
@@ -1175,7 +1373,7 @@
       <div class="toolbar">
         <div class="brand-mini">
           <svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lgStudio" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00c9d4"/><stop offset="1" stop-color="#a882ff"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="12" fill="url(#lgStudio)"/><path d="M19 15.5v17l14-8.5z" fill="#101014"/></svg>
-          <span class="bname grad-text">Edit Video Đa Năng</span>
+          <span class="bname grad-text">Klip Studio</span>
           <span class="pro-chip">Pro</span>
         </div>
         <div class="file-badge">
@@ -5859,6 +6057,33 @@
       /* ---------- file inputs & drag-drop ---------- */
       $("btnPickVideo").addEventListener("click", function(){ $("fileVideo").click(); });
       document.querySelectorAll(".js-pick").forEach(function(b){ b.addEventListener("click", function(){ $("fileVideo").click(); }); });
+
+      /* ---------- Landing: hiện dần khi cuộn tới + thẻ nghiêng 3D theo chuột ---------- */
+      (function(){
+        var reduceLp = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+        var revealEls = document.querySelectorAll(".lp-reveal");
+        if(revealEls.length && !reduceLp && "IntersectionObserver" in window){
+          revealEls.forEach(function(el){ el.classList.add("lp-rv-init"); });
+          var ioLp = new IntersectionObserver(function(entries){
+            entries.forEach(function(en){
+              if(en.isIntersecting){ en.target.classList.add("in"); ioLp.unobserve(en.target); }
+            });
+          }, { threshold: 0.1 });
+          revealEls.forEach(function(el){ ioLp.observe(el); });
+        }
+        if(!reduceLp && window.matchMedia && window.matchMedia("(pointer: fine)").matches){
+          document.querySelectorAll(".lp-card").forEach(function(card){
+            card.addEventListener("mousemove", function(e){
+              var r = card.getBoundingClientRect();
+              if(!r.width || !r.height) return;
+              var dx = (e.clientX - r.left) / r.width - 0.5;
+              var dy = (e.clientY - r.top) / r.height - 0.5;
+              card.style.transform = "perspective(720px) rotateX(" + (-dy * 5).toFixed(2) + "deg) rotateY(" + (dx * 5).toFixed(2) + "deg) translateY(-3px)";
+            });
+            card.addEventListener("mouseleave", function(){ card.style.transform = ""; });
+          });
+        }
+      })();
       $("fileVideo").addEventListener("change", function(){ addVideoFiles(this.files); this.value = ""; });
       $("btnPickSlides").addEventListener("click", function(){ pickSlides("show"); });
       $("btnSlidesPanel").addEventListener("click", function(){ pickSlides("show"); });
