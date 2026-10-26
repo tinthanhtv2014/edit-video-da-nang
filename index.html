@@ -1442,8 +1442,9 @@
               <span class="total" id="tlTotal"></span>
               <div class="spacer"></div>
               <label class="tl-zoom">Phóng to
-                <input type="range" id="tlZoomRange" min="1" max="6" step="0.25" value="1" />
+                <input type="range" id="tlZoomRange" min="0.1" max="6" step="0.05" value="1" />
               </label>
+              <button class="btn" id="btnTlFit" style="padding:6px 10px;font-size:12px" title="Thu nhỏ timeline để thấy toàn bộ dự án trong khung, không cần cuộn ngang">Vừa khung</button>
               <button class="btn" id="btnSplitTop" style="padding:6px 10px;font-size:12px">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.2 7.8 20 19M8.2 16.2 20 5"/></svg>
                 Tách tại điểm phát
@@ -3675,12 +3676,12 @@
         var sc = $("tlScroll");
         var w = sc && sc.clientWidth ? sc.clientWidth : 820;
         if(!L.total) return 8;
-        return Math.max(1.0, (w / L.total) * tlZoom);
+        return Math.max(0.05, (w / L.total) * tlZoom);
       }
       function pickTickStep(pps){
-        var steps = [1, 2, 5, 10, 15, 30, 60, 120, 300];
+        var steps = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800];
         for(var i = 0; i < steps.length; i++) if(steps[i] * pps >= 62) return steps[i];
-        return 600;
+        return 3600;
       }
       function updateTlPlayhead(){
         var x = Math.round(playhead * (lastPps || 8));
@@ -4611,6 +4612,19 @@
       $("tlZoomRange").addEventListener("input", function(){
         tlZoom = parseFloat(this.value) || 1;
         renderStrip();
+      });
+      /* Vừa khung: đặt zoom sao cho toàn bộ dự án (cộng phần đuôi chứa nút + Clip)
+         nằm gọn trong chiều rộng khung timeline đang hiển thị — không cuộn ngang. */
+      $("btnTlFit").addEventListener("click", function(){
+        if(!L.total) return;
+        var sc = $("tlScroll");
+        var w = sc && sc.clientWidth ? sc.clientWidth : 820;
+        var ppsFit = Math.max(0.05, (w - 84) / L.total);
+        tlZoom = clamp(ppsFit * L.total / w, 0.1, 6);
+        var zr = $("tlZoomRange");
+        if(zr) zr.value = tlZoom;
+        renderStrip();
+        if(sc) sc.scrollLeft = 0;
       });
       var resizeTimer = null;
       window.addEventListener("resize", function(){
