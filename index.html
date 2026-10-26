@@ -302,6 +302,30 @@
       .lp-rv-init{ opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
       .lp-rv-init.in{ opacity:1; transform:none; }
 
+      /* --- Landing: tải app desktop --- */
+      .lp-dl{
+        margin-top:26px; padding:24px 26px;
+        background:var(--panel); border:1px solid var(--line); border-radius:16px;
+      }
+      .lp-dl h2{ font-size:21px; font-weight:800; letter-spacing:-.01em; margin:0 0 5px; }
+      .lp-dl-sub{ margin:0 0 18px; font-size:13.5px; line-height:1.55; color:var(--ink-soft); }
+      .lp-dl-row{ display:flex; gap:14px; flex-wrap:wrap; }
+      .lp-dl-btn{
+        flex:1 1 230px; justify-content:center; text-decoration:none;
+        padding:15px 20px; border-radius:13px; text-align:left;
+        box-shadow:0 8px 22px rgba(0,201,212,.22);
+      }
+      .lp-dl-btn:not(.primary){ box-shadow:none; }
+      .lp-dl-txt{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+      .lp-dl-txt b{ font-size:16px; font-weight:800; line-height:1.25; }
+      .lp-dl-txt small{ font-size:12px; font-weight:500; line-height:1.45; opacity:.72; }
+      .lp-dl-note{ margin:14px 0 0; font-size:12px; line-height:1.55; color:var(--ink-faint); }
+      @media (max-width:560px){
+        .lp-dl{ padding:20px 16px; }
+        .lp-dl-row{ flex-direction:column; }
+        .lp-dl-btn{ flex:0 0 auto; width:100%; }
+      }
+
       @media (prefers-reduced-motion: reduce){
         .lp-hero::after, .lp-visual::before, .lp-mock-head, .lp-mock-cap i, .lp-tag,
         .lp-marquee-track, .lp-actions .btn.primary.big, .lp-endcta .btn.primary.big{ animation:none !important; }
@@ -1208,6 +1232,22 @@
           <span class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Xuất tới 1920px</span>
           <span class="lp-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Lưu dự án ngay trên máy</span>
         </div>
+
+        <section class="lp-dl lp-anim" id="tai-app">
+          <h2>Tải app desktop</h2>
+          <p class="lp-dl-sub">Dùng ngay trên máy, không cần mở trình duyệt.</p>
+          <div class="lp-dl-row">
+            <a class="btn primary big lp-dl-btn" href="https://github.com/tinthanhtv2014/edit-video-da-nang/releases/download/v1.0.0/KlipStudio-Windows.exe">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M12 4v11m0 0 5-5m-5 5-5-5"/><path d="M4 20h16"/></svg>
+              <span class="lp-dl-txt"><b>Tải cho Windows</b><small>.exe · ~75MB · mở lên chạy ngay, không cần cài đặt</small></span>
+            </a>
+            <a class="btn big lp-dl-btn" href="https://github.com/tinthanhtv2014/edit-video-da-nang/releases/download/v1.0.0/KlipStudio-Ubuntu.deb">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M12 4v11m0 0 5-5m-5 5-5-5"/><path d="M4 20h16"/></svg>
+              <span class="lp-dl-txt"><b>Tải cho Ubuntu</b><small>.deb · ~76MB · cài như ứng dụng bình thường</small></span>
+            </a>
+          </div>
+          <p class="lp-dl-note">Windows có thể hiện cảnh báo bảo mật vì app chưa có chữ ký số — bấm More info → Run anyway là chạy.</p>
+        </section>
 
         <section class="lp-sec lp-reveal" id="moi-nhat">
           <h2>Mới nhất</h2>
