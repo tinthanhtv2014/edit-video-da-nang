@@ -837,6 +837,16 @@
       .mini-prog{ margin-top:9px; }
       .mini-prog .progress-track{ margin-bottom:5px; }
       .mini-prog .mp-label{ font-size:11.5px; color:var(--ink-dim); margin-bottom:6px; }
+      /* ---------- NHÓM LÀM ĐƯỢC: theo dõi điểm / GIF / quay ---------- */
+      .track-hint{
+        position:absolute; left:50%; bottom:10px; transform:translateX(-50%); z-index:6;
+        background:rgba(8,10,14,.9); color:#fff; font-size:12.5px; font-weight:600; line-height:1.35;
+        padding:7px 13px; border-radius:999px; pointer-events:none; text-align:center;
+        max-width:calc(100vw - 24px); box-sizing:border-box;
+        border:1px solid rgba(0,201,212,.55); box-shadow:0 6px 18px rgba(0,0,0,.4);
+      }
+      .ease-cv{ width:100%; height:52px; display:block; border-radius:9px; background:#101014; border:1px solid var(--line); margin-top:7px; }
+      .vrec-prev{ width:100%; border-radius:10px; margin-top:10px; background:#000; display:block; aspect-ratio:16/9; object-fit:contain; }
       .meter-wrap{
         width:10px; height:32px; border-radius:5px; background:#101014; flex:none;
         border:1px solid var(--line); position:relative; overflow:hidden;
@@ -1438,7 +1448,7 @@
 
       <div class="studio">
         <div class="stage-card">
-          <div class="stage"><div class="stage-wrap" id="stageWrap"><canvas id="preview" width="640" height="360"></canvas><div class="guides" id="guides" hidden><div class="g-thirds" id="gThirds" hidden><span class="g-line g-v" style="left:33.333%"></span><span class="g-line g-v" style="left:66.666%"></span><span class="g-line g-h" style="top:33.333%"></span><span class="g-line g-h" style="top:66.666%"></span></div><div class="g-safe" id="gSafe" hidden><span class="g-band g-top"></span><span class="g-band g-right"><i class="g-tag">nút</i></span><span class="g-band g-bottom"><i class="g-tag">chữ</i></span></div></div></div></div>
+          <div class="stage"><div class="stage-wrap" id="stageWrap"><canvas id="preview" width="640" height="360"></canvas><div class="guides" id="guides" hidden><div class="g-thirds" id="gThirds" hidden><span class="g-line g-v" style="left:33.333%"></span><span class="g-line g-v" style="left:66.666%"></span><span class="g-line g-h" style="top:33.333%"></span><span class="g-line g-h" style="top:66.666%"></span></div><div class="g-safe" id="gSafe" hidden><span class="g-band g-top"></span><span class="g-band g-right"><i class="g-tag">nút</i></span><span class="g-band g-bottom"><i class="g-tag">chữ</i></span></div></div><div class="track-hint" id="trackHint" hidden>Bấm vào điểm cần bám theo trên khung hình · Esc để huỷ</div></div></div>
           <div class="transport">
             <div class="transport-row">
               <button class="play-btn" id="btnPlay" aria-label="Phát" title="Phát">
@@ -1606,6 +1616,26 @@
             <p class="hint" style="margin:0 0 11px">Ảnh cũng thành clip được (mặc định 3 giây, kéo dài tối đa 120 giây) — dùng Ken Burns, chuyển cảnh, bộ lọc như clip thường.</p>
             <button class="btn" id="btnSlidesPanel" style="width:100%;justify-content:center">Tạo slideshow từ nhiều ảnh</button>
             <button class="btn" id="btnAddImages" style="width:100%;justify-content:center;margin-top:7px">Thêm ảnh thành clip</button>
+          </section>
+
+          <!-- QUAY MÀN HÌNH / WEBCAM -->
+          <section class="card">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M5 8.5A8 8 0 1 1 3.6 13"/><path d="M3.4 8.6 3.3 4.8 7.1 4.9"/></svg>
+              Quay video
+            </h2>
+            <div class="row-btns">
+              <button class="btn" id="btnRecScreen" style="flex:1;justify-content:center">Quay màn hình</button>
+              <button class="btn" id="btnRecCam" style="flex:1;justify-content:center">Quay webcam</button>
+            </div>
+            <div id="vrecLive" hidden>
+              <video class="vrec-prev" id="vrecPrev" autoplay muted playsinline></video>
+              <div class="row-btns" style="margin-top:8px;align-items:center">
+                <span class="rec-dot"></span>
+                <span class="rec-time" id="vrecTime">0:00</span>
+                <button class="btn danger" id="btnRecVidStop" style="flex:1;justify-content:center">■ Dừng quay</button>
+              </div>
+            </div>
+            <p class="hint" style="margin:6px 0 0">Quay xong, bản ghi thành một clip thường thêm vào cuối dự án (lưu kèm dự án như media khác). Xem trước webcam lật gương cho tự nhiên, bản ghi giữ khung gốc.</p>
           </section>
           </div>
 
@@ -1868,6 +1898,11 @@
               Xuất âm thanh (WAV)
             </button>
             <p class="hint" id="wavInfo" style="margin:6px 0 0">Render toàn bộ phần tiếng của dự án (đoạn tiếng + nhạc nền, đúng âm lượng / fade / EQ / né tiếng) thành file WAV 44,1kHz.</p>
+            <button class="btn" id="btnExportGif" style="width:100%;justify-content:center;margin-top:8px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15.5 9 10l3.5 3L16 9.5l5 4.5"/><circle cx="9" cy="10" r="1.6"/></svg>
+              Xuất GIF (480px · 10 fps)
+            </button>
+            <p class="hint" style="margin:6px 0 0">Xuất toàn dự án thành ảnh động GIF — chỉ cho dự án ≤ 20 giây vì GIF rất nặng.</p>
           </section>
 
           <!-- PROJECTS (IndexedDB) -->
@@ -2002,6 +2037,8 @@
               <h3>Nhịp nhạc nền</h3>
               <button class="btn" id="btnBeats" style="width:100%;justify-content:center">Tìm nhịp</button>
               <p class="hint" id="beatInfo" style="margin:6px 0 0">Phân tích file nhạc, đánh dấu vạch nhịp trên đoạn nhạc — kéo đoạn sẽ tự bám nhịp.</p>
+              <button class="btn" id="btnBeatCut" style="width:100%;justify-content:center;margin-top:9px">Tự dựng theo nhịp</button>
+              <p class="hint" style="margin:6px 0 0">Cắt điểm cuối mỗi clip theo vạch nhịp tiếp theo rồi xếp các clip nối tiếp nhau (chỉ track video, một bước hoàn tác). Chưa có nhịp thì app tự tìm nhịp trước.</p>
             </div>
           </section>
           <!-- COLOR SCOPES -->
@@ -2040,6 +2077,17 @@
                 <button class="btn" id="btnKfDel">Xoá tại điểm phát</button>
               </div>
               <p class="hint" id="clipKfInfo" style="margin:6px 0 0">Chưa có keyframe.</p>
+              <div class="field" style="margin-top:10px">
+                <label>Easing cho đoạn sau keyframe gần điểm phát nhất</label>
+                <select id="kfEaseClip">
+                  <option value="linear">Tuyến tính</option>
+                  <option value="in">Vào mềm</option>
+                  <option value="out">Ra mềm</option>
+                  <option value="inout">Vào–ra mềm</option>
+                  <option value="back">Nảy nhẹ</option>
+                </select>
+                <canvas class="ease-cv" id="easeCvClip" width="496" height="104"></canvas>
+              </div>
             <p class="hint" style="margin:6px 0 0">Giá trị áp tại điểm phát — clip đã có keyframe thì ghi thành keyframe tại điểm phát.</p>
           </section>
           <section class="card insp-group" id="inspFx" hidden>
@@ -2250,6 +2298,18 @@
               <p class="hint" style="margin:0">AI tự tìm mặt trong khung hình và che theo suốt clip — áp cả xem trước lẫn file xuất.</p>
             </div>
             <div class="sub-box" style="margin-top:2px">
+              <h3>Khung theo mặt (auto-reframe) <span class="badge-exp">Thử nghiệm</span></h3>
+              <div class="row-btns" style="margin-bottom:6px">
+                <button class="btn" id="btnReframe">Khung theo mặt: Tắt</button>
+              </div>
+              <div class="mini-prog" id="rfProgWrap" hidden>
+                <div class="progress-track"><div class="progress-bar" id="rfBar"></div></div>
+                <div class="mp-label" id="rfProgLabel">Đang quét mặt…</div>
+                <button class="btn danger" id="btnRfCancel" style="padding:5px 10px;font-size:12px">Huỷ quét</button>
+              </div>
+              <p class="hint" id="rfInfo" style="margin:0">AI quét mặt trong clip (mỗi ~0,5 giây) rồi sinh đường dịch khung cắt theo mặt — chỉ có tác dụng khi tỉ lệ nguồn khác tỉ lệ khung dự án. Tắt là về vị trí cắt tĩnh như cũ.</p>
+            </div>
+            <div class="sub-box" style="margin-top:2px">
               <h3>Cắt đoạn im lặng (clip)</h3>
               <div class="field">
                 <label>Ngưỡng lặng <output id="outSilThrClip">4%</output></label>
@@ -2278,6 +2338,17 @@
                   <label>Vị trí Y <output id="outOvY">50%</output></label>
                   <input type="range" id="ovY" min="0" max="100" step="0.5" value="50" />
                 </div>
+              </div>
+              <div class="field" style="margin-top:10px">
+                <label>Easing cho đoạn sau keyframe gần điểm phát nhất</label>
+                <select id="kfEaseOver">
+                  <option value="linear">Tuyến tính</option>
+                  <option value="in">Vào mềm</option>
+                  <option value="out">Ra mềm</option>
+                  <option value="inout">Vào–ra mềm</option>
+                  <option value="back">Nảy nhẹ</option>
+                </select>
+                <canvas class="ease-cv" id="easeCvOver" width="496" height="104"></canvas>
               </div>
           </section>
           <section class="card insp-group" id="inspOverFx" hidden>
@@ -2398,6 +2469,16 @@
                   <input type="range" id="ovAnimDur" min="0.2" max="2" step="0.1" value="0.5" />
                 </div>
               </div>
+              <div class="sub-box" style="margin-top:2px">
+                <h3>Theo dõi chuyển động</h3>
+                <button class="btn" id="btnTrack" style="width:100%;justify-content:center">◎ Theo dõi điểm</button>
+                <div class="mini-prog" id="trackProgWrap" hidden>
+                  <div class="progress-track"><div class="progress-bar" id="trackBar"></div></div>
+                  <div class="mp-label" id="trackProgLabel">Đang bám điểm…</div>
+                  <button class="btn danger" id="btnTrackCancel" style="padding:5px 10px;font-size:12px">Huỷ theo dõi</button>
+                </div>
+                <p class="hint" style="margin:6px 0 0">Đưa điểm phát vào khoảng hiện của lớp phủ, bấm nút rồi bấm vào một điểm trên khung hình — lớp phủ sẽ bám theo điểm đó bằng keyframe vị trí (vẫn sửa/xoá keyframe như thường).</p>
+              </div>
           </section>
           <section class="card insp-group" id="inspText" hidden>
             <h2>Chữ</h2>
@@ -2471,6 +2552,16 @@
                   <input type="range" id="ltAnimDur" min="0.2" max="2" step="0.1" value="0.5" />
                 </div>
               </div>
+              <div class="sub-box" style="margin-top:2px">
+                <h3>Theo dõi chuyển động</h3>
+                <button class="btn" id="btnTrackText" style="width:100%;justify-content:center">◎ Theo dõi điểm</button>
+                <div class="mini-prog" id="trackProgWrapT" hidden>
+                  <div class="progress-track"><div class="progress-bar" id="trackBarT"></div></div>
+                  <div class="mp-label" id="trackProgLabelT">Đang bám điểm…</div>
+                  <button class="btn danger" id="btnTrackCancelT" style="padding:5px 10px;font-size:12px">Huỷ theo dõi</button>
+                </div>
+                <p class="hint" style="margin:6px 0 0">Đưa điểm phát vào khoảng hiện của lớp chữ, bấm nút rồi bấm vào một điểm trên khung hình — chữ sẽ bám theo điểm đó bằng keyframe vị trí.</p>
+              </div>
           </section>
           <section class="card insp-group" id="inspAudio" hidden>
             <h2>Âm thanh · Đoạn tiếng</h2>
@@ -2491,6 +2582,21 @@
               <div class="field" style="margin-bottom:13px">
                 <label>Vang (echo) <output id="outAsegEcho">0%</output></label>
                 <input type="range" id="asegEcho" min="0" max="100" step="1" value="0" />
+              </div>
+              <div class="two-col" style="margin-bottom:13px">
+                <div class="field">
+                  <label>Hiệu ứng giọng</label>
+                  <select id="asegVfx">
+                    <option value="none">Không có</option>
+                    <option value="robot">Robot</option>
+                    <option value="phone">Điện thoại</option>
+                    <option value="reverb">Vang (reverb)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Mức vang <output id="outAsegVfxAmt">50%</output></label>
+                  <input type="range" id="asegVfxAmt" min="0" max="100" step="1" value="50" />
+                </div>
               </div>
 <div class="sub-box" style="margin-top:2px">
                 <h3>◆ Keyframe âm lượng</h3>
@@ -2637,6 +2743,8 @@
         for(var i = 0; i < ks.length - 1; i++){
           if(t >= ks[i].t && t <= ks[i + 1].t){
             var f = (t - ks[i].t) / Math.max(0.0001, ks[i + 1].t - ks[i].t);
+            /* Easing lưu trên keyframe đầu đoạn — áp cho cả vị trí / cỡ / độ mờ */
+            f = easeApply(ks[i].ease, f);
             return {
               x: ks[i].x + (ks[i + 1].x - ks[i].x) * f,
               y: ks[i].y + (ks[i + 1].y - ks[i].y) * f,
@@ -2652,7 +2760,9 @@
         t = Math.max(0, Math.round(t * 100) / 100);
         for(var i = 0; i < obj.kfs.length; i++){
           if(Math.abs(obj.kfs[i].t - t) < 0.04){
+            var keepEase = obj.kfs[i].ease;
             obj.kfs[i] = { t: obj.kfs[i].t, x: vals.x, y: vals.y, s: vals.s, o: vals.o };
+            if(keepEase) obj.kfs[i].ease = keepEase;
             return;
           }
         }
@@ -2672,7 +2782,11 @@
       }
       function kfCopy(kfs){
         if(!kfs) return null;
-        return kfs.map(function(k){ return { t: k.t, x: k.x, y: k.y, s: k.s, o: k.o }; });
+        return kfs.map(function(k){
+          var o = { t: k.t, x: k.x, y: k.y, s: k.s, o: k.o };
+          if(k.ease && k.ease !== "linear") o.ease = k.ease;
+          return o;
+        });
       }
       /* ---------- Keyframe ÂM LƯỢNG cho đoạn tiếng: điểm {t (giây cục bộ), v (% âm lượng)} nội suy tuyến tính ---------- */
       function vkfCopy(kfs){
@@ -3506,6 +3620,7 @@
               kfs:kfCopy(c.kfs), mask:(c.mask || "none"), maskFeather:(c.maskFeather || 0),
               fx:(c.fx || "none"), fxAmt:(c.fxAmt == null ? 50 : c.fxAmt),
               boom:!!c.boom, faceBlur:!!c.faceBlur, faceMode:(c.faceMode || "blur"), isImg:!!c.isImg,
+              reframe:!!c.reframe, rfPath:(c.rfPath ? c.rfPath.map(function(p){ return { t:p.t, x:p.x, y:p.y }; }) : null),
               bgKind:(c.bgKind || "none"), bgColor:(c.bgColor || "#16324a"), bgUrl:(c.bgUrl || null) };
           }),
           asegs: asegs.map(function(a){
@@ -3513,11 +3628,12 @@
               trimStart:a.trimStart, trimEnd:a.trimEnd, speed:(a.speed || 1),
               vol:(a.vol == null ? 100 : a.vol), muted:!!a.muted, fadeIn:(a.fadeIn || 0), fadeOut:(a.fadeOut || 0),
               echo:(a.echo || 0), vkfs:vkfCopy(a.vkfs),
-              eqB:(a.eqB || 0), eqM:(a.eqM || 0), eqT:(a.eqT || 0), clarity:!!a.clarity };
+              eqB:(a.eqB || 0), eqM:(a.eqM || 0), eqT:(a.eqT || 0), clarity:!!a.clarity,
+              vfx:(a.vfx || "none"), vfxAmt:(a.vfxAmt == null ? 50 : a.vfxAmt) };
           }),
           texts: texts.map(function(t){
             return { id:t.id, kind:t.kind, text:t.text, start:t.start, end:t.end, size:t.size, color:t.color, pos:t.pos, bg:t.bg, bold:t.bold, hidden:!!t.hidden,
-              anim:(t.anim || "none"), animDur:(t.animDur == null ? 0.5 : t.animDur), karaoke:!!t.karaoke,
+              anim:(t.anim || "none"), animDur:(t.animDur == null ? 0.5 : t.animDur), karaoke:!!t.karaoke, kfs:kfCopy(t.kfs),
               font:(t.font || ""), stroke:(t.stroke || null), glow:(t.glow || null), shadow:!!t.shadow };
           }),
           markers: markers.slice(),
@@ -3573,6 +3689,7 @@
           if(!curveValid(c.curve)) c.curve = curveFromRamp(c.ramp);
           c.rev = !!c.rev; c.bgAI = !!c.bgAI;
           c.boom = !!c.boom; c.faceBlur = !!c.faceBlur; if(c.faceMode == null) c.faceMode = "blur"; c.isImg = !!c.isImg;
+          c.reframe = !!c.reframe; if(!Array.isArray(c.rfPath)) c.rfPath = null;
           if(c.bgKind == null) c.bgKind = "none"; if(c.bgColor == null) c.bgColor = "#16324a"; if(c.bgUrl === undefined) c.bgUrl = null;
           if(c.kx == null) c.kx = 0; if(c.ky == null) c.ky = 0;
           if(c.ks == null) c.ks = 100; if(c.ko == null) c.ko = 100;
@@ -3602,12 +3719,12 @@
         var asegFiles = {};
         asegs.forEach(function(a){ if(a.file) asegFiles[a.id] = a.file; });
         asegs = st.asegs;
-        asegs.forEach(function(a){ if(asegFiles[a.id]) a.file = asegFiles[a.id]; if(a.start == null) a.start = 0; if(a.speed == null) a.speed = 1; if(a.vol == null) a.vol = 100; if(a.muted == null) a.muted = false; if(a.fadeIn == null) a.fadeIn = 0; if(a.fadeOut == null) a.fadeOut = 0; if(a.echo == null) a.echo = 0; if(a.vkfs == null) a.vkfs = null; if(a.eqB == null) a.eqB = 0; if(a.eqM == null) a.eqM = 0; if(a.eqT == null) a.eqT = 0; a.clarity = !!a.clarity; applyEcho(a); applyEqAseg(a); });
+        asegs.forEach(function(a){ if(asegFiles[a.id]) a.file = asegFiles[a.id]; if(a.start == null) a.start = 0; if(a.speed == null) a.speed = 1; if(a.vol == null) a.vol = 100; if(a.muted == null) a.muted = false; if(a.fadeIn == null) a.fadeIn = 0; if(a.fadeOut == null) a.fadeOut = 0; if(a.echo == null) a.echo = 0; if(a.vkfs == null) a.vkfs = null; if(a.eqB == null) a.eqB = 0; if(a.eqM == null) a.eqM = 0; if(a.eqT == null) a.eqT = 0; a.clarity = !!a.clarity; if(a.vfx == null) a.vfx = "none"; if(a.vfxAmt == null) a.vfxAmt = 50; applyEcho(a); applyEqAseg(a); applyVoiceFx(a); });
         sortAsegs();
         markers = st.markers || [];
         tlGap = null;
         texts = st.texts;
-        texts.forEach(function(t){ if(t.anim == null) t.anim = "none"; if(t.animDur == null) t.animDur = 0.5; if(t.karaoke == null) t.karaoke = false; if(t.font == null) t.font = ""; if(t.stroke == null) t.stroke = null; if(t.glow == null) t.glow = null; if(t.shadow == null) t.shadow = false; });
+        texts.forEach(function(t){ if(t.anim == null) t.anim = "none"; if(t.animDur == null) t.animDur = 0.5; if(t.karaoke == null) t.karaoke = false; if(t.font == null) t.font = ""; if(t.stroke == null) t.stroke = null; if(t.glow == null) t.glow = null; if(t.shadow == null) t.shadow = false; if(t.kfs === undefined) t.kfs = null; });
         var overFiles = {};
         var overBgFiles = {};
         overs.forEach(function(o){ if(o.file) overFiles[o.id] = o.file; if(o.bgFile) overBgFiles[o.id] = o.bgFile; });
@@ -5122,6 +5239,7 @@
         syncRevUI(c);
         syncBoomUI(c);
         syncFaceUI(c);
+        syncReframeUI(c);
         syncClipBgAIUI(c);
         syncClipBgUI(c);
         $("transDur").value = c.transDur;
@@ -5157,6 +5275,7 @@
         $("clipKo").value = Math.round(kv.o); $("outClipKo").textContent = Math.round(kv.o) + "%";
         var n = c.kfs ? c.kfs.length : 0;
         $("clipKfInfo").textContent = n ? ("◆ " + n + " keyframe · tại điểm phát: " + fmt(clipLocalT(c))) : "Chưa có keyframe.";
+        syncEaseClipUI(c);
       }
       function clipPropSet(key, val){
         var c = selClip(); if(!c) return;
@@ -5334,6 +5453,7 @@
         $("ovY").value = kv.y; $("outOvY").textContent = Math.round(kv.y) + "%";
         var n = o.kfs ? o.kfs.length : 0;
         $("ovKfInfo").textContent = n ? ("◆ " + n + " keyframe · tại điểm phát: " + fmt(overLocalT(o))) : "Chưa có keyframe.";
+        syncEaseOverUI(o);
       }
       function overPropSet(key, val){
         var o = selOver(); if(!o) return;
@@ -5459,6 +5579,11 @@
         else if(t.pos === "center") centerY = H / 2;
         else centerY = H - H * 0.055 - totalH / 2;
         ctx.save();
+        /* Theo dõi chuyển động cho chữ: keyframe lưu ĐỘ LỆCH (x, y theo % khung) so với vị trí mặc định */
+        if(t.kfs && t.kfs.length){
+          var tkv = kfEval(t.kfs, now - t.start, { x: 0, y: 0, s: 100, o: 100 });
+          if(tkv.x || tkv.y) ctx.translate(tkv.x / 100 * W, tkv.y / 100 * H);
+        }
         if(anim === "fade"){
           ctx.globalAlpha = Math.min(inP, outP);
         } else if(anim === "up"){
@@ -5771,8 +5896,10 @@
           try{ dc.filter = filterString(c) + blurSuffix; }catch(e){}
           var scale = Math.max(W / sw, H / sh) * kbScale;
           var cw = W / scale, ch = H / scale;
-          var cx = clamp((sw - cw) * (S.posX/100 + kbX), 0, Math.max(0, sw - cw));
-          var cy = clamp((sh - ch) * (S.posY/100 + kbY), 0, Math.max(0, sh - ch));
+          /* Auto-reframe theo mặt (Thử nghiệm): vị trí cắt theo thời gian của riêng clip thay cho vị trí tĩnh toàn cục */
+          var cpos = clipCropPosAt(c, localOut);
+          var cx = clamp((sw - cw) * (cpos.x/100 + kbX), 0, Math.max(0, sw - cw));
+          var cy = clamp((sh - ch) * (cpos.y/100 + kbY), 0, Math.max(0, sh - ch));
           dc.drawImage(imgSrc, cx, cy, cw, ch, 0, 0, W, H);
         }
         try{ dc.filter = "none"; }catch(e){}
@@ -5883,7 +6010,7 @@
             ctx.font = es + "px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(o.emoji, 0, es * 0.04);
-            if(o.id === selOverId && !exporting){
+            if(o.id === selOverId && !exporting && !suppressSel){
               ctx.globalAlpha = 1;
               ctx.globalCompositeOperation = "source-over";
               ctx.strokeStyle = "rgba(0,201,212,0.95)";
@@ -5938,7 +6065,7 @@
           } else {
             ctx.drawImage(drawSrc, -ow/2, -oh/2, ow, oh);
           }
-          if(o.id === selOverId && !exporting){
+          if(o.id === selOverId && !exporting && !suppressSel){
             ctx.globalAlpha = 1;
             ctx.globalCompositeOperation = "source-over";
             ctx.strokeStyle = "rgba(0,201,212,0.95)";
@@ -6028,28 +6155,112 @@
           var src = actx.createMediaElementSource(el);
           var g = actx.createGain();
           src.connect(g);
+          /* Hiệu ứng giọng (Robot / Điện thoại / Vang) chèn giữa gain và EQ — không đổi thời lượng */
+          var vfx = buildPreviewVoiceFx();
+          g.connect(vfx.in);
           /* EQ 3 dải + rõ giọng chèn vào đúng chuỗi của đoạn tiếng (dùng chung xem trước / xuất như echo) */
           var eq = buildEqChain();
-          g.connect(eq.low);
+          vfx.out.connect(eq.low);
           eq.out.connect(actx.destination);
           eq.out.connect(audioDest);
           if(masterAnalyser) eq.out.connect(masterAnalyser);
-          /* PRO: chuỗi vang (echo) — DelayNode + feedback, mức vang theo từng đoạn tiếng */
+          /* PRO: chuỗi vang (echo) — DelayNode + feedback, mức vang theo từng đoạn tiếng; lấy tín hiệu SAU hiệu ứng giọng */
           var delay = actx.createDelay(1); delay.delayTime.value = 0.16;
           var fb = actx.createGain(); fb.gain.value = 0.35;
           var wet = actx.createGain(); wet.gain.value = 0;
-          g.connect(delay); delay.connect(fb); fb.connect(delay);
+          vfx.out.connect(delay); delay.connect(fb); fb.connect(delay);
           delay.connect(wet); wet.connect(actx.destination); wet.connect(audioDest);
           if(masterAnalyser) wet.connect(masterAnalyser);
-          asegGains[id] = { src: src, gain: g, delay: delay, fb: fb, wet: wet, eq: eq };
+          asegGains[id] = { src: src, gain: g, delay: delay, fb: fb, wet: wet, eq: eq, vfx: vfx };
           var a0 = findAseg(id);
-          if(a0){ applyEcho(a0); applyEqAseg(a0); }
+          if(a0){ applyEcho(a0); applyEqAseg(a0); applyVoiceFx(a0); }
         }catch(e){}
       }
       function applyEcho(a){
         if(!a) return;
         var ag = asegGains[a.id];
         if(ag && ag.wet) ag.wet.gain.value = (a.echo || 0) / 100 * 0.55;
+      }
+      /* ---------- HIỆU ỨNG GIỌNG cho đoạn tiếng: Robot (điều chế vòng oscillator ~30Hz + méo nhẹ) /
+         Điện thoại (dải 400–3400Hz + nén nhẹ) / Vang (ConvolverNode, xung vang tự sinh suy giảm mũ).
+         Ba nhánh dựng sẵn song song với nhánh khô, applyVoiceFx chỉ việc mở đúng nhánh theo a.vfx. ---------- */
+      function makeImpulse(cx){
+        var rate = cx.sampleRate, len = Math.max(1, Math.floor(rate * 1.6));
+        var buf = cx.createBuffer(2, len, rate);
+        for(var ch = 0; ch < 2; ch++){
+          var d = buf.getChannelData(ch);
+          for(var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+        }
+        return buf;
+      }
+      function robotCurve(){
+        var n = 256, curve = new Float32Array(n);
+        for(var i = 0; i < n; i++){ var x = i / (n - 1) * 2 - 1; curve[i] = Math.tanh(2.2 * x); }
+        return curve;
+      }
+      function buildPreviewVoiceFx(){
+        var input = actx.createGain(), out = actx.createGain();
+        var dry = actx.createGain(); dry.gain.value = 1;
+        input.connect(dry); dry.connect(out);
+        var ring = actx.createGain(); ring.gain.value = 0;
+        var osc = actx.createOscillator(); osc.type = "sine"; osc.frequency.value = 30;
+        var og = actx.createGain(); og.gain.value = 1;
+        osc.connect(og); og.connect(ring.gain);
+        var sh = actx.createWaveShaper(); sh.curve = robotCurve();
+        var robotWet = actx.createGain(); robotWet.gain.value = 0;
+        input.connect(ring); ring.connect(sh); sh.connect(robotWet); robotWet.connect(out);
+        try{ osc.start(); }catch(e){}
+        var hp = actx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 400;
+        var lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 3400;
+        var cp = actx.createDynamicsCompressor();
+        cp.threshold.value = -24; cp.ratio.value = 4; cp.attack.value = 0.003; cp.release.value = 0.2; cp.knee.value = 12;
+        var phoneWet = actx.createGain(); phoneWet.gain.value = 0;
+        input.connect(hp); hp.connect(lp); lp.connect(cp); cp.connect(phoneWet); phoneWet.connect(out);
+        var conv = actx.createConvolver(); conv.buffer = makeImpulse(actx);
+        var revWet = actx.createGain(); revWet.gain.value = 0;
+        input.connect(conv); conv.connect(revWet); revWet.connect(out);
+        return { in: input, out: out, dry: dry, robotWet: robotWet, phoneWet: phoneWet, revWet: revWet };
+      }
+      function applyVoiceFx(a){
+        if(!a) return;
+        var ag = asegGains[a.id];
+        if(!ag || !ag.vfx) return;
+        var v = ag.vfx, type = a.vfx || "none";
+        try{
+          v.dry.gain.value = (type === "robot" || type === "phone") ? 0 : 1;
+          v.robotWet.gain.value = type === "robot" ? 0.9 : 0;
+          v.phoneWet.gain.value = type === "phone" ? 1 : 0;
+          v.revWet.gain.value = type === "reverb" ? ((a.vfxAmt == null ? 50 : a.vfxAmt) / 100) * 0.9 : 0;
+        }catch(e){}
+      }
+      /* Bản offline cho xuất WAV: cùng cấu trúc / thông số với nhánh xem trước */
+      function buildOfflineVoiceFx(oc, a){
+        var input = oc.createGain(), out = oc.createGain();
+        var type = a.vfx || "none";
+        if(type === "robot"){
+          var ring = oc.createGain(); ring.gain.value = 0;
+          var osc = oc.createOscillator(); osc.type = "sine"; osc.frequency.value = 30;
+          var og = oc.createGain(); og.gain.value = 1;
+          osc.connect(og); og.connect(ring.gain);
+          var sh = oc.createWaveShaper(); sh.curve = robotCurve();
+          var wet = oc.createGain(); wet.gain.value = 0.9;
+          input.connect(ring); ring.connect(sh); sh.connect(wet); wet.connect(out);
+          try{ osc.start(0); osc.stop(oc.length / oc.sampleRate + 0.1); }catch(e){}
+        } else if(type === "phone"){
+          var hp = oc.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 400;
+          var lp = oc.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 3400;
+          var cp = oc.createDynamicsCompressor();
+          cp.threshold.value = -24; cp.ratio.value = 4; cp.attack.value = 0.003; cp.release.value = 0.2; cp.knee.value = 12;
+          input.connect(hp); hp.connect(lp); lp.connect(cp); cp.connect(out);
+        } else if(type === "reverb"){
+          var conv = oc.createConvolver(); conv.buffer = makeImpulse(oc);
+          var wet2 = oc.createGain(); wet2.gain.value = ((a.vfxAmt == null ? 50 : a.vfxAmt) / 100) * 0.9;
+          input.connect(out);
+          input.connect(conv); conv.connect(wet2); wet2.connect(out);
+        } else {
+          input.connect(out);
+        }
+        return { in: input, out: out };
       }
       /* PRO: tiếng của lớp phủ video (PiP) qua WebAudio như các nguồn khác */
       function attachPipAudio(id, el){
@@ -6574,6 +6785,14 @@
       canvas.addEventListener("pointerdown", function(e){
         if(!clips.length || exporting) return;
         var p = canvasPos(e);
+        /* Chế độ chọn điểm theo dõi: cú bấm này là điểm cần bám, không phải kéo lớp phủ */
+        if(trackPick){
+          var tpNow = trackPick;
+          cancelTrackPick();
+          e.preventDefault();
+          runTracking(tpNow, p.x, p.y);
+          return;
+        }
         for(var i=overs.length-1;i>=0;i--){
           var o = overs[i];
           if(playhead < o.start - 0.001 || playhead > o.end + 0.001) continue;
@@ -8546,6 +8765,9 @@
         $("outAsegFadeOut").textContent = (a.fadeOut || 0) + "s";
         $("asegEcho").value = a.echo || 0;
         $("outAsegEcho").textContent = (a.echo || 0) + "%";
+        $("asegVfx").value = a.vfx || "none";
+        $("asegVfxAmt").value = a.vfxAmt == null ? 50 : a.vfxAmt;
+        $("outAsegVfxAmt").textContent = (a.vfxAmt == null ? 50 : a.vfxAmt) + "%";
         $("asegEqB").value = a.eqB || 0; $("outAsegEqB").textContent = (a.eqB || 0) + " dB";
         $("asegEqM").value = a.eqM || 0; $("outAsegEqM").textContent = (a.eqM || 0) + " dB";
         $("asegEqT").value = a.eqT || 0; $("outAsegEqT").textContent = (a.eqT || 0) + " dB";
@@ -8653,13 +8875,11 @@
       });
       $("duckLevel").addEventListener("change", function(){ pushHistory(); });
       /* Tìm nhịp nhạc nền: năng lượng theo cửa sổ 50ms, chọn đỉnh cao hơn trung bình quanh nó —
-         nhịp lưu theo giây TRONG FILE nhạc, vẽ lên đoạn nhạc và làm mốc bám khi kéo đoạn */
-      $("btnBeats").addEventListener("click", function(){
-        if(!S.musicLoaded){ toast("Hãy thêm nhạc nền trước đã."); return; }
-        if(!musicFile){ toast("Chưa có file nhạc để phân tích."); return; }
+         nhịp lưu theo giây TRONG FILE nhạc, vẽ lên đoạn nhạc và làm mốc bám khi kéo đoạn.
+         detectBeats(cb) dùng chung cho nút Tìm nhịp và Tự dựng theo nhịp; cb(beats) hoặc cb(null) khi lỗi. */
+      function detectBeats(cb){
         var AC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-        if(!AC){ toast("Trình duyệt này không hỗ trợ phân tích nhịp."); return; }
-        toast("Đang tìm nhịp…");
+        if(!AC || !musicFile){ if(cb) cb(null); return; }
         musicFile.arrayBuffer().then(function(buf){
           var oc = new AC(1, 44100, 44100);
           return oc.decodeAudioData(buf);
@@ -8695,9 +8915,20 @@
             ? ("Đã tìm thấy " + beats.length + " nhịp — vạch vàng trên đoạn nhạc, kéo đoạn sẽ tự bám nhịp.")
             : "Không tìm thấy nhịp rõ ràng trong bài này.";
           renderMusicTrack();
+          if(cb) cb(beats);
+        }).catch(function(){ if(cb) cb(null); });
+      }
+      $("btnBeats").addEventListener("click", function(){
+        if(!S.musicLoaded){ toast("Hãy thêm nhạc nền trước đã."); return; }
+        if(!musicFile){ toast("Chưa có file nhạc để phân tích."); return; }
+        var AC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if(!AC){ toast("Trình duyệt này không hỗ trợ phân tích nhịp."); return; }
+        toast("Đang tìm nhịp…");
+        detectBeats(function(beats){
+          if(!beats){ toast("Không phân tích được file nhạc này."); return; }
           pushHistory();
           toast(beats.length ? ("Đã tìm thấy " + beats.length + " nhịp.") : "Không tìm thấy nhịp rõ ràng trong bài này.");
-        }).catch(function(){ toast("Không phân tích được file nhạc này."); });
+        });
       });
       $("asegVol").addEventListener("input", function(){
         var a = selAseg(); if(!a) return;
@@ -8901,6 +9132,784 @@
         });
       });
       $("btnRecStop").addEventListener("click", stopRecording);
+
+      /* =====================================================================
+         NHÓM LÀM ĐƯỢC — 7 tính năng: easing keyframe · auto-reframe theo mặt ·
+         theo dõi chuyển động · tự dựng theo nhịp · hiệu ứng giọng (UI) ·
+         quay màn hình/webcam · xuất GIF. Tất cả đi qua đường vẽ/gain dùng chung.
+         ===================================================================== */
+
+      /* ---------- 6) EASING CHO KEYFRAME: lưu trên từng keyframe (kf.ease), áp cho đoạn nội suy SAU nó ---------- */
+      function easeApply(name, f){
+        f = clamp(f, 0, 1);
+        if(name === "in") return f * f;
+        if(name === "out") return 1 - (1 - f) * (1 - f);
+        if(name === "inout") return f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+        if(name === "back") return easeOutBack(f);
+        return f;
+      }
+      function kfNearest(obj, localT){
+        if(!obj || !obj.kfs || !obj.kfs.length) return null;
+        var best = null, bd = Infinity;
+        for(var i = 0; i < obj.kfs.length; i++){
+          var d = Math.abs(obj.kfs[i].t - localT);
+          if(d < bd){ bd = d; best = obj.kfs[i]; }
+        }
+        return best;
+      }
+      function drawEaseCv(el, name){
+        if(!el) return;
+        var g = el.getContext("2d");
+        var W = el.width, H = el.height, m = 10;
+        g.clearRect(0, 0, W, H);
+        g.strokeStyle = "rgba(255,255,255,0.16)";
+        g.lineWidth = 1;
+        g.beginPath(); g.moveTo(m, H - m); g.lineTo(W - m, m); g.stroke();
+        g.strokeStyle = "#00c9d4";
+        g.lineWidth = 3;
+        g.beginPath();
+        for(var i = 0; i <= 48; i++){
+          var f = i / 48;
+          var ev = clamp(easeApply(name, f), -0.12, 1.2);
+          var x = m + f * (W - 2 * m);
+          var y = (H - m) - ev * (H - 2 * m);
+          if(i === 0) g.moveTo(x, y); else g.lineTo(x, y);
+        }
+        g.stroke();
+      }
+      function syncEaseClipUI(c){
+        var sel = $("kfEaseClip"); if(!sel || !c) return;
+        var k = kfNearest(c, clipLocalT(c));
+        sel.value = k ? (k.ease || "linear") : "linear";
+        drawEaseCv($("easeCvClip"), sel.value);
+      }
+      function syncEaseOverUI(o){
+        var sel = $("kfEaseOver"); if(!sel || !o) return;
+        var k = kfNearest(o, overLocalT(o));
+        sel.value = k ? (k.ease || "linear") : "linear";
+        drawEaseCv($("easeCvOver"), sel.value);
+      }
+      $("kfEaseClip").addEventListener("change", function(){
+        var c = selClip(); if(!c) return;
+        var k = kfNearest(c, clipLocalT(c));
+        if(!k){ toast("Chưa có keyframe nào — hãy ghim keyframe trước đã."); this.value = "linear"; drawEaseCv($("easeCvClip"), "linear"); return; }
+        k.ease = this.value;
+        drawEaseCv($("easeCvClip"), this.value);
+        pushHistory(); dirty = true;
+      });
+      $("kfEaseOver").addEventListener("change", function(){
+        var o = selOver(); if(!o) return;
+        var k = kfNearest(o, overLocalT(o));
+        if(!k){ toast("Chưa có keyframe nào — hãy ghim keyframe trước đã."); this.value = "linear"; drawEaseCv($("easeCvOver"), "linear"); return; }
+        k.ease = this.value;
+        drawEaseCv($("easeCvOver"), this.value);
+        pushHistory(); dirty = true;
+      });
+
+      /* ---------- 7) AUTO-REFRAME THEO MẶT (Thử nghiệm): c.rfPath = [{t (giây cục bộ), x, y (% vị trí cắt)}] ---------- */
+      function rfEval(path, t){
+        if(!path || !path.length) return { x: 50, y: 50 };
+        if(t <= path[0].t) return { x: path[0].x, y: path[0].y };
+        var last = path[path.length - 1];
+        if(t >= last.t) return { x: last.x, y: last.y };
+        for(var i = 0; i < path.length - 1; i++){
+          if(t >= path[i].t && t <= path[i + 1].t){
+            var f = (t - path[i].t) / Math.max(0.0001, path[i + 1].t - path[i].t);
+            return { x: path[i].x + (path[i + 1].x - path[i].x) * f, y: path[i].y + (path[i + 1].y - path[i].y) * f };
+          }
+        }
+        return { x: last.x, y: last.y };
+      }
+      function clipCropPosAt(c, lt){
+        if(c.reframe && c.rfPath && c.rfPath.length) return rfEval(c.rfPath, lt);
+        return { x: S.posX, y: S.posY };
+      }
+      function syncReframeUI(c){
+        if(!c) return;
+        var b = $("btnReframe"); if(!b) return;
+        b.classList.toggle("on", !!c.reframe);
+        b.textContent = c.reframe ? "Khung theo mặt: Bật" : "Khung theo mặt: Tắt";
+        var info = $("rfInfo");
+        if(info && c.reframe) info.textContent = "Đang áp đường khung theo mặt" + (c.rfPath ? " (" + c.rfPath.length + " điểm)" : "") + " — khung cắt tự dịch theo mặt trong clip này. Tắt là về vị trí cắt tĩnh.";
+        else if(info) info.textContent = "AI quét mặt trong clip (mỗi ~0,5 giây) rồi sinh đường dịch khung cắt theo mặt — chỉ có tác dụng khi tỉ lệ nguồn khác tỉ lệ khung dự án. Tắt là về vị trí cắt tĩnh như cũ.";
+      }
+      var rfBusy = false, rfCancel = false;
+      $("btnRfCancel").addEventListener("click", function(){ rfCancel = true; });
+      $("btnReframe").addEventListener("click", function(){
+        var c = selClip(); if(!c) return;
+        if(rfBusy){ toast("Đang quét mặt — chờ xong hoặc bấm Huỷ quét đã."); return; }
+        if(c.reframe){
+          c.reframe = false;
+          syncReframeUI(c); pushHistory(); dirty = true;
+          toast("Đã tắt Khung theo mặt — về vị trí cắt tĩnh.");
+          return;
+        }
+        if(c.freeze || !c.url){ toast("Clip tĩnh không có mặt chuyển động để theo."); return; }
+        var sw0 = (S.rot % 180 === 0) ? c.vw : c.vh;
+        var sh0 = (S.rot % 180 === 0) ? c.vh : c.vw;
+        var srcAsp = (sw0 || 1) / Math.max(1, sh0 || 1);
+        var cvAsp = canvas.width / Math.max(1, canvas.height);
+        if(Math.abs(srcAsp - cvAsp) < 0.03){ toast("Tỉ lệ clip đã khớp khung dự án — không cần canh lại theo mặt."); return; }
+        if(c.rfPath && c.rfPath.length){
+          c.reframe = true;
+          syncReframeUI(c); pushHistory(); dirty = true;
+          toast("Đã bật Khung theo mặt (dùng đường khung đã quét trước đó).");
+          return;
+        }
+        ensureFaceDetector(function(ok){
+          if(!ok){ syncReframeUI(c); return; }
+          runReframeScan(c);
+        });
+      });
+      function runReframeScan(c){
+        rfBusy = true; rfCancel = false;
+        $("rfProgWrap").hidden = false;
+        var tv = document.createElement("video");
+        tv.muted = true; tv.setAttribute("playsinline", ""); tv.preload = "auto"; tv.src = c.url;
+        var out = clipOut(c);
+        var step = 0.5;
+        var n = Math.max(0, Math.floor(out / step));
+        var pts = [];
+        var last = null;
+        var sw = (S.rot % 180 === 0) ? c.vw : c.vh;
+        var sh = (S.rot % 180 === 0) ? c.vh : c.vw;
+        var cvAsp = canvas.width / Math.max(1, canvas.height);
+        var srcAsp = (sw || 1) / Math.max(1, sh || 1);
+        var cropFX = Math.min(1, cvAsp / srcAsp);
+        var cropFY = Math.min(1, srcAsp / cvAsp);
+        function posFor(fx, fy){
+          return {
+            x: cropFX >= 0.999 ? 50 : clamp((fx - cropFX / 2) / (1 - cropFX), 0, 1) * 100,
+            y: cropFY >= 0.999 ? 50 : clamp((fy - cropFY / 2) / (1 - cropFY), 0, 1) * 100
+          };
+        }
+        function cleanup(){
+          rfBusy = false;
+          $("rfProgWrap").hidden = true;
+          try{ tv.removeAttribute("src"); tv.load(); }catch(e){}
+        }
+        function seekTv(srcT){
+          return new Promise(function(res){
+            var done = false;
+            function fin(){ if(done) return; done = true; tv.removeEventListener("seeked", onS); res(); }
+            function onS(){ fin(); }
+            if(Math.abs(tv.currentTime - srcT) < 0.02 && tv.readyState >= 2){ res(); return; }
+            tv.addEventListener("seeked", onS);
+            try{ tv.currentTime = srcT; }catch(e){ fin(); }
+            setTimeout(fin, 700);
+          });
+        }
+        var i = 0;
+        function stepFn(){
+          if(rfCancel){ cleanup(); syncReframeUI(c); toast("Đã huỷ quét mặt."); return; }
+          if(i > n){
+            var sm = pts.map(function(p, ix){
+              var a = pts[Math.max(0, ix - 1)], b = pts[Math.min(pts.length - 1, ix + 1)];
+              return { t: p.t, x: Math.round((a.x + p.x + b.x) / 3 * 10) / 10, y: Math.round((a.y + p.y + b.y) / 3 * 10) / 10 };
+            });
+            c.rfPath = sm;
+            c.reframe = true;
+            cleanup();
+            syncReframeUI(c); syncClipPanel();
+            pushHistory(); dirty = true;
+            toast("Đã quét xong — khung sẽ tự dịch theo mặt (" + sm.length + " điểm).");
+            return;
+          }
+          $("rfBar").style.width = Math.round(i / (n + 1) * 100) + "%";
+          $("rfProgLabel").textContent = "Đang quét mặt… " + i + "/" + (n + 1);
+          var lt = Math.min(out, i * step);
+          i++;
+          seekTv(clamp(clipSrcAt(c, lt), 0, c.duration)).then(function(){
+            if(rfCancel){ stepFn(); return; }
+            var pt = null;
+            if(faceDet.det && tv.readyState >= 2 && tv.videoWidth){
+              var sc = Math.min(1, 640 / Math.max(tv.videoWidth, tv.videoHeight));
+              var dw = Math.max(2, Math.round(tv.videoWidth * sc)), dh = Math.max(2, Math.round(tv.videoHeight * sc));
+              if(faceWork.width !== dw || faceWork.height !== dh){ faceWork.width = dw; faceWork.height = dh; }
+              var wg = faceWork.getContext("2d");
+              try{
+                wg.drawImage(tv, 0, 0, dw, dh);
+                var res = faceDet.det.detect(faceWork);
+                var dets = (res && res.detections) || [];
+                var bestB = null, bestA = 0;
+                for(var di = 0; di < dets.length; di++){
+                  var bb = dets[di].boundingBox; if(!bb) continue;
+                  var area = bb.width * bb.height;
+                  if(area > bestA){ bestA = area; bestB = bb; }
+                }
+                if(bestB){
+                  var fx = (bestB.originX + bestB.width / 2) / dw, fy = (bestB.originY + bestB.height / 2) / dh;
+                  /* Khung detector là khung video thô; khi khung dự án bị xoay 90° thì hoán đổi trục cho gần đúng */
+                  if(S.rot % 180 !== 0){ var tmp = fx; fx = fy; fy = 1 - tmp; }
+                  if(S.flip) fx = 1 - fx;
+                  pt = posFor(clamp(fx, 0, 1), clamp(fy, 0, 1));
+                  last = pt;
+                }
+              }catch(e){}
+            }
+            if(!pt) pt = last || { x: S.posX, y: S.posY };
+            pts.push({ t: Math.round(lt * 100) / 100, x: Math.round(pt.x * 10) / 10, y: Math.round(pt.y * 10) / 10 });
+            stepFn();
+          });
+        }
+        tv.addEventListener("loadedmetadata", function(){ stepFn(); });
+        tv.addEventListener("error", function(){ cleanup(); syncReframeUI(c); toast("Không đọc được video để quét mặt."); });
+      }
+
+      /* ---------- 1) THEO DÕI CHUYỂN ĐỘNG CƠ BẢN: lấy mẫu xám quanh điểm bấm, so khớp mẫu (SSD)
+         trên vùng lân cận ±48px theo từng bước ~0,1s; kết quả → keyframe vị trí của lớp (một bước undo) ---------- */
+      var trackPick = null;      // {kind:"over"|"text", id, clipId}
+      var trackBusy = false, trackCancel = false;
+      function showTrackProg(on){
+        ["trackProgWrap", "trackProgWrapT"].forEach(function(id){ var e = $(id); if(e) e.hidden = !on; });
+      }
+      function setTrackProg(pct, label){
+        ["trackBar", "trackBarT"].forEach(function(id){ var e = $(id); if(e) e.style.width = pct + "%"; });
+        ["trackProgLabel", "trackProgLabelT"].forEach(function(id){ var e = $(id); if(e) e.textContent = label; });
+      }
+      function cancelTrackPick(){
+        trackPick = null;
+        canvas.style.cursor = "";
+        var h = $("trackHint"); if(h) h.hidden = true;
+      }
+      document.addEventListener("keydown", function(e){
+        if(e.key === "Escape" && trackPick) cancelTrackPick();
+      });
+      $("btnTrackCancel").addEventListener("click", function(){ trackCancel = true; });
+      $("btnTrackCancelT").addEventListener("click", function(){ trackCancel = true; });
+      function trackTargetClip(obj){
+        var atHead = null, any = null;
+        for(var i = 0; i < clips.length; i++){
+          var c = clips[i];
+          if(c.freeze || !c.url) continue;
+          var cs = c.start || 0, ce = cs + clipOut(c);
+          if(obj.start < ce && obj.end > cs){
+            if(!any) any = c;
+            if(playhead >= cs - 0.001 && playhead <= ce + 0.001) atHead = c;
+          }
+        }
+        return atHead || any;
+      }
+      function startTrackPick(kind){
+        var obj = kind === "text" ? selText() : selOver();
+        if(!obj){ toast("Hãy chọn một lớp trước đã."); return; }
+        if(trackBusy){ toast("Đang theo dõi điểm khác — chờ xong hoặc bấm Huỷ đã."); return; }
+        if(playing) pauseAll();
+        if(playhead < obj.start - 0.001 || playhead > obj.end + 0.001){
+          toast("Hãy đưa điểm phát vào khoảng hiện của lớp đang chọn rồi bấm Theo dõi điểm.");
+          return;
+        }
+        var c = trackTargetClip(obj);
+        if(!c){ toast("Không có clip video nào nằm dưới lớp này tại điểm phát."); return; }
+        trackPick = { kind: kind, id: obj.id, clipId: c.id };
+        canvas.style.cursor = "crosshair";
+        $("trackHint").hidden = false;
+        toast("Bấm vào điểm cần bám theo trên khung hình.");
+      }
+      $("btnTrack").addEventListener("click", function(){ startTrackPick("over"); });
+      $("btnTrackText").addEventListener("click", function(){ startTrackPick("text"); });
+      function runTracking(tp, fx, fy){
+        var obj = tp.kind === "text" ? findText(tp.id) : findOver(tp.id);
+        var c = findClip(tp.clipId);
+        if(!obj || !c){ toast("Không còn thấy lớp hoặc clip để theo dõi."); return; }
+        var t0 = Math.max(obj.start, c.start || 0);
+        var t1 = Math.min(obj.end, (c.start || 0) + clipOut(c));
+        if(t1 - t0 < 0.2){ toast("Khoảng giao nhau giữa lớp và clip quá ngắn để theo dõi."); return; }
+        trackBusy = true; trackCancel = false;
+        showTrackProg(true);
+        setTrackProg(0, "Đang chuẩn bị…");
+        var W = canvas.width, H = canvas.height;
+        var sw = (S.rot % 180 === 0) ? c.vw : c.vh;
+        var sh = (S.rot % 180 === 0) ? c.vh : c.vw;
+        var asc = Math.min(1, 480 / Math.max(sw, sh));
+        var aw = Math.max(2, Math.round(sw * asc)), ah = Math.max(2, Math.round(sh * asc));
+        var aCv = document.createElement("canvas"); aCv.width = aw; aCv.height = ah;
+        var ag = aCv.getContext("2d", { willReadFrequently: true });
+        var tv = document.createElement("video");
+        tv.muted = true; tv.setAttribute("playsinline", ""); tv.preload = "auto"; tv.src = c.url;
+        function frameMap(lt){
+          var pos = clipCropPosAt(c, lt);
+          if(S.blurBg && S.aspect !== "orig"){
+            var fs = Math.min(W / sw, H / sh);
+            return { mode: "fit", ox: (W - sw * fs) / 2, oy: (H - sh * fs) / 2, fs: fs };
+          }
+          var sc = Math.max(W / sw, H / sh);
+          var cw = W / sc, ch = H / sc;
+          return { mode: "crop", cx: clamp((sw - cw) * pos.x / 100, 0, Math.max(0, sw - cw)), cy: clamp((sh - ch) * pos.y / 100, 0, Math.max(0, sh - ch)), cw: cw, ch: ch };
+        }
+        function toAnalysis(map, pxF, pyF){
+          if(map.mode === "fit") return { x: (pxF * W - map.ox) / map.fs * asc, y: (pyF * H - map.oy) / map.fs * asc };
+          return { x: (map.cx + pxF * map.cw) * asc, y: (map.cy + pyF * map.ch) * asc };
+        }
+        function toCanvasFrac(map, ax, ay){
+          var sx = ax / asc, sy = ay / asc;
+          if(map.mode === "fit") return { x: (map.ox + sx * map.fs) / W, y: (map.oy + sy * map.fs) / H };
+          return { x: (sx - map.cx) / map.cw, y: (sy - map.cy) / map.ch };
+        }
+        function drawAnalysis(){
+          ag.save();
+          ag.clearRect(0, 0, aw, ah);
+          ag.translate(aw / 2, ah / 2);
+          ag.rotate(S.rot * Math.PI / 180);
+          if(S.flip) ag.scale(-1, 1);
+          try{ ag.drawImage(tv, -c.vw * asc / 2, -c.vh * asc / 2, c.vw * asc, c.vh * asc); }catch(e){}
+          ag.restore();
+        }
+        function grayFrame(){
+          var img;
+          try{ img = ag.getImageData(0, 0, aw, ah); }catch(e){ return null; }
+          var d = img.data, g = new Float32Array(aw * ah);
+          for(var i = 0, j = 0; i < g.length; i++, j += 4) g[i] = d[j] * 0.3 + d[j + 1] * 0.55 + d[j + 2] * 0.15;
+          return g;
+        }
+        function seekTv(srcT){
+          return new Promise(function(res){
+            var done = false;
+            function fin(){ if(done) return; done = true; tv.removeEventListener("seeked", onS); res(); }
+            function onS(){ fin(); }
+            if(Math.abs(tv.currentTime - srcT) < 0.02 && tv.readyState >= 2){ res(); return; }
+            tv.addEventListener("seeked", onS);
+            try{ tv.currentTime = srcT; }catch(e){ fin(); }
+            setTimeout(fin, 700);
+          });
+        }
+        var tpl = null, tplHW = 0, anchorAx = 0, anchorAy = 0, lastAx = 0, lastAy = 0, lost = 0;
+        var results = [];
+        function sampleTemplate(g, ax, ay){
+          tplHW = clamp(Math.round(Math.min(aw, ah) * 0.055), 7, 22);
+          var x0 = Math.round(ax) - tplHW, y0 = Math.round(ay) - tplHW;
+          if(x0 < 0 || y0 < 0 || x0 + tplHW * 2 > aw || y0 + tplHW * 2 > ah) return false;
+          var sz = tplHW * 2;
+          tpl = new Float32Array(sz * sz);
+          var mean = 0, i2;
+          for(var y = 0; y < sz; y++) for(var x = 0; x < sz; x++){ var v = g[(y0 + y) * aw + (x0 + x)]; tpl[y * sz + x] = v; mean += v; }
+          mean /= tpl.length;
+          var varr = 0;
+          for(i2 = 0; i2 < tpl.length; i2++){ tpl[i2] -= mean; varr += tpl[i2] * tpl[i2]; }
+          return varr / tpl.length > 25;
+        }
+        function matchAt(g, cxA, cyA){
+          var sz = tplHW * 2, R = 48;
+          function ssdAt(cx, cy){
+            var x0 = Math.round(cx) - tplHW, y0 = Math.round(cy) - tplHW;
+            if(x0 < 0 || y0 < 0 || x0 + sz > aw || y0 + sz > ah) return Infinity;
+            var s = 0;
+            for(var y = 0; y < sz; y++){
+              var row = (y0 + y) * aw + x0, trow = y * sz;
+              for(var x = 0; x < sz; x++){ var dv = g[row + x] - tpl[trow + x]; s += dv * dv; }
+            }
+            return s / tpl.length;
+          }
+          var bx = cxA, by = cyA, bs = Infinity, ox, oy, s;
+          for(oy = -R; oy <= R; oy += 2) for(ox = -R; ox <= R; ox += 2){
+            s = ssdAt(cxA + ox, cyA + oy);
+            if(s < bs){ bs = s; bx = cxA + ox; by = cyA + oy; }
+          }
+          for(oy = -2; oy <= 2; oy++) for(ox = -2; ox <= 2; ox++){
+            s = ssdAt(bx + ox, by + oy);
+            if(s < bs){ bs = s; bx += ox; by += oy; }
+          }
+          return { x: bx, y: by, err: Math.sqrt(Math.max(0, bs)) };
+        }
+        function finishAll(ok, msg){
+          try{ tv.removeAttribute("src"); tv.load(); }catch(e){}
+          trackBusy = false;
+          showTrackProg(false);
+          if(!ok){ toast(msg || "Đã huỷ theo dõi điểm."); return; }
+          var sm = results.map(function(r, ix){
+            var a = results[Math.max(0, ix - 1)], b = results[Math.min(results.length - 1, ix + 1)];
+            return { t: r.t, fx: (a.fx + r.fx + b.fx) / 3, fy: (a.fy + r.fy + b.fy) / 3 };
+          });
+          var base = tp.kind === "text" ? { x: 0, y: 0, s: 100, o: 100 } : overKfBase(obj);
+          var cyFrac = tp.kind === "text" ? (obj.pos === "top" ? 0.14 : (obj.pos === "center" ? 0.5 : 0.86)) : 0;
+          sm.forEach(function(r){
+            var lt = r.t - obj.start;
+            var cur = kfEval(obj.kfs, lt, base);
+            var nx, ny;
+            if(tp.kind === "text"){ nx = (r.fx - 0.5) * 100; ny = (r.fy - cyFrac) * 100; }
+            else { nx = clamp(r.fx, -0.1, 1.1) * 100; ny = clamp(r.fy, -0.1, 1.1) * 100; }
+            kfUpsert(obj, lt, { x: Math.round(nx * 10) / 10, y: Math.round(ny * 10) / 10, s: cur.s, o: cur.o });
+          });
+          renderStrip();
+          if(tp.kind === "text"){ renderTextList(); syncTextPanel(); } else syncOverPanel();
+          pushHistory(); dirty = true;
+          toast("Đã bám theo điểm: ghi " + sm.length + " keyframe vị trí" + (lost ? " (" + lost + " điểm khớp yếu nên giữ nguyên vị trí gần nhất)" : "") + ".");
+        }
+        tv.addEventListener("error", function(){ if(trackBusy) finishAll(false, "Không đọc được video của clip để theo dõi."); });
+        tv.addEventListener("loadedmetadata", function(){
+          var startLt = clamp(playhead - (c.start || 0), 0, clipOut(c));
+          seekTv(clamp(clipSrcAt(c, startLt), 0, c.duration)).then(function(){
+            if(trackCancel){ finishAll(false); return; }
+            drawAnalysis();
+            var g0 = grayFrame();
+            if(!g0){ finishAll(false, "Không đọc được khung hình để lấy mẫu."); return; }
+            var map0 = frameMap(startLt);
+            var a0 = toAnalysis(map0, fx, fy);
+            anchorAx = lastAx = a0.x; anchorAy = lastAy = a0.y;
+            if(!sampleTemplate(g0, a0.x, a0.y)){
+              finishAll(false, "Điểm đã chọn quá phẳng (gần như một màu) — hãy chọn điểm có chi tiết rõ hơn.");
+              return;
+            }
+            var f0 = toCanvasFrac(map0, a0.x, a0.y);
+            results.push({ t: playhead, fx: f0.x, fy: f0.y });
+            var range = t1 - t0;
+            var step = 0.1;
+            if(range / step > 400) step = range / 400;
+            var queue = [], ft, firstBack = true;
+            for(ft = playhead + step; ft <= t1 + 0.001; ft += step) queue.push({ t: Math.min(ft, t1), reset: false });
+            for(ft = playhead - step; ft >= t0 - 0.001; ft -= step){ queue.push({ t: Math.max(ft, t0), reset: firstBack }); firstBack = false; }
+            var idx = 0, totalSteps = queue.length;
+            (function nextStep(){
+              if(trackCancel){ finishAll(false); return; }
+              if(idx >= totalSteps){
+                results.sort(function(a, b){ return a.t - b.t; });
+                finishAll(true);
+                return;
+              }
+              var item = queue[idx++];
+              if(item.reset){ lastAx = anchorAx; lastAy = anchorAy; }
+              setTrackProg(Math.round(idx / Math.max(1, totalSteps) * 100), "Đang bám điểm… " + idx + "/" + totalSteps);
+              var lt = clamp(item.t - (c.start || 0), 0, clipOut(c));
+              seekTv(clamp(clipSrcAt(c, lt), 0, c.duration)).then(function(){
+                if(trackCancel){ finishAll(false); return; }
+                drawAnalysis();
+                var g = grayFrame();
+                if(g){
+                  var m = matchAt(g, lastAx, lastAy);
+                  if(m.err <= 34){ lastAx = m.x; lastAy = m.y; }
+                  else lost++;
+                  var fr = toCanvasFrac(frameMap(lt), lastAx, lastAy);
+                  results.push({ t: item.t, fx: fr.x, fy: fr.y });
+                }
+                nextStep();
+              });
+            })();
+          });
+        });
+      }
+
+      /* ---------- 2) TỰ DỰNG THEO NHỊP: cắt điểm cuối mỗi clip theo vạch nhịp tiếp theo, xếp nối tiếp ---------- */
+      function doBeatCut(){
+        sortClips();
+        var beatsTl = (S.musicBeats || []).map(function(b){ return S.musicStart + (b - S.musicOffset); })
+          .filter(function(t){ return isFinite(t); }).sort(function(a, b){ return a - b; });
+        if(!beatsTl.length){ toast("Chưa có vạch nhịp nào dùng được."); return; }
+        var cursor = clips[0].start || 0;
+        var cut = 0, bi = 0;
+        for(var i = 0; i < clips.length; i++){
+          var c = clips[i];
+          c.start = Math.round(cursor * 100) / 100;
+          while(bi < beatsTl.length && beatsTl[bi] <= cursor + 0.1) bi++;
+          var nb = bi < beatsTl.length ? beatsTl[bi] : null;
+          if(nb !== null){
+            var desired = nb - cursor;
+            var maxOut = Math.max(0.05, (clipTrimMax(c) - c.trimStart) / (c.speed || 1));
+            if(desired >= 0.15 && desired <= maxOut + 0.001){
+              c.trimEnd = Math.round((c.trimStart + desired * (c.speed || 1)) * 100) / 100;
+              cut++;
+            }
+            /* Nhịp thưa hơn độ dài nguồn còn lại → giữ nguyên clip đó, bỏ qua */
+          }
+          cursor = (c.start || 0) + clipOut(c);
+        }
+        afterClipStructure();
+        pushHistory();
+        toast("Đã tự dựng theo nhịp: " + cut + "/" + clips.length + " clip cắt khớp vạch nhịp, xếp nối tiếp từ " + fmt(clips[0].start || 0) + ".");
+      }
+      $("btnBeatCut").addEventListener("click", function(){
+        if(!S.musicLoaded){ toast("Hãy thêm nhạc nền trước đã."); return; }
+        var nv = 0;
+        clips.forEach(function(c){ if(!c.freeze) nv++; });
+        if(nv < 2){ toast("Cần ít nhất 2 clip video để tự dựng theo nhịp."); return; }
+        if(S.musicBeats && S.musicBeats.length){ doBeatCut(); return; }
+        if(!musicFile){ toast("Chưa có file nhạc để tìm nhịp."); return; }
+        toast("Chưa có nhịp — đang tìm nhịp trước…");
+        detectBeats(function(beats){
+          if(beats && beats.length) doBeatCut();
+          else toast("Không tìm thấy nhịp rõ ràng trong bài này — không dựng theo nhịp được.");
+        });
+      });
+
+      /* ---------- 4) HIỆU ỨNG GIỌNG — UI của đoạn tiếng (chuỗi WebAudio nằm ở attachAsegAudio / renderWavBlob) ---------- */
+      $("asegVfx").addEventListener("change", function(){
+        var a = selAseg(); if(!a) return;
+        a.vfx = this.value;
+        applyVoiceFx(a);
+        pushHistory();
+        toast(a.vfx === "none" ? "Đã tắt hiệu ứng giọng." : "Đã áp hiệu ứng giọng cho đoạn tiếng.");
+      });
+      $("asegVfxAmt").addEventListener("input", function(){
+        var a = selAseg(); if(!a) return;
+        a.vfxAmt = parseFloat(this.value);
+        $("outAsegVfxAmt").textContent = a.vfxAmt + "%";
+        applyVoiceFx(a);
+      });
+      $("asegVfxAmt").addEventListener("change", function(){ pushHistory(); });
+
+      /* ---------- 3) QUAY MÀN HÌNH / WEBCAM THÀNH CLIP: MediaRecorder → File → đúng pipeline thêm clip hiện có.
+         Xem trước webcam lật gương (CSS) cho tự nhiên; BẢN GHI GIỮ KHUNG GỐC của camera/màn hình (không lật). ---------- */
+      var vrecState = null;   // {mr, stream, chunks, t0, timer, kind, mime}
+      function stopVidRec(){
+        if(vrecState && vrecState.mr && vrecState.mr.state !== "inactive"){
+          try{ vrecState.mr.stop(); }catch(e){ vrecFinish(); }
+        }
+      }
+      function vrecFinish(){
+        var rs = vrecState;
+        if(!rs) return;
+        vrecState = null;
+        if(rs.timer) clearInterval(rs.timer);
+        try{ rs.stream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
+        var pv = $("vrecPrev");
+        try{ pv.srcObject = null; }catch(e){}
+        pv.style.transform = "";
+        $("vrecLive").hidden = true;
+        var blob = new Blob(rs.chunks, { type: rs.mime || "video/webm" });
+        if(!blob.size){ toast("Bản quay trống — thử lại nhé."); return; }
+        var isMp4 = (rs.mime || "").indexOf("mp4") >= 0;
+        var file = null;
+        try{ file = new File([blob], (rs.kind === "screen" ? "quay-man-hinh" : "quay-webcam") + (isMp4 ? ".mp4" : ".webm"), { type: blob.type }); }catch(e){}
+        if(!file){ toast("Trình duyệt không đóng gói được bản quay thành file."); return; }
+        addVideoFiles([file]);
+      }
+      function startVidRec(kind){
+        if(vrecState){ toast("Đang quay rồi — hãy dừng bản quay hiện tại trước."); return; }
+        if(!navigator.mediaDevices || typeof MediaRecorder === "undefined"){
+          toast("Trình duyệt này không hỗ trợ quay video — thử Chrome hoặc Safari bản mới nhất nhé.");
+          return;
+        }
+        var gum = null;
+        try{
+          gum = kind === "screen"
+            ? (navigator.mediaDevices.getDisplayMedia ? navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }) : null)
+            : (navigator.mediaDevices.getUserMedia ? navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: true }) : null);
+        }catch(e){ gum = null; }
+        if(!gum){ toast(kind === "screen" ? "Trình duyệt này không hỗ trợ quay màn hình." : "Trình duyệt này không hỗ trợ quay webcam."); return; }
+        gum.then(function(stream){
+          if(vrecState){ stream.getTracks().forEach(function(t){ t.stop(); }); return; }
+          var mime = pickMime();
+          var mr = null;
+          try{ mr = mime ? new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 }) : new MediaRecorder(stream); }
+          catch(e){ try{ mr = new MediaRecorder(stream); }catch(e2){} }
+          if(!mr){
+            stream.getTracks().forEach(function(t){ t.stop(); });
+            toast("Không khởi động được bộ quay trên trình duyệt này.");
+            return;
+          }
+          vrecState = { mr: mr, stream: stream, chunks: [], t0: performance.now(), kind: kind, mime: mr.mimeType || mime || "video/webm", timer: null };
+          mr.ondataavailable = function(e){ if(e.data && e.data.size && vrecState) vrecState.chunks.push(e.data); };
+          mr.onstop = vrecFinish;
+          stream.getVideoTracks().forEach(function(t){ t.addEventListener("ended", function(){ stopVidRec(); }); });
+          var pv = $("vrecPrev");
+          pv.srcObject = stream;
+          pv.style.transform = kind === "cam" ? "scaleX(-1)" : "";
+          $("vrecLive").hidden = false;
+          $("vrecTime").textContent = "0:00";
+          mr.start(250);
+          vrecState.timer = setInterval(function(){
+            if(!vrecState) return;
+            var el2 = (performance.now() - vrecState.t0) / 1000;
+            $("vrecTime").textContent = fmt(el2);
+            if(el2 >= 900) stopVidRec();
+          }, 250);
+          toast(kind === "screen" ? "Đang quay màn hình…" : "Đang quay webcam…");
+        }).catch(function(){
+          toast(kind === "screen"
+            ? "Không quay được màn hình — hãy chọn cửa sổ/màn hình và cấp quyền khi trình duyệt hỏi."
+            : "Không mở được webcam — hãy cho phép quyền camera/micro trong trình duyệt rồi thử lại.");
+        });
+      }
+      $("btnRecScreen").addEventListener("click", function(){ startVidRec("screen"); });
+      $("btnRecCam").addEventListener("click", function(){ startVidRec("cam"); });
+      $("btnRecVidStop").addEventListener("click", stopVidRec);
+
+      /* ---------- 5) XUẤT GIF: bộ mã hoá GIF89a nội bộ (bảng màu cố định 216 màu khối + 40 xám),
+         render theo bước 0,1s (đúng 10 fps), bề rộng 480px, chặn dự án > 20 giây ---------- */
+      var gifBusy = false, gifCancel = false, suppressSel = false;
+      function gifLzw(idx, minCode){
+        var clear = 1 << minCode, eoi = clear + 1;
+        var table = new Map();
+        var freeEnt = eoi + 1, nBits = minCode + 1, maxcode = (1 << nBits) - 1;
+        var bytes = [], accum = 0, bits = 0;
+        function output(code){
+          accum |= code << bits;
+          bits += nBits;
+          while(bits >= 8){ bytes.push(accum & 255); accum >>= 8; bits -= 8; }
+          if(freeEnt > maxcode){
+            nBits++;
+            maxcode = (nBits === 12) ? 4096 : (1 << nBits) - 1;
+          }
+        }
+        function clearBlock(){
+          output(clear);
+          table.clear();
+          freeEnt = eoi + 1; nBits = minCode + 1; maxcode = (1 << nBits) - 1;
+        }
+        output(clear);
+        var ent = idx[0];
+        for(var i = 1; i < idx.length; i++){
+          var k = idx[i];
+          var key = ent * 256 + k;
+          if(table.has(key)){ ent = table.get(key); }
+          else {
+            output(ent);
+            if(freeEnt < 4096) table.set(key, freeEnt++);
+            else clearBlock();
+            ent = k;
+          }
+        }
+        output(ent);
+        output(eoi);
+        if(bits > 0) bytes.push(accum & 255);
+        return bytes;
+      }
+      function GifEncoder(w, h){
+        this.w = w; this.h = h;
+        this.parts = [];
+        this.pal = [];
+        var r, g, b, i;
+        for(r = 0; r < 6; r++) for(g = 0; g < 6; g++) for(b = 0; b < 6; b++) this.pal.push(r * 51, g * 51, b * 51);
+        for(i = 0; i < 40; i++){ var v = Math.round(i * 255 / 39); this.pal.push(v, v, v); }
+        while(this.pal.length < 256 * 3) this.pal.push(0);
+      }
+      GifEncoder.prototype.writeHeader = function(){
+        var w = this.w, h = this.h, bytes = [], i;
+        var sig = "GIF89a";
+        for(i = 0; i < 6; i++) bytes.push(sig.charCodeAt(i));
+        bytes.push(w & 255, (w >> 8) & 255, h & 255, (h >> 8) & 255, 0xF7, 0, 0);
+        for(i = 0; i < this.pal.length; i++) bytes.push(this.pal[i]);
+        var ns = [0x21, 0xFF, 11];
+        var app = "NETSCAPE2.0";
+        for(i = 0; i < 11; i++) ns.push(app.charCodeAt(i));
+        ns.push(3, 1, 0, 0, 0);
+        this.parts.push(new Uint8Array(bytes.concat(ns)));
+      };
+      GifEncoder.prototype.addFrame = function(rgba, delayCs){
+        var w = this.w, h = this.h, n = w * h;
+        var idx = new Uint8Array(n);
+        for(var i = 0, j = 0; i < n; i++, j += 4){
+          var R = rgba[j], G = rgba[j + 1], B = rgba[j + 2];
+          var mx = Math.max(R, G, B), mn = Math.min(R, G, B);
+          if(mx - mn < 14) idx[i] = 216 + Math.min(39, Math.round((R + G + B) / 765 * 39));
+          else idx[i] = Math.round(R / 51) * 36 + Math.round(G / 51) * 6 + Math.round(B / 51);
+        }
+        var out = [0x21, 0xF9, 4, 0, delayCs & 255, (delayCs >> 8) & 255, 0, 0,
+                   0x2C, 0, 0, 0, 0, w & 255, (w >> 8) & 255, h & 255, (h >> 8) & 255, 0, 8];
+        var lzw = gifLzw(idx, 8);
+        for(var k = 0; k < lzw.length; k += 255){
+          var chunk = lzw.slice(k, k + 255);
+          out.push(chunk.length);
+          for(var m = 0; m < chunk.length; m++) out.push(chunk[m]);
+        }
+        out.push(0);
+        this.parts.push(new Uint8Array(out));
+      };
+      GifEncoder.prototype.finish = function(){
+        this.parts.push(new Uint8Array([0x3B]));
+        return new Blob(this.parts, { type: "image/gif" });
+      };
+      function gifWaitSeek(t){
+        return new Promise(function(res){
+          var tries = 0;
+          (function chk(){
+            var ok = true;
+            for(var i = 0; i < clips.length; i++){
+              var c = clips[i];
+              if(c.freeze) continue;
+              var local = t - L.starts[i], out = clipOut(c);
+              if(local < -0.002 || local > out + 0.002) continue;
+              var el = clipEls[c.id];
+              if(!el) continue;
+              var srcT = clamp(clipSrcAt(c, clamp(local, 0, out)), 0, c.duration);
+              if(el.readyState < 2 || Math.abs(el.currentTime - srcT) > 0.08) ok = false;
+            }
+            for(var j = 0; j < overs.length; j++){
+              var o = overs[j];
+              if(!o.isVideo) continue;
+              var pel = pipEls[o.id];
+              if(pel && t >= o.start - 0.002 && t <= o.end + 0.002 && pel.readyState < 2) ok = false;
+            }
+            if(ok || ++tries > 12) res();
+            else setTimeout(chk, 40);
+          })();
+        });
+      }
+      $("btnExportGif").addEventListener("click", function(){
+        if(gifBusy || exporting) return;
+        if(!clips.length){ toast("Hãy thêm video trước đã."); return; }
+        var total = L.total;
+        if(total <= 0.05){ toast("Dự án đang trống."); return; }
+        if(total > 20){
+          toast("Dự án dài " + fmt(total) + " (> 20 giây) — GIF sẽ rất nặng. Hãy cắt ngắn dự án rồi xuất GIF nhé.");
+          return;
+        }
+        startGifExport(total);
+      });
+      $("btnCancelExport").addEventListener("click", function(){ if(gifBusy) gifCancel = true; });
+      function startGifExport(total){
+        gifBusy = true; gifCancel = false;
+        if(playing) pauseAll();
+        var prevPlayhead = playhead;
+        var gw = 480;
+        var gh = Math.max(2, Math.round(gw * canvas.height / Math.max(1, canvas.width)));
+        if(gh % 2) gh += 1;
+        var enc = new GifEncoder(gw, gh);
+        enc.writeHeader();
+        var gCv = document.createElement("canvas"); gCv.width = gw; gCv.height = gh;
+        var gg = gCv.getContext("2d", { willReadFrequently: true });
+        showExportPanel("run");
+        var h3 = document.querySelector("#exportRunning h3");
+        var pEl = document.querySelector("#exportRunning p");
+        var oldH3 = h3 ? h3.textContent : "", oldP = pEl ? pEl.textContent : "";
+        if(h3) h3.textContent = "Đang xuất GIF…";
+        if(pEl) pEl.textContent = "Dựng từng khung theo bước 0,1s (10 fps) ở bề rộng 480px — đừng đóng trang.";
+        $("exportBar").style.width = "0%";
+        $("exportPct").textContent = "0%";
+        var N = Math.max(1, Math.round(total * 10));
+        var i = 0;
+        suppressSel = true;
+        function finishGif(){
+          suppressSel = false;
+          gifBusy = false;
+          $("exportOverlay").hidden = true;
+          if(h3) h3.textContent = oldH3;
+          if(pEl) pEl.textContent = oldP;
+          playhead = prevPlayhead;
+          syncPausedFrame(); updateTransport(); dirty = true;
+        }
+        (function stepGif(){
+          if(gifCancel){ finishGif(); toast("Đã huỷ xuất GIF."); return; }
+          if(i >= N){
+            var blob = enc.finish();
+            finishGif();
+            if(!blob){ toast("Không tạo được file GIF."); return; }
+            var aEl = document.createElement("a");
+            aEl.href = URL.createObjectURL(blob);
+            aEl.download = (clips.length ? clips[0].name.replace(/\.[^.]+$/, "") : "video") + ".gif";
+            document.body.appendChild(aEl);
+            aEl.click();
+            setTimeout(function(){ URL.revokeObjectURL(aEl.href); aEl.remove(); }, 600);
+            toast("Đã xuất GIF " + gw + "×" + gh + " · " + fmtSize(blob.size) + ".");
+            return;
+          }
+          var t = Math.min(total, i / 10);
+          i++;
+          var pct = Math.round(i / N * 100);
+          $("exportBar").style.width = pct + "%";
+          $("exportPct").textContent = pct + "%";
+          playhead = t;
+          syncPausedFrame();
+          gifWaitSeek(t).then(function(){
+            if(gifCancel){ stepGif(); return; }
+            drawFrame();
+            try{
+              gg.drawImage(canvas, 0, 0, gw, gh);
+              enc.addFrame(gg.getImageData(0, 0, gw, gh).data, 10);
+            }catch(e){}
+            stepGif();
+          });
+        })();
+      }
 
       /* ---------- PRO: lưu / mở dự án bằng IndexedDB (trạng thái + file media gốc dạng Blob) ---------- */
       var projDB = null;
@@ -9320,9 +10329,12 @@
             var eq = offlineEqChain(oc);
             setEqNodes(eq, a.eqB, a.eqM, a.eqT, a.clarity);
             var t0 = a.start || 0;
-            var g = offlineGainCurve(oc, eq.low, t0, t0 + asegOut(a), function(t){
+            /* Hiệu ứng giọng offline: chèn giữa gain và EQ, đúng vị trí như chuỗi xem trước */
+            var ofx = (a.vfx && a.vfx !== "none") ? buildOfflineVoiceFx(oc, a) : null;
+            var g = offlineGainCurve(oc, ofx ? ofx.in : eq.low, t0, t0 + asegOut(a), function(t){
               return (S.videoVol / 100) * asegFactor(a, t);
             });
+            if(ofx) ofx.out.connect(eq.low);
             src.connect(g);
             eq.out.connect(oc.destination);
             src.start(t0, a.trimStart, dur);
