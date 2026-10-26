@@ -882,6 +882,28 @@
       .theme-row .lt{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; }
       .theme-row .btn{ padding:4px 9px; font-size:11.5px; }
 
+      /* ---------- Chọn nhiều / quét chọn / nam châm / thanh chia timeline ---------- */
+      .tl-seg.multi, .tl-aseg.multi, .tl-tseg.multi, .tl-mseg.multi{
+        border-color:rgba(0,201,212,.8); box-shadow:0 0 0 2px rgba(0,201,212,.38);
+      }
+      .tl-band{
+        position:absolute; z-index:6; pointer-events:none; border-radius:3px;
+        border:1.5px solid var(--accent); background:rgba(0,201,212,.13);
+      }
+      body.tl-space .tl-scroll{ cursor:grab; }
+      .tl-scroll.panning{ cursor:grabbing; }
+      .tl-split{ display:none; }
+      @media (min-width:1101px){
+        .tl-split{
+          display:flex; align-items:center; justify-content:center;
+          height:9px; flex:none; cursor:row-resize; touch-action:none;
+        }
+        .tl-split::after{
+          content:""; width:56px; height:3.5px; border-radius:2px;
+          background:var(--line); transition:background .15s;
+        }
+        .tl-split:hover::after, .tl-split:active::after{ background:var(--accent); }
+      }
       /* ---------- PRO: hover xem trước trên timeline ---------- */
       .tl-hover{
         position:fixed; z-index:130; pointer-events:none;
@@ -1436,6 +1458,7 @@
               </div>
             </div>
           </div>
+          <div class="tl-split" id="tlSplit" title="Kéo để phóng to / thu nhỏ vùng timeline · nhấp đúp: về chiều cao mặc định"></div>
           <div class="timeline">
             <div class="timeline-head">
               <h3>Dòng thời gian</h3>
@@ -1445,6 +1468,7 @@
                 <input type="range" id="tlZoomRange" min="0.1" max="6" step="0.05" value="1" />
               </label>
               <button class="btn" id="btnTlFit" style="padding:6px 10px;font-size:12px" title="Thu nhỏ timeline để thấy toàn bộ dự án trong khung, không cần cuộn ngang">Vừa khung</button>
+              <button class="btn" id="btnMagnet" style="padding:6px 10px;font-size:12px" title="Nam châm: kéo đoạn tự dính chặt vào đoạn kề trước / điểm 0; xoá đoạn thì các đoạn sau trên cùng track tự dồn lại lấp khoảng trống">🧲 Nam châm</button>
               <button class="btn" id="btnSplitTop" style="padding:6px 10px;font-size:12px">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.2 7.8 20 19M8.2 16.2 20 5"/></svg>
                 Tách tại điểm phát
@@ -1473,6 +1497,7 @@
                   <div class="tl-played" id="tlPlayed"></div>
                   <div class="tl-playhead" id="tlPlayhead"><span></span></div>
                   <div class="tl-tip" id="tlTip" hidden></div>
+                  <div class="tl-band" id="tlBand" hidden></div>
                 </div>
               </div>
             </div>
@@ -1578,7 +1603,7 @@
             <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m4.5 18 5-5 3 3 3.5-3.5 3.5 4"/></svg>
               Ảnh &amp; slideshow
             </h2>
-            <p class="hint" style="margin:0 0 11px">Ảnh cũng thành clip được (mặc định 3 giây, kéo dài tối đa 10 giây) — dùng Ken Burns, chuyển cảnh, bộ lọc như clip thường.</p>
+            <p class="hint" style="margin:0 0 11px">Ảnh cũng thành clip được (mặc định 3 giây, kéo dài tối đa 120 giây) — dùng Ken Burns, chuyển cảnh, bộ lọc như clip thường.</p>
             <button class="btn" id="btnSlidesPanel" style="width:100%;justify-content:center">Tạo slideshow từ nhiều ảnh</button>
             <button class="btn" id="btnAddImages" style="width:100%;justify-content:center;margin-top:7px">Thêm ảnh thành clip</button>
           </section>
@@ -2573,6 +2598,9 @@
       var markers = [];      // mốc thời gian (giây) ghim trên thước timeline
       var selClipId = null, selTextId = null, selOverId = null, selAsegId = null;
       var tlSel = { kind: null, id: null };   // đoạn đang chọn trên timeline: "clip" | "audio" | "text" | "music" | "gap"
+      var tlMulti = [];      // tập chọn NHIỀU đoạn (Ctrl/Cmd+bấm, quét chọn, Ctrl+A): [{kind, id}] — đoạn "chính" vẫn là tlSel
+      var tlMagnet = false;  // chế độ nam châm: MẶC ĐỊNH TẮT, chỉ lưu trong phiên làm việc
+      var tlSpaceDown = false; // đang giữ Space → kéo trên timeline là cuộn (pan) thay vì quét chọn
       var tlGap = null;      // khoảng trống đang chọn trên track video: {s, e}
       var playhead = 0, playing = false, exporting = false, dirty = true;
       var L = { starts:[], trs:[], total:0 };
@@ -2797,8 +2825,8 @@
 
       /* ---------- timeline layout ---------- */
       function clipOut(c){ return Math.max(0.05, (c.trimEnd - c.trimStart) / c.speed); }
-      /* Trần độ dài đoạn dùng khi cắt: clip thường = độ dài file; đoạn đóng băng = 30s; clip ảnh = 10s */
-      function clipTrimMax(c){ return c.freeze ? (c.isImg ? 10 : 30) : c.duration; }
+      /* Trần độ dài đoạn dùng khi cắt: clip thường = độ dài file; đoạn đóng băng / clip ảnh = 120s (kéo dài tuỳ ý) */
+      function clipTrimMax(c){ return c.freeze ? 120 : c.duration; }
       function sortClips(){ clips.sort(function(a, b){ return (a.start || 0) - (b.start || 0); }); }
       /* ---------- đường cong tốc độ (speed ramp) ----------
          Hệ số tốc độ tức thời theo vị trí u (0..1) trong clip; tích phân F(u) = phần
@@ -2928,7 +2956,8 @@
         return tg;
       }
       function snapStart(newStart, dur, targets, pps){
-        var th = 10 / Math.max(1, pps || 8);
+        /* Nam châm bật: ngưỡng hít rộng hơn (18px) — đoạn dính chặt vào mép đoạn kề / điểm 0 khi thả gần */
+        var th = (tlMagnet ? 18 : 10) / Math.max(1, pps || 8);
         var best = newStart, bestD = th;
         for(var i = 0; i < targets.length; i++){
           var cands = [targets[i], targets[i] - dur];
@@ -3703,6 +3732,7 @@
       function renderStrip(){
         var inner = $("tlInner");
         if(!inner) return;
+        multiPrune();
         var pps = pxPerSec();
         lastPps = pps;
         var W = Math.max(1, Math.ceil(L.total * pps));
@@ -3736,7 +3766,7 @@
               kfHtml += '<i class="tl-kf" style="left:' + clamp(c.kfs[kfI].t / Math.max(0.05, clipOut(c)) * 100, 0, 100) + '%"></i>';
             }
           }
-          vh += '<div class="tl-seg' + (c.id === selClipId ? " on" : "") + '" data-clip="' + c.id + '" role="button"' + bg + '>' +
+          vh += '<div class="tl-seg' + (c.id === selClipId ? " on" : "") + multiCls("clip", c.id) + '" data-clip="' + c.id + '" role="button"' + bg + '>' +
             (i > 0 && L.trs[i-1] > 0 ? '<i class="tl-trans" style="width:' + Math.round(L.trs[i-1] * pps) + 'px"></i>' : "") +
             kfHtml +
             '<span class="tl-handle tl-hl" data-side="l"></span>' +
@@ -3763,7 +3793,7 @@
               vkHtml += '<i class="tl-kf" style="left:' + clamp(a.vkfs[vki].t / Math.max(0.05, asegOut(a)) * 100, 0, 100) + '%"></i>';
             }
           }
-          ah += '<div class="tl-aseg' + (a.muted ? " muted" : "") + (tlSel.kind === "audio" && tlSel.id === a.id ? " on" : "") + '" data-aseg="' + a.id + '" style="left:' + aleft + 'px;width:' + awdt + 'px">' +
+          ah += '<div class="tl-aseg' + (a.muted ? " muted" : "") + (tlSel.kind === "audio" && tlSel.id === a.id ? " on" : "") + multiCls("audio", a.id) + '" data-aseg="' + a.id + '" style="left:' + aleft + 'px;width:' + awdt + 'px">' +
             '<span class="tl-handle tl-hl" data-side="l"></span>' + awave + vkHtml + '<span class="tl-avol">' + (a.muted ? "Tắt tiếng" : aEffVol + "%") + '</span>' +
             '<span class="tl-handle tl-hr" data-side="r"></span></div>';
         }
@@ -3775,7 +3805,7 @@
         var th = "";
         for(var k2 = 0; k2 < texts.length; k2++){
           var tx = texts[k2];
-          th += '<div class="tl-tseg' + (tlSel.kind === "text" && tx.id === selTextId ? " on" : "") + (tx.hidden ? " is-hidden" : "") + '" data-text="' + tx.id + '" style="left:' + Math.round(tx.start * pps) + 'px;width:' + Math.max(16, Math.round((tx.end - tx.start) * pps)) + 'px">' +
+          th += '<div class="tl-tseg' + (tlSel.kind === "text" && tx.id === selTextId ? " on" : "") + multiCls("text", tx.id) + (tx.hidden ? " is-hidden" : "") + '" data-text="' + tx.id + '" style="left:' + Math.round(tx.start * pps) + 'px;width:' + Math.max(16, Math.round((tx.end - tx.start) * pps)) + 'px">' +
             '<span class="tl-handle tl-hl" data-side="l"></span><span class="tl-tname"></span><span class="tl-handle tl-hr" data-side="r"></span></div>';
         }
         $("tlTextTrack").innerHTML = th;
@@ -3804,7 +3834,7 @@
             beatHtml += '<i class="tl-beat" style="left:' + Math.round(bRel) + 'px"></i>';
           }
         }
-        mt.innerHTML = '<div class="tl-mseg' + (tlSel.kind === "music" ? " on" : "") + '" id="tlMusicSeg" title="Kéo để dời lúc nhạc bắt đầu" style="left:' + left + 'px;width:' + wdt + 'px;' + bg + '">' +
+        mt.innerHTML = '<div class="tl-mseg' + (tlSel.kind === "music" ? " on" : "") + multiCls("music", null) + '" id="tlMusicSeg" title="Kéo để dời lúc nhạc bắt đầu" style="left:' + left + 'px;width:' + wdt + 'px;' + bg + '">' +
           '<span class="tl-handle tl-hl" data-side="l"></span>' + beatHtml + '<span class="tl-mlab"></span></div>';
         mt.querySelector(".tl-mlab").textContent = "♪ " + (musicFileName || "Nhạc nền") + " · từ " + fmt(S.musicStart);
       }
@@ -3820,6 +3850,7 @@
       }
       $("tlRuler").addEventListener("pointerdown", function(e){
         if(!clips.length) return;
+        if(tlSpaceDown || e.button === 1) return;   // giữ Space / nút giữa: để cơ chế cuộn (pan) ở tlInner xử lý, không scrub
         scrubbing = true;
         try{ this.setPointerCapture(e.pointerId); }catch(err){}
         var mk = e.target.closest ? e.target.closest(".tl-marker") : null;
@@ -4000,7 +4031,7 @@
         dirty = true;
       }
       function clearTimelineSelection(){
-        tlSel.kind = null; tlSel.id = null; tlGap = null; inspOver = false;
+        tlSel.kind = null; tlSel.id = null; tlGap = null; inspOver = false; tlMulti = [];
         syncInspector();
         renderStrip();
       }
@@ -4223,7 +4254,9 @@
         toast("Đã nhân bản lớp chữ.");
       }
       function deleteText(t){
+        var mDs = t.start, mDe = t.end;
         texts.splice(texts.indexOf(t), 1);
+        if(tlMagnet) magnetCloseGaps("text", [{ s: mDs, e: mDe }]);
         if(selTextId === t.id) selTextId = null;
         if(tlSel.id === t.id){ tlSel.kind = null; tlSel.id = null; }
         renderTextList(); syncTextPanel(); renderStrip();
@@ -4299,8 +4332,10 @@
       }
       function deleteAseg(a){
         if(!a) return;
+        var mDs = a.start || 0, mDe = mDs + asegOut(a);
         asegs.splice(asegs.indexOf(a), 1);
         disposeAsegEl(a.id);
+        if(tlMagnet) magnetCloseGaps("audio", [{ s: mDs, e: mDe }]);
         if(selAsegId === a.id) selAsegId = null;
         if(tlSel.kind === "audio" && tlSel.id === a.id){ tlSel.kind = null; tlSel.id = null; }
         relayout(); renderStrip(); syncAsegPanel();
@@ -4414,6 +4449,413 @@
         autoTabForKind(kind);
         renderStrip();
         showTlMenu(e.clientX, e.clientY, kind);
+      });
+
+      /* ---------- Chọn nhiều đoạn / kéo nhóm / quét chọn / nam châm / cuộn timeline / thanh chia ----------
+         Lớp cộng thêm trên cơ chế kéo hiện có (vị trí tuyệt đối, snap nhẹ, hoàn tác):
+         mặc định hành vi cũ KHÔNG đổi — handler dưới đây chỉ chặn đúng các thao tác mới
+         (Ctrl/Cmd+bấm, kéo đoạn thuộc tập chọn, Space/nút giữa, kéo trên nền trống),
+         còn lại để handler kéo gốc xử lý như trước. */
+      function multiHas(kind, id){
+        for(var i = 0; i < tlMulti.length; i++)
+          if(tlMulti[i].kind === kind && tlMulti[i].id === id) return true;
+        return false;
+      }
+      function multiCls(kind, id){ return multiHas(kind, id) ? " multi" : ""; }
+      function multiAlive(kind, id){
+        if(kind === "clip") return !!findClip(id);
+        if(kind === "audio") return !!findAseg(id);
+        if(kind === "text") return !!findText(id);
+        if(kind === "music") return !!S.musicLoaded;
+        return false;
+      }
+      function multiPrune(){
+        tlMulti = tlMulti.filter(function(en){ return multiAlive(en.kind, en.id); });
+      }
+      /* Tập chọn hiệu dụng: các đoạn trong tlMulti còn tồn tại + đoạn chính (tlSel) nếu chưa có mặt */
+      function multiEntries(){
+        var list = [], seen = {};
+        function push(kind, id){
+          var k = kind + ":" + id;
+          if(seen[k] || !multiAlive(kind, id)) return;
+          seen[k] = true; list.push({ kind: kind, id: id });
+        }
+        for(var i = 0; i < tlMulti.length; i++) push(tlMulti[i].kind, tlMulti[i].id);
+        if(tlSel.kind && tlSel.kind !== "gap") push(tlSel.kind, tlSel.id);
+        return list;
+      }
+      /* Ctrl/Cmd + bấm đoạn: thêm / bớt đoạn khỏi tập; đoạn bấm cuối là đoạn chính (sidebar theo nó) */
+      function toggleMultiSeg(kind, id){
+        if(!tlMulti.length && tlSel.kind && tlSel.kind !== "gap")
+          tlMulti = [{ kind: tlSel.kind, id: tlSel.id }];
+        if(multiHas(kind, id)){
+          tlMulti = tlMulti.filter(function(en){ return !(en.kind === kind && en.id === id); });
+          if(tlSel.kind === kind && tlSel.id === id){
+            if(tlMulti.length){ var nx = tlMulti[tlMulti.length - 1]; selectTimeline(nx.kind, nx.id, false); }
+            else clearTimelineSelection();
+          } else renderStrip();
+        } else {
+          tlMulti.push({ kind: kind, id: id });
+          selectTimeline(kind, id, false);
+        }
+        dirty = true;
+      }
+      /* Nam châm: sau khi xoá, các đoạn sau trên CÙNG track dồn lại lấp đúng khoảng vừa xoá */
+      function magnetCloseGaps(kind, deleted){
+        if(!deleted || !deleted.length) return;
+        deleted.sort(function(a, b){ return a.s - b.s; });
+        var items = kind === "clip" ? clips : (kind === "audio" ? asegs : texts);
+        items.forEach(function(it){
+          var st = kind === "text" ? it.start : (it.start || 0);
+          var shift = 0;
+          for(var i = 0; i < deleted.length; i++){
+            var d = deleted[i];
+            if(st >= d.e - 0.001) shift += d.e - d.s;
+            else if(st > d.s + 0.001) shift += st - d.s;
+          }
+          if(shift > 0.001){
+            if(kind === "text"){
+              it.start = Math.round((it.start - shift) * 10) / 10;
+              it.end = Math.round((it.end - shift) * 10) / 10;
+            } else {
+              it.start = Math.round((st - shift) * 100) / 100;
+            }
+          }
+        });
+      }
+      /* Xoá cả tập đang chọn — đúng một bước hoàn tác */
+      function deleteMultiSet(){
+        var entries = multiEntries();
+        if(entries.length < 2) return;
+        var delC = [], delA = [], delT = [], delMusic = false;
+        entries.forEach(function(en){
+          if(en.kind === "clip"){ var c = findClip(en.id); if(c) delC.push(c); }
+          else if(en.kind === "audio"){ var a = findAseg(en.id); if(a) delA.push(a); }
+          else if(en.kind === "text"){ var t = findText(en.id); if(t) delT.push(t); }
+          else if(en.kind === "music") delMusic = true;
+        });
+        var ivC = delC.map(function(c){ return { s: c.start || 0, e: (c.start || 0) + clipOut(c) }; });
+        var ivA = delA.map(function(a){ return { s: a.start || 0, e: (a.start || 0) + asegOut(a) }; });
+        var ivT = delT.map(function(t){ return { s: t.start, e: t.end }; });
+        delC.forEach(function(c){ clips.splice(clips.indexOf(c), 1); disposeEl(c.id); });
+        delA.forEach(function(a){ asegs.splice(asegs.indexOf(a), 1); disposeAsegEl(a.id); });
+        delT.forEach(function(t){ texts.splice(texts.indexOf(t), 1); });
+        if(delMusic && S.musicLoaded){
+          try{ music.pause(); }catch(e){}
+          music.removeAttribute("src");
+          try{ music.load(); }catch(e){}
+          S.musicLoaded = false; musicFileName = ""; musicWave = null;
+          S.musicStart = 0; S.musicOffset = 0; S.musicBeats = [];
+          $("beatInfo").textContent = "Phân tích file nhạc, đánh dấu vạch nhịp trên đoạn nhạc — kéo đoạn sẽ tự bám nhịp.";
+          $("musicName").hidden = true;
+          $("pickMusicLabel").textContent = "Thêm file nhạc (MP3, WAV…)";
+          $("musicStartIn").value = 0; $("musicOffsetIn").value = 0;
+        }
+        tlSel.kind = null; tlSel.id = null; tlGap = null; tlMulti = [];
+        if(selClipId && !findClip(selClipId)) selClipId = null;
+        if(selAsegId && !findAseg(selAsegId)) selAsegId = null;
+        if(selTextId && !findText(selTextId)) selTextId = null;
+        if(tlMagnet){
+          magnetCloseGaps("clip", ivC);
+          magnetCloseGaps("audio", ivA);
+          magnetCloseGaps("text", ivT);
+        }
+        sortClips(); sortAsegs();
+        if(!clips.length){
+          selClipId = null;
+          relayout();
+          $("studio").hidden = true;
+          $("emptyState").hidden = false;
+          pushHistory();
+          toast("Đã xoá hết clip.");
+          return;
+        }
+        if(!selClipId) selClipId = clips[0].id;
+        relayout(); renderStrip();
+        syncClipPanel(); syncAsegPanel(); renderTextList(); syncTextPanel(); syncInspector();
+        if(!playing) syncPausedFrame();
+        pushHistory(); dirty = true;
+        toast("Đã xoá " + entries.length + " đoạn.");
+      }
+      function selectAllSegments(){
+        tlMulti = [];
+        clips.forEach(function(c){ tlMulti.push({ kind: "clip", id: c.id }); });
+        asegs.forEach(function(a){ tlMulti.push({ kind: "audio", id: a.id }); });
+        texts.forEach(function(t){ tlMulti.push({ kind: "text", id: t.id }); });
+        if(S.musicLoaded) tlMulti.push({ kind: "music", id: null });
+        if((!tlSel.kind || tlSel.kind === "gap") && clips.length) selectTimeline("clip", clips[0].id, false);
+        else renderStrip();
+        if(tlMulti.length) toast("Đã chọn " + tlMulti.length + " đoạn — kéo một đoạn để dời cả nhóm, Delete để xoá cả nhóm.");
+      }
+      /* Đẩy tập chọn bằng Ctrl + ←/→: vị trí cập nhật ngay, hoàn tác gộp một bước khi ngừng đẩy */
+      var nudgeHistTimer = null;
+      function nudgeSelection(step){
+        var entries = multiEntries();
+        if(!entries.length) return;
+        var minS = Infinity;
+        entries.forEach(function(en){ minS = Math.min(minS, segStartT(en.kind, en.id)); });
+        var d = step;
+        if(minS + d < 0) d = -minS;
+        if(!d) return;
+        entries.forEach(function(en){
+          if(en.kind === "clip"){ var c = findClip(en.id); if(c) c.start = Math.round(((c.start || 0) + d) * 100) / 100; }
+          else if(en.kind === "audio"){ var a = findAseg(en.id); if(a) a.start = Math.round(((a.start || 0) + d) * 100) / 100; }
+          else if(en.kind === "text"){
+            var t = findText(en.id);
+            if(t){ var dur = t.end - t.start; t.start = Math.round((t.start + d) * 10) / 10; t.end = Math.round((t.start + dur) * 10) / 10; }
+          }
+          else if(en.kind === "music"){
+            S.musicStart = Math.round(clamp(S.musicStart + d, 0, Math.max(0, L.total - 0.3)) * 10) / 10;
+            $("musicStartIn").value = S.musicStart;
+          }
+        });
+        sortClips(); sortAsegs();
+        relayout(); renderStrip();
+        if(!playing) syncPausedFrame();
+        dirty = true;
+        clearTimeout(nudgeHistTimer);
+        nudgeHistTimer = setTimeout(pushHistory, 450);
+      }
+      /* ---------- Kéo nhóm: cả tập dời cùng nhau, giữ nguyên khoảng cách tương đối ---------- */
+      function groupSnapTargets(snaps){
+        var inGroup = {};
+        snaps.forEach(function(sn){ inGroup[sn.kind + ":" + sn.id] = true; });
+        var tg = [0, playhead];
+        clips.forEach(function(c){ if(!inGroup["clip:" + c.id]){ tg.push(c.start || 0); tg.push((c.start || 0) + clipOut(c)); } });
+        asegs.forEach(function(a){ if(!inGroup["audio:" + a.id]){ tg.push(a.start || 0); tg.push((a.start || 0) + asegOut(a)); } });
+        texts.forEach(function(t){ if(!inGroup["text:" + t.id]){ tg.push(t.start); tg.push(t.end); } });
+        if(S.musicLoaded && !inGroup["music:null"]) tg.push(S.musicStart);
+        return tg;
+      }
+      var gDrag = null;
+      function startGroupDrag(e, kind, id){
+        selectTimeline(kind, id, false);   // đoạn vừa bấm thành đoạn chính
+        var snaps = multiEntries().map(function(en){
+          return { kind: en.kind, id: en.id, s0: segStartT(en.kind, en.id), e0: segEndT(en.kind, en.id) };
+        });
+        gDrag = { x0: e.clientX, snaps: snaps, pKind: kind, pId: id, moved: false };
+      }
+      function applyGroupDelta(snaps, delta){
+        snaps.forEach(function(sn){
+          if(sn.kind === "clip"){ var c = findClip(sn.id); if(c) c.start = Math.round((sn.s0 + delta) * 100) / 100; }
+          else if(sn.kind === "audio"){ var a = findAseg(sn.id); if(a) a.start = Math.round((sn.s0 + delta) * 100) / 100; }
+          else if(sn.kind === "text"){ var t = findText(sn.id); if(t){ t.start = Math.round((sn.s0 + delta) * 10) / 10; t.end = Math.round((sn.e0 + delta) * 10) / 10; } }
+          else if(sn.kind === "music"){ S.musicStart = Math.round(clamp(sn.s0 + delta, 0, Math.max(0, L.total - 0.3)) * 10) / 10; }
+        });
+      }
+      function groupDragMove(e){
+        var d = gDrag; if(!d) return;
+        var dxPx = e.clientX - d.x0;
+        if(!d.moved && Math.abs(dxPx) < 4) return;
+        d.moved = true;
+        hideTlHover();
+        var pps = lastPps || 8;
+        var dt = dxPx / pps;
+        var pSnap = null, minS = Infinity;
+        d.snaps.forEach(function(sn){
+          if(sn.kind === d.pKind && sn.id === d.pId) pSnap = sn;
+          if(sn.s0 < minS) minS = sn.s0;
+        });
+        if(!pSnap) pSnap = d.snaps[0];
+        var pDur = d.pKind === "music" ? 0 : (pSnap.e0 - pSnap.s0);
+        /* Snap áp theo đoạn chính; nam châm bật thì truyền pps nhỏ hơn để snapStart hít mạnh hơn */
+        var ns = snapStart(pSnap.s0 + dt, pDur, groupSnapTargets(d.snaps), tlMagnet ? pps * 0.55 : pps);
+        var delta = ns - pSnap.s0;
+        if(minS + delta < 0) delta = -minS;
+        delta = Math.round(delta * 100) / 100;
+        applyGroupDelta(d.snaps, delta);
+        relayout();
+        positionSegsLive();
+        var innerR = $("tlInner").getBoundingClientRect();
+        showTlTip(e.clientX - innerR.left, e.clientY - innerR.top - 30,
+          "Dời " + d.snaps.length + " đoạn · lệch " + (delta >= 0 ? "+" : "") + delta.toFixed(2) + "s");
+        if(!playing) syncPausedFrame();
+        dirty = true;
+      }
+      function endGroupDrag(){
+        var d = gDrag; if(!d) return;
+        gDrag = null;
+        hideTlTip();
+        if(!d.moved){
+          /* Bấm thường trên đoạn thuộc tập: giữ tập chọn, tua về đầu đoạn như bấm chọn đơn (trừ khi vừa nhấn đúp) */
+          if(tlSuppressSegSeek) tlSuppressSegSeek = false;
+          else seekTo(segStartT(d.pKind, d.pId));
+          renderStrip();
+          dirty = true;
+          return;
+        }
+        tlSuppressSegSeek = false;
+        sortClips(); sortAsegs();
+        relayout(); renderStrip();
+        syncClipPanel(); syncAsegPanel(); renderTextList(); syncTextPanel();
+        if(!playing) syncPausedFrame();
+        pushHistory(); dirty = true;
+        toast("Đã dời " + d.snaps.length + " đoạn.");
+      }
+      /* ---------- Quét chọn vùng (rubber-band) + cuộn timeline (pan) ---------- */
+      var tlPan = null, tlBandDrag = null;
+      function tlInnerPos(e){
+        var r = $("tlInner").getBoundingClientRect();
+        return { x: e.clientX - r.left, y: e.clientY - r.top };
+      }
+      function drawBand(){
+        var b = $("tlBand"); if(!b || !tlBandDrag) return;
+        var x0 = Math.min(tlBandDrag.x0, tlBandDrag.x1), x1 = Math.max(tlBandDrag.x0, tlBandDrag.x1);
+        var y0 = Math.min(tlBandDrag.y0, tlBandDrag.y1), y1 = Math.max(tlBandDrag.y0, tlBandDrag.y1);
+        b.style.left = x0 + "px"; b.style.top = y0 + "px";
+        b.style.width = Math.max(1, x1 - x0) + "px"; b.style.height = Math.max(1, y1 - y0) + "px";
+        b.hidden = false;
+      }
+      function finishBand(bd){
+        var x0 = Math.min(bd.x0, bd.x1), x1 = Math.max(bd.x0, bd.x1);
+        var y0 = Math.min(bd.y0, bd.y1), y1 = Math.max(bd.y0, bd.y1);
+        var found = [];
+        function test(trackId, sel, kind, attr){
+          var track = $(trackId); if(!track) return;
+          var els = track.querySelectorAll(sel);
+          for(var i = 0; i < els.length; i++){
+            var el = els[i];
+            var ex = track.offsetLeft + el.offsetLeft, ey = track.offsetTop + el.offsetTop;
+            if(ex < x1 && ex + el.offsetWidth > x0 && ey < y1 && ey + el.offsetHeight > y0)
+              found.push({ kind: kind, id: attr ? el.getAttribute(attr) : null });
+          }
+        }
+        test("tlVideoTrack", ".tl-seg", "clip", "data-clip");
+        test("tlAudioTrack", ".tl-aseg", "audio", "data-aseg");
+        test("tlMusicTrack", ".tl-mseg", "music", null);
+        test("tlTextTrack", ".tl-tseg", "text", "data-text");
+        if(!found.length){ renderStrip(); return; }
+        tlMulti = found;
+        var primIn = false;
+        for(var i = 0; i < found.length; i++)
+          if(found[i].kind === tlSel.kind && found[i].id === tlSel.id) primIn = true;
+        if(!primIn) selectTimeline(found[0].kind, found[0].id, false);
+        else renderStrip();
+        dirty = true;
+      }
+      function segIdOf(kind, segEl){
+        return kind === "clip" ? segEl.getAttribute("data-clip")
+          : (kind === "text" ? segEl.getAttribute("data-text")
+          : (kind === "audio" ? segEl.getAttribute("data-aseg") : null));
+      }
+      /* Handler này đăng ký TRƯỚC handler kéo gốc (nằm ngay dưới) nên chặn được đúng
+         các thao tác mới bằng stopImmediatePropagation; mọi thao tác còn lại rơi xuống handler gốc. */
+      $("tlInner").addEventListener("pointerdown", function(e){
+        if(!clips.length || exporting) return;
+        var addBtn = e.target.closest("[data-add]");
+        /* Cuộn timeline: giữ Space + kéo, hoặc kéo bằng nút chuột giữa */
+        if(!addBtn && (e.button === 1 || (e.button === 0 && tlSpaceDown))){
+          tlPan = { x0: e.clientX, sl0: $("tlScroll").scrollLeft };
+          $("tlScroll").classList.add("panning");
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          return;
+        }
+        if(e.button !== 0) return;
+        var segEl = e.target.closest(".tl-seg, .tl-aseg, .tl-tseg, .tl-mseg");
+        if((e.ctrlKey || e.metaKey) && segEl){
+          var kind = segKindOf(segEl);
+          if(kind) toggleMultiSeg(kind, segIdOf(kind, segEl));
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          return;
+        }
+        if(segEl){
+          var kind2 = segKindOf(segEl);
+          var handle = e.target.closest(".tl-handle");
+          if(kind2 && !handle && tlMulti.length > 1 && multiHas(kind2, segIdOf(kind2, segEl))){
+            var r0 = segEl.getBoundingClientRect();
+            var hw = Math.max(14, Math.min(22, r0.width * 0.2));
+            if(e.clientX - r0.left > hw && (kind2 === "music" || r0.right - e.clientX > hw)){
+              startGroupDrag(e, kind2, segIdOf(kind2, segEl));
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              return;
+            }
+          }
+          if(tlMulti.length) tlMulti = [];   // bấm thường: về chọn đơn như cũ, handler gốc sẽ chọn đoạn
+          return;
+        }
+        /* Nền trống của khu track: chuẩn bị quét chọn — bấm không kéo thì handler gốc giữ nguyên hành vi (bỏ chọn / chọn khoảng trống) */
+        if(!addBtn && (e.target === $("tlInner") || e.target.closest(".tl-track"))){
+          var p0 = tlInnerPos(e);
+          tlBandDrag = { x0: p0.x, y0: p0.y, x1: p0.x, y1: p0.y, active: false };
+          if(tlMulti.length) tlMulti = [];
+        }
+      });
+      window.addEventListener("pointermove", function(e){
+        if(tlPan){
+          $("tlScroll").scrollLeft = tlPan.sl0 - (e.clientX - tlPan.x0);
+          return;
+        }
+        if(gDrag){ groupDragMove(e); return; }
+        if(tlBandDrag){
+          var p = tlInnerPos(e);
+          tlBandDrag.x1 = p.x; tlBandDrag.y1 = p.y;
+          if(!tlBandDrag.active && (Math.abs(p.x - tlBandDrag.x0) > 5 || Math.abs(p.y - tlBandDrag.y0) > 5)){
+            tlBandDrag.active = true;
+            hideTlHover();
+          }
+          if(tlBandDrag.active) drawBand();
+        }
+      });
+      function endTlPtr(){
+        if(tlPan){ tlPan = null; $("tlScroll").classList.remove("panning"); return; }
+        if(gDrag){ endGroupDrag(); return; }
+        if(tlBandDrag){
+          var bd = tlBandDrag; tlBandDrag = null;
+          var b = $("tlBand"); if(b) b.hidden = true;
+          if(bd.active) finishBand(bd);
+        }
+      }
+      window.addEventListener("pointerup", endTlPtr);
+      window.addEventListener("pointercancel", endTlPtr);
+      /* ---------- Nút nam châm + trạng thái giữ Space ---------- */
+      $("btnMagnet").addEventListener("click", function(){
+        tlMagnet = !tlMagnet;
+        this.classList.toggle("on", tlMagnet);
+        toast(tlMagnet
+          ? "Nam châm BẬT: kéo đoạn tự dính mép đoạn kề, xoá đoạn thì đoạn sau cùng track dồn lại."
+          : "Nam châm TẮT: đoạn đứng yên tại chỗ như cũ.");
+      });
+      document.addEventListener("keydown", function(e){
+        if(e.code !== "Space") return;
+        var tag = (e.target && e.target.tagName) || "";
+        if(tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        tlSpaceDown = true;
+        document.body.classList.add("tl-space");
+      });
+      document.addEventListener("keyup", function(e){
+        if(e.code !== "Space") return;
+        tlSpaceDown = false;
+        document.body.classList.remove("tl-space");
+      });
+      window.addEventListener("blur", function(){
+        tlSpaceDown = false;
+        document.body.classList.remove("tl-space");
+      });
+      /* ---------- Thanh chia kéo dãn chiều cao: sân khấu co/dãn 25–65% cột giữa, timeline ăn phần còn lại ---------- */
+      var tlSplitDrag = false;
+      $("tlSplit").addEventListener("pointerdown", function(e){
+        tlSplitDrag = true;
+        try{ this.setPointerCapture(e.pointerId); }catch(err){}
+        e.preventDefault();
+      });
+      $("tlSplit").addEventListener("pointermove", function(e){
+        if(!tlSplitDrag) return;
+        var stage = $("stageWrap").parentElement;
+        var card = stage.parentElement;
+        var cr = card.getBoundingClientRect();
+        var sr = stage.getBoundingClientRect();
+        var pct = clamp((e.clientY - sr.top) / Math.max(1, cr.height) * 100, 25, 65);
+        stage.style.flex = "0 1 " + pct + "%";
+        fitPreview();
+      });
+      $("tlSplit").addEventListener("pointerup", function(){ tlSplitDrag = false; });
+      $("tlSplit").addEventListener("pointercancel", function(){ tlSplitDrag = false; });
+      $("tlSplit").addEventListener("dblclick", function(){
+        $("stageWrap").parentElement.style.flex = "";
+        fitPreview();
       });
 
       /* ---------- kéo trên timeline: dời đoạn / cắt mép ---------- */
@@ -6091,7 +6533,9 @@
         if((e.ctrlKey || e.metaKey) && e.code === "KeyZ" && !e.shiftKey){ e.preventDefault(); $("btnUndo").click(); }
         if((e.ctrlKey || e.metaKey) && (e.code === "KeyY" || (e.code === "KeyZ" && e.shiftKey))){ e.preventDefault(); $("btnRedo").click(); }
         if((e.code === "Delete" || e.code === "Backspace") && tlSel.kind){
-          e.preventDefault(); tlAction("del"); return;
+          e.preventDefault();
+          if(multiEntries().length > 1){ deleteMultiSet(); return; }
+          tlAction("del"); return;
         }
         if(e.code === "KeyS" || ((e.ctrlKey || e.metaKey) && e.code === "KeyB")){
           if(e.code === "KeyS" && (e.ctrlKey || e.metaKey)) return;
@@ -6100,6 +6544,19 @@
           return;
         }
         if(e.code === "KeyM"){ e.preventDefault(); addMarkerAtPlayhead(); return; }
+        if(e.code === "ArrowLeft" || e.code === "ArrowRight"){
+          e.preventDefault();
+          var dirK = e.code === "ArrowRight" ? 1 : -1;
+          if(e.ctrlKey || e.metaKey){ nudgeSelection(dirK / 30); return; }
+          seekTo(playhead + dirK * (e.shiftKey ? 1 : 1 / 30));
+          if(playing) syncElements();
+          return;
+        }
+        if((e.ctrlKey || e.metaKey) && e.code === "KeyA"){
+          e.preventDefault();
+          selectAllSegments();
+          return;
+        }
         if(e.code === "Escape"){ hideTlMenu(); if(tlSel.kind) clearTimelineSelection(); }
       });
 
@@ -7235,6 +7692,7 @@
       $("btnDupClip").addEventListener("click", function(){ duplicateClip(selClip()); });
       function deleteClip(c){
         if(!c) return;
+        var mDs = c.start || 0, mDe = mDs + clipOut(c);
         var i = clips.indexOf(c);
         clips.splice(i, 1);
         disposeEl(c.id);
@@ -7248,6 +7706,7 @@
           toast("Đã xoá hết clip.");
           return;
         }
+        if(tlMagnet) magnetCloseGaps("clip", [{ s: mDs, e: mDe }]);
         selClipId = clips[Math.min(i, clips.length-1)].id;
         tlSel.kind = "clip"; tlSel.id = selClipId;
         playhead = clamp(playhead, 0, L.total);
