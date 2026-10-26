@@ -1448,10 +1448,6 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.2 7.8 20 19M8.2 16.2 20 5"/></svg>
                 Tách tại điểm phát
               </button>
-              <button class="btn" id="btnFreeze" style="padding:6px 10px;font-size:12px">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5M14 9.5v5"/></svg>
-                Đóng băng
-              </button>
               <button class="btn" id="btnMarker" style="padding:6px 10px;font-size:12px">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4.5h11l-2.6 3.5L16 11.5H5"/></svg>
                 Ghim mốc
@@ -1510,18 +1506,6 @@
             </div>
             <p class="hint" id="trimInfo" style="margin:0 0 13px">Đoạn dùng: 0 giây</p>
             <div class="field">
-              <label>Tốc độ clip <output id="outSpeed">1.00x</output></label>
-              <input type="range" id="speed" min="0.25" max="2" step="0.05" value="1" />
-            </div>
-            <div class="chips" id="speedChips" style="margin-bottom:13px">
-              <button class="chip" data-speed="0.5">0.5x</button>
-              <button class="chip" data-speed="0.75">0.75x</button>
-              <button class="chip on" data-speed="1">1x</button>
-              <button class="chip" data-speed="1.15">1.15x</button>
-              <button class="chip" data-speed="1.5">1.5x</button>
-              <button class="chip" data-speed="2">2x</button>
-            </div>
-            <div class="field">
               <label>Âm lượng clip <output id="outClipVol">100%</output></label>
               <input type="range" id="clipVol" min="0" max="100" step="1" value="100" />
             </div>
@@ -1529,87 +1513,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg>
               <span id="clipMuteLabel">Tắt tiếng clip</span>
             </button>
-            <button class="btn" id="btnDetachAudio" style="width:100%;justify-content:center;margin-bottom:8px">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg>
-              Trích xuất âm thanh
-            </button>
-            <div class="two-col">
-              <div class="field">
-                <label>Chuyển cảnh sang clip sau</label>
-                <select id="transType">
-                  <option value="none">Không có</option>
-                  <option value="fade">Mờ dần (fade)</option>
-                  <option value="slide">Trượt ngang</option>
-                  <option value="zoom">Zoom vào</option>
-                  <option value="flash">Chớp sáng</option>
-                  <option value="circle">Vòng tròn mở</option>
-                  <option value="blur">Mờ chéo</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Hiệu ứng chuyển động</label>
-                <select id="kbSelect">
-                  <option value="none">Không có</option>
-                  <option value="in">Zoom vào từ từ</option>
-                  <option value="out">Zoom ra từ từ</option>
-                  <option value="left">Pan sang trái</option>
-                  <option value="right">Pan sang phải</option>
-                </select>
-              </div>
-            </div>
-            <div class="field">
-              <label>Đường cong tốc độ <output id="outCurveInfo">đều 1×</output></label>
-              <canvas class="curve-cv" id="speedCurveCv" width="496" height="128"></canvas>
-              <div class="chips" id="curvePresets" style="margin-top:7px">
-                <button type="button" class="chip" data-curve="none">Thường</button>
-                <button type="button" class="chip" data-curve="slowmid">Chậm giữa</button>
-                <button type="button" class="chip" data-curve="fastmid">Nhanh giữa</button>
-                <button type="button" class="chip" data-curve="up">Tăng dần</button>
-                <button type="button" class="chip" data-curve="down">Giảm dần</button>
-              </div>
-              <p class="hint" style="margin:6px 0 0">Kéo 5 điểm neo lên / xuống (0,25×–3×). Diện tích dưới đường cong được chuẩn hoá nên tổng thời lượng clip không đổi.</p>
-            </div>
             
-            <div class="field">
-              <label>Thời gian chuyển cảnh <output id="outTransDur">0.5s</output></label>
-              <input type="range" id="transDur" min="0.2" max="1.5" step="0.1" value="0.5" />
-            </div>
-            <div class="two-col">
-              <div class="field">
-                <label>Hiệu ứng vào</label>
-                <select id="clipAnimIn">
-                  <option value="none">Không có</option>
-                  <option value="fade">Mờ dần</option>
-                  <option value="zoomin">Zoom vào</option>
-                  <option value="zoomout">Zoom ra</option>
-                  <option value="left">Trượt từ trái</option>
-                  <option value="right">Trượt từ phải</option>
-                  <option value="top">Trượt từ trên</option>
-                  <option value="bottom">Trượt từ dưới</option>
-                  <option value="pop">Nảy</option>
-                  <option value="blur">Mờ nét</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Hiệu ứng ra</label>
-                <select id="clipAnimOut">
-                  <option value="none">Không có</option>
-                  <option value="fade">Mờ dần</option>
-                  <option value="zoomin">Zoom vào</option>
-                  <option value="zoomout">Zoom ra</option>
-                  <option value="left">Trượt từ trái</option>
-                  <option value="right">Trượt từ phải</option>
-                  <option value="top">Trượt từ trên</option>
-                  <option value="bottom">Trượt từ dưới</option>
-                  <option value="pop">Nảy</option>
-                  <option value="blur">Mờ nét</option>
-                </select>
-              </div>
-            </div>
-            <div class="field">
-              <label>Thời lượng hiệu ứng <output id="outClipAnimDur">0.5s</output></label>
-              <input type="range" id="clipAnimDur" min="0.2" max="2" step="0.1" value="0.5" />
-            </div>
             <div class="two-col">
               <div class="field">
                 <label>Mặt nạ clip</label>
@@ -1626,70 +1530,6 @@
               </div>
             </div>
             
-            <div class="sub-box" style="margin-top:2px">
-              <h3>Đảo ngược &amp; xoá nền</h3>
-              <div class="row-btns" style="margin-bottom:6px">
-                <button class="btn" id="btnReverse">Đảo ngược clip</button>
-              </div>
-              <p class="hint" id="revInfo" style="margin:0 0 10px">Đảo ngược áp cho đoạn dùng ≤ 12 giây (dài hơn hãy cắt ngắn trước). Khi đảo, tiếng gốc của đoạn tự tắt.</p>
-              <div class="mini-prog" id="revProgWrap" hidden>
-                <div class="progress-track"><div class="progress-bar" id="revBar"></div></div>
-                <div class="mp-label" id="revProgLabel">Đang trích khung hình…</div>
-                <button class="btn danger" id="btnRevCancel" style="padding:5px 10px;font-size:12px">Huỷ đảo ngược</button>
-              </div>
-              <div class="row-btns" style="margin-bottom:6px">
-                <button class="btn" id="btnClipBgAI">Xoá nền AI: Tắt</button>
-                <span class="badge-exp">Thử nghiệm</span>
-              </div>
-              <p class="hint" style="margin:0 0 10px">Xoá nền AI chạy ngay trên máy bạn (tải model ở lần bật đầu) — có thể chậm trên máy yếu.</p>
-              <div class="field">
-                <label>Nền thay thế (sau người đã tách nền)</label>
-                <select id="clipBgKind">
-                  <option value="none">Không — trong suốt</option>
-                  <option value="color">Màu đặc</option>
-                  <option value="img">Ảnh</option>
-                  <option value="video">Video (lặp)</option>
-                </select>
-              </div>
-              <div class="two-col">
-                <div class="field">
-                  <label>Màu nền</label>
-                  <input type="color" id="clipBgColor" value="#16324a" style="width:100%;height:28px" />
-                </div>
-                <div class="field">
-                  <label>File nền</label>
-                  <div class="row-btns">
-                    <button class="btn" id="btnClipBgImg" style="flex:1;justify-content:center">Ảnh</button>
-                    <button class="btn" id="btnClipBgVid" style="flex:1;justify-content:center">Video</button>
-                  </div>
-                </div>
-              </div>
-              <p class="hint" id="clipBgInfo" style="margin:0 0 10px">Đang trong suốt — người tách nền sẽ lộ phần phía sau khung hình.</p>
-              <div class="row-btns" style="margin-bottom:6px">
-                <button class="btn" id="btnBoomerang">Boomerang: Tắt</button>
-              </div>
-              <p class="hint" id="boomInfo" style="margin:0">Boomerang: đoạn dùng ≤ 6 giây phát xuôi–ngược lặp lại lấp đầy thời lượng clip; tiếng gốc tự tắt.</p>
-            </div>
-            <div class="sub-box" style="margin-top:2px">
-              <h3>Che mặt AI <span class="badge-exp">Thử nghiệm</span></h3>
-              <div class="row-btns" style="margin-bottom:6px">
-                <button class="btn" id="btnClipFace">Che mặt: Tắt</button>
-                <select id="faceModeSel" style="flex:1;min-width:0">
-                  <option value="blur">Mờ (blur)</option>
-                  <option value="pixel">Pixel</option>
-                </select>
-              </div>
-              <p class="hint" style="margin:0">AI tự tìm mặt trong khung hình và che theo suốt clip — áp cả xem trước lẫn file xuất.</p>
-            </div>
-            <div class="sub-box" style="margin-top:2px">
-              <h3>Cắt đoạn im lặng (clip)</h3>
-              <div class="field">
-                <label>Ngưỡng lặng <output id="outSilThrClip">4%</output></label>
-                <input type="range" id="silThrClip" min="1" max="20" step="0.5" value="4" />
-              </div>
-              <button class="btn" id="btnSilenceClip" style="width:100%;justify-content:center">Cắt đoạn lặng của clip</button>
-              <p class="hint" style="margin:6px 0 0">Tự dò khoảng lặng ≥ 0,4 giây trong tiếng của clip rồi cắt bỏ — các đoạn giữ lại nối liền nhau ngay tại chỗ, đoạn khác không xê dịch.</p>
-            </div>
             <div class="row-btns" style="margin-bottom:8px">
               <button class="btn" id="btnMoveL">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
@@ -1789,30 +1629,7 @@
             
           </section>
 
-          <!-- COLOR SCOPES -->
-          <section class="card">
-            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M9.5 20V4M15 20v-8M20 20V7"/></svg>
-              Biểu đồ màu
-            </h2>
-            <canvas class="hist-cv" id="histCv" width="496" height="144"></canvas>
-            <p class="hint" style="margin:8px 0 0">Histogram độ sáng (trắng) + kênh R/G/B của khung hình hiện tại — chỉ để xem khi chỉnh màu, không vào file xuất.</p>
-          </section>
 
-          <!-- THEME -->
-          <section class="card">
-            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.2" cy="10" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="7.2" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.8" cy="10" r="1.3" fill="currentColor" stroke="none"/><path d="M12 21a2.6 2.6 0 0 1 0-5.2h1.8A5.2 5.2 0 0 0 19 10.6c0-2-1-3.4-2.4-4.2"/></svg>
-              Theme video
-            </h2>
-            <div class="theme-grid" id="themeGrid"></div>
-            <div class="field" style="margin-top:12px">
-              <label>Theme của tôi</label>
-              <div id="myThemeList"></div>
-            </div>
-            <div class="field">
-              <input type="text" id="themeName" placeholder="Tên theme của bạn…" maxlength="40" />
-            </div>
-            <button class="btn" id="btnSaveTheme" style="width:100%;justify-content:center">Lưu theme hiện tại</button>
-          </section>
           </div>
 
           <div class="tab-page" data-page="text" hidden>
@@ -1833,16 +1650,6 @@
               </div>
               
               
-              <div class="two-col">
-                <div class="field">
-                  <label>Hiện từ giây</label>
-                  <input type="number" id="ltStart" min="0" step="0.1" value="0" />
-                </div>
-                <div class="field">
-                  <label>Đến giây</label>
-                  <input type="number" id="ltEnd" min="0" step="0.1" value="3" />
-                </div>
-              </div>
               
               
               <div class="field">
@@ -1851,29 +1658,6 @@
                   <button class="chip" data-pos="top">Trên</button>
                   <button class="chip" data-pos="center">Giữa</button>
                   <button class="chip on" data-pos="bottom">Dưới</button>
-                </div>
-              </div>
-              <div class="two-col">
-                <div class="field">
-                  <label>Hiệu ứng chữ</label>
-                  <select id="ltAnim">
-                    <option value="none">Không có</option>
-                    <option value="fade">Mờ dần</option>
-                    <option value="pop">Nảy lên</option>
-                    <option value="up">Trượt lên</option>
-                    <option value="type">Gõ chữ</option>
-                    <option value="zoom">Zoom chữ</option>
-                    <option value="left">Trượt từ trái</option>
-                    <option value="right">Trượt từ phải</option>
-                    <option value="drop">Rơi xuống</option>
-                    <option value="spin">Xoay vào</option>
-                    <option value="blink">Nhấp nháy</option>
-                    <option value="wave">Sóng</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>Thời lượng hiệu ứng <output id="outLtAnimDur">0.5s</output></label>
-                  <input type="range" id="ltAnimDur" min="0.2" max="2" step="0.1" value="0.5" />
                 </div>
               </div>
               <div class="row-btns" style="margin-bottom:8px">
@@ -1952,86 +1736,6 @@
               
               
               
-              <div id="ovVideoFields" hidden>
-                <div class="field">
-                  <label>Âm lượng video phủ <output id="outOvVol">100%</output></label>
-                  <input type="range" id="ovVol" min="0" max="100" step="1" value="100" />
-                </div>
-                <div class="row-btns" style="margin-bottom:10px">
-                  <button class="btn" id="btnOvMute">Tắt tiếng phủ</button>
-                  <button class="btn" id="btnOvVloop">Lặp video phủ</button>
-                </div>
-              </div>
-              <div class="two-col">
-                <div class="field">
-                  <label>Mặt nạ</label>
-                  <select id="ovMaskSel">
-                    <option value="none">Không có</option>
-                    <option value="rect">Chữ nhật</option>
-                    <option value="circle">Tròn</option>
-                    <option value="round">Bo góc</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>Mờ viền <output id="outOvMaskFeather">0</output></label>
-                  <input type="range" id="ovMaskFeather" min="0" max="100" step="1" value="0" />
-                </div>
-              </div>
-              <div class="field">
-                <label>Chế độ hoà trộn</label>
-                <select id="ovBlend">
-                  <option value="normal">Thường</option>
-                  <option value="screen">Sáng (screen)</option>
-                  <option value="multiply">Nhân tối (multiply)</option>
-                  <option value="overlay">Phủ sáng (overlay)</option>
-                  <option value="soft-light">Ánh sáng mềm</option>
-                  <option value="difference">Khác biệt</option>
-                </select>
-              </div>
-              <div class="sub-box" id="ovChromaBox" style="margin-top:2px">
-                <h3>Tách nền (chroma key)</h3>
-                <div class="row-btns" style="margin-bottom:8px">
-                  <button class="btn" id="btnOvChroma">Tách nền: Tắt</button>
-                </div>
-                <div class="two-col">
-                  <div class="field">
-                    <label>Màu cần tách</label>
-                    <input type="color" id="ovChromaColor" value="#00ff00" style="width:100%;height:28px" />
-                  </div>
-                  <div class="field">
-                    <label>Dung sai <output id="outOvChromaTol">35</output></label>
-                    <input type="range" id="ovChromaTol" min="0" max="100" step="1" value="35" />
-                  </div>
-                </div>
-                <div class="row-btns" style="margin-top:2px">
-                  <button class="btn" id="btnOvBgAI">Xoá nền AI: Tắt</button>
-                  <span class="badge-exp">Thử nghiệm</span>
-                </div>
-                <p class="hint" style="margin:6px 0 0">Xoá nền AI chạy ngay trên máy bạn — có thể chậm trên máy yếu.</p>
-                <div class="field" style="margin-top:10px">
-                  <label>Nền thay thế (sau người đã tách nền)</label>
-                  <select id="ovBgKind">
-                    <option value="none">Không — trong suốt</option>
-                    <option value="color">Màu đặc</option>
-                    <option value="img">Ảnh</option>
-                    <option value="video">Video (lặp)</option>
-                  </select>
-                </div>
-                <div class="two-col">
-                  <div class="field">
-                    <label>Màu nền</label>
-                    <input type="color" id="ovBgColor" value="#16324a" style="width:100%;height:28px" />
-                  </div>
-                  <div class="field">
-                    <label>File nền</label>
-                    <div class="row-btns">
-                      <button class="btn" id="btnOvBgImg" style="flex:1;justify-content:center">Ảnh</button>
-                      <button class="btn" id="btnOvBgVid" style="flex:1;justify-content:center">Video</button>
-                    </div>
-                  </div>
-                </div>
-                <p class="hint" id="ovBgInfo" style="margin:0">Đang trong suốt — người tách nền sẽ lộ lớp bên dưới.</p>
-              </div>
               <div class="two-col">
                 <div class="field">
                   <label>Hiện từ giây</label>
@@ -2040,42 +1744,6 @@
                 <div class="field">
                   <label>Đến giây</label>
                   <input type="number" id="ovEnd" min="0" step="0.1" value="5" />
-                </div>
-              </div>
-              <div class="two-col">
-                <div class="field">
-                  <label>Hiệu ứng vào</label>
-                  <select id="ovAnimIn">
-                    <option value="none">Không có</option>
-                    <option value="fade">Mờ dần</option>
-                    <option value="pop">Nảy</option>
-                    <option value="slide">Trượt vào</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>Hiệu ứng ra</label>
-                  <select id="ovAnimOut">
-                    <option value="none">Không có</option>
-                    <option value="fade">Mờ dần</option>
-                    <option value="pop">Nảy</option>
-                    <option value="slide">Trượt ra</option>
-                  </select>
-                </div>
-              </div>
-              <div class="two-col">
-                <div class="field">
-                  <label>Lặp liên tục</label>
-                  <select id="ovLoop">
-                    <option value="none">Không có</option>
-                    <option value="spin">Xoay tròn</option>
-                    <option value="bounce">Nhún nhảy</option>
-                    <option value="float">Lơ lửng</option>
-                    <option value="pulse">Đập nhịp</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>Thời lượng hiệu ứng <output id="outOvAnimDur">0.5s</output></label>
-                  <input type="range" id="ovAnimDur" min="0.2" max="2" step="0.1" value="0.5" />
                 </div>
               </div>
               <div class="sub-box" style="margin-top:2px">
@@ -2121,10 +1789,6 @@
                 <span id="asegMuteLabel">Tắt tiếng đoạn này</span>
               </button>
               
-              <div class="field" style="margin-bottom:13px">
-                <label>Vang (echo) <output id="outAsegEcho">0%</output></label>
-                <input type="range" id="asegEcho" min="0" max="100" step="1" value="0" />
-              </div>
               
               
               <div class="sub-box" style="margin-top:2px">
@@ -2142,67 +1806,6 @@
               <span id="pickMusicLabel">Thêm file nhạc (MP3, WAV…)</span>
             </button>
             <p class="music-name" id="musicName" hidden></p>
-            <div class="two-col" style="margin-top:13px">
-              <div class="field">
-                <label>Nhạc bắt đầu ở (giây)</label>
-                <input type="number" id="musicStartIn" min="0" step="0.5" value="0" />
-              </div>
-              <div class="field">
-                <label>Phát nhạc từ giây (trong file)</label>
-                <input type="number" id="musicOffsetIn" min="0" step="0.5" value="0" />
-              </div>
-            </div>
-            <div class="field" style="margin-top:13px">
-              <label>Âm lượng nhạc <output id="outMusicVol">80%</output></label>
-              <input type="range" id="musicVol" min="0" max="100" step="1" value="80" />
-            </div>
-            <div class="field">
-              <label>Âm lượng tiếng gốc <output id="outVideoVol">100%</output></label>
-              <input type="range" id="videoVol" min="0" max="100" step="1" value="100" />
-            </div>
-            <div class="two-col">
-              <div class="field">
-                <label>Nhạc to dần đầu (giây) <output id="outFadeIn">0s</output></label>
-                <input type="range" id="fadeIn" min="0" max="5" step="0.5" value="0" />
-              </div>
-              <div class="field">
-                <label>Nhạc nhỏ dần cuối (giây) <output id="outFadeOut">0s</output></label>
-                <input type="range" id="fadeOut" min="0" max="5" step="0.5" value="0" />
-              </div>
-            </div>
-            <div class="sub-box">
-              <h3>Nhạc tự né tiếng</h3>
-              <div class="row-btns" style="margin-bottom:8px">
-                <button class="btn" id="btnDuck">Né tiếng: Tắt</button>
-              </div>
-              <div class="field">
-                <label>Mức nhạc khi né <output id="outDuckLevel">30%</output></label>
-                <input type="range" id="duckLevel" min="0" max="90" step="1" value="30" />
-              </div>
-            </div>
-            <div class="sub-box">
-              <h3>EQ &amp; rõ giọng (nhạc nền)</h3>
-              <div class="field">
-                <label>Trầm (bass) <output id="outMusEqB">0 dB</output></label>
-                <input type="range" id="musEqB" min="-12" max="12" step="1" value="0" />
-              </div>
-              <div class="field">
-                <label>Trung (mid) <output id="outMusEqM">0 dB</output></label>
-                <input type="range" id="musEqM" min="-12" max="12" step="1" value="0" />
-              </div>
-              <div class="field">
-                <label>Cao (treble) <output id="outMusEqT">0 dB</output></label>
-                <input type="range" id="musEqT" min="-12" max="12" step="1" value="0" />
-              </div>
-              <div class="row-btns">
-                <button class="btn" id="btnMusClarity">Rõ giọng: Tắt</button>
-              </div>
-            </div>
-            <div class="sub-box">
-              <h3>Nhịp nhạc nền</h3>
-              <button class="btn" id="btnBeats" style="width:100%;justify-content:center">Tìm nhịp</button>
-              <p class="hint" id="beatInfo" style="margin:6px 0 0">Phân tích file nhạc, đánh dấu vạch nhịp trên đoạn nhạc — kéo đoạn sẽ tự bám nhịp.</p>
-            </div>
           </section>
           </div>
 
@@ -2296,6 +1899,93 @@
             </div>
             <p class="hint" style="margin:8px 0 0">Chọn một đoạn trên timeline để chỉnh thuộc tính của đoạn đó.</p>
           </section>
+          <!-- THEME -->
+          <section class="card insp-group" id="inspTheme">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8.2" cy="10" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="7.2" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.8" cy="10" r="1.3" fill="currentColor" stroke="none"/><path d="M12 21a2.6 2.6 0 0 1 0-5.2h1.8A5.2 5.2 0 0 0 19 10.6c0-2-1-3.4-2.4-4.2"/></svg>
+              Theme video
+            </h2>
+            <div class="theme-grid" id="themeGrid"></div>
+            <div class="field" style="margin-top:12px">
+              <label>Theme của tôi</label>
+              <div id="myThemeList"></div>
+            </div>
+            <div class="field">
+              <input type="text" id="themeName" placeholder="Tên theme của bạn…" maxlength="40" />
+            </div>
+            <button class="btn" id="btnSaveTheme" style="width:100%;justify-content:center">Lưu theme hiện tại</button>
+          </section>
+          <section class="card insp-group" id="inspMusic">
+            <h2>Nhạc nền</h2>
+            <div class="two-col" style="margin-top:13px">
+              <div class="field">
+                <label>Nhạc bắt đầu ở (giây)</label>
+                <input type="number" id="musicStartIn" min="0" step="0.5" value="0" />
+              </div>
+              <div class="field">
+                <label>Phát nhạc từ giây (trong file)</label>
+                <input type="number" id="musicOffsetIn" min="0" step="0.5" value="0" />
+              </div>
+            </div>
+            <div class="field" style="margin-top:13px">
+              <label>Âm lượng nhạc <output id="outMusicVol">80%</output></label>
+              <input type="range" id="musicVol" min="0" max="100" step="1" value="80" />
+            </div>
+            <div class="field">
+              <label>Âm lượng tiếng gốc <output id="outVideoVol">100%</output></label>
+              <input type="range" id="videoVol" min="0" max="100" step="1" value="100" />
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label>Nhạc to dần đầu (giây) <output id="outFadeIn">0s</output></label>
+                <input type="range" id="fadeIn" min="0" max="5" step="0.5" value="0" />
+              </div>
+              <div class="field">
+                <label>Nhạc nhỏ dần cuối (giây) <output id="outFadeOut">0s</output></label>
+                <input type="range" id="fadeOut" min="0" max="5" step="0.5" value="0" />
+              </div>
+            </div>
+            <div class="sub-box">
+              <h3>Nhạc tự né tiếng</h3>
+              <div class="row-btns" style="margin-bottom:8px">
+                <button class="btn" id="btnDuck">Né tiếng: Tắt</button>
+              </div>
+              <div class="field">
+                <label>Mức nhạc khi né <output id="outDuckLevel">30%</output></label>
+                <input type="range" id="duckLevel" min="0" max="90" step="1" value="30" />
+              </div>
+            </div>
+            <div class="sub-box">
+              <h3>EQ &amp; rõ giọng (nhạc nền)</h3>
+              <div class="field">
+                <label>Trầm (bass) <output id="outMusEqB">0 dB</output></label>
+                <input type="range" id="musEqB" min="-12" max="12" step="1" value="0" />
+              </div>
+              <div class="field">
+                <label>Trung (mid) <output id="outMusEqM">0 dB</output></label>
+                <input type="range" id="musEqM" min="-12" max="12" step="1" value="0" />
+              </div>
+              <div class="field">
+                <label>Cao (treble) <output id="outMusEqT">0 dB</output></label>
+                <input type="range" id="musEqT" min="-12" max="12" step="1" value="0" />
+              </div>
+              <div class="row-btns">
+                <button class="btn" id="btnMusClarity">Rõ giọng: Tắt</button>
+              </div>
+            </div>
+            <div class="sub-box">
+              <h3>Nhịp nhạc nền</h3>
+              <button class="btn" id="btnBeats" style="width:100%;justify-content:center">Tìm nhịp</button>
+              <p class="hint" id="beatInfo" style="margin:6px 0 0">Phân tích file nhạc, đánh dấu vạch nhịp trên đoạn nhạc — kéo đoạn sẽ tự bám nhịp.</p>
+            </div>
+          </section>
+          <!-- COLOR SCOPES -->
+          <section class="card insp-group" id="inspScopes">
+            <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M9.5 20V4M15 20v-8M20 20V7"/></svg>
+              Biểu đồ màu
+            </h2>
+            <canvas class="hist-cv" id="histCv" width="496" height="144"></canvas>
+            <p class="hint" style="margin:8px 0 0">Histogram độ sáng (trắng) + kênh R/G/B của khung hình hiện tại — chỉ để xem khi chỉnh màu, không vào file xuất.</p>
+          </section>
           <section class="card insp-group" id="inspTransClip" hidden>
             <h2>Biến đổi · Clip</h2>
 
@@ -2380,6 +2070,169 @@
             </div>
             </div>
           </section>
+          <section class="card insp-group" id="inspClipEdit" hidden>
+            <h2>Tốc độ · chuyển cảnh · công cụ</h2>
+            <div class="field">
+              <label>Tốc độ clip <output id="outSpeed">1.00x</output></label>
+              <input type="range" id="speed" min="0.25" max="2" step="0.05" value="1" />
+            </div>
+            <div class="chips" id="speedChips" style="margin-bottom:13px">
+              <button class="chip" data-speed="0.5">0.5x</button>
+              <button class="chip" data-speed="0.75">0.75x</button>
+              <button class="chip on" data-speed="1">1x</button>
+              <button class="chip" data-speed="1.15">1.15x</button>
+              <button class="chip" data-speed="1.5">1.5x</button>
+              <button class="chip" data-speed="2">2x</button>
+            </div>
+            <div class="field">
+              <label>Đường cong tốc độ <output id="outCurveInfo">đều 1×</output></label>
+              <canvas class="curve-cv" id="speedCurveCv" width="496" height="128"></canvas>
+              <div class="chips" id="curvePresets" style="margin-top:7px">
+                <button type="button" class="chip" data-curve="none">Thường</button>
+                <button type="button" class="chip" data-curve="slowmid">Chậm giữa</button>
+                <button type="button" class="chip" data-curve="fastmid">Nhanh giữa</button>
+                <button type="button" class="chip" data-curve="up">Tăng dần</button>
+                <button type="button" class="chip" data-curve="down">Giảm dần</button>
+              </div>
+              <p class="hint" style="margin:6px 0 0">Kéo 5 điểm neo lên / xuống (0,25×–3×). Diện tích dưới đường cong được chuẩn hoá nên tổng thời lượng clip không đổi.</p>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label>Chuyển cảnh sang clip sau</label>
+                <select id="transType">
+                  <option value="none">Không có</option>
+                  <option value="fade">Mờ dần (fade)</option>
+                  <option value="slide">Trượt ngang</option>
+                  <option value="zoom">Zoom vào</option>
+                  <option value="flash">Chớp sáng</option>
+                  <option value="circle">Vòng tròn mở</option>
+                  <option value="blur">Mờ chéo</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Hiệu ứng chuyển động</label>
+                <select id="kbSelect">
+                  <option value="none">Không có</option>
+                  <option value="in">Zoom vào từ từ</option>
+                  <option value="out">Zoom ra từ từ</option>
+                  <option value="left">Pan sang trái</option>
+                  <option value="right">Pan sang phải</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Thời gian chuyển cảnh <output id="outTransDur">0.5s</output></label>
+              <input type="range" id="transDur" min="0.2" max="1.5" step="0.1" value="0.5" />
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label>Hiệu ứng vào</label>
+                <select id="clipAnimIn">
+                  <option value="none">Không có</option>
+                  <option value="fade">Mờ dần</option>
+                  <option value="zoomin">Zoom vào</option>
+                  <option value="zoomout">Zoom ra</option>
+                  <option value="left">Trượt từ trái</option>
+                  <option value="right">Trượt từ phải</option>
+                  <option value="top">Trượt từ trên</option>
+                  <option value="bottom">Trượt từ dưới</option>
+                  <option value="pop">Nảy</option>
+                  <option value="blur">Mờ nét</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Hiệu ứng ra</label>
+                <select id="clipAnimOut">
+                  <option value="none">Không có</option>
+                  <option value="fade">Mờ dần</option>
+                  <option value="zoomin">Zoom vào</option>
+                  <option value="zoomout">Zoom ra</option>
+                  <option value="left">Trượt từ trái</option>
+                  <option value="right">Trượt từ phải</option>
+                  <option value="top">Trượt từ trên</option>
+                  <option value="bottom">Trượt từ dưới</option>
+                  <option value="pop">Nảy</option>
+                  <option value="blur">Mờ nét</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Thời lượng hiệu ứng <output id="outClipAnimDur">0.5s</output></label>
+              <input type="range" id="clipAnimDur" min="0.2" max="2" step="0.1" value="0.5" />
+            </div>
+            <button class="btn" id="btnDetachAudio" style="width:100%;justify-content:center;margin-bottom:8px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg>
+              Trích xuất âm thanh
+            </button>
+            <button class="btn" id="btnFreeze" style="width:100%;justify-content:center;margin-bottom:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5M14 9.5v5"/></svg>
+            Đóng băng
+            </button>
+            <div class="sub-box" style="margin-top:2px">
+              <h3>Đảo ngược &amp; xoá nền</h3>
+              <div class="row-btns" style="margin-bottom:6px">
+                <button class="btn" id="btnReverse">Đảo ngược clip</button>
+              </div>
+              <p class="hint" id="revInfo" style="margin:0 0 10px">Đảo ngược áp cho đoạn dùng ≤ 12 giây (dài hơn hãy cắt ngắn trước). Khi đảo, tiếng gốc của đoạn tự tắt.</p>
+              <div class="mini-prog" id="revProgWrap" hidden>
+                <div class="progress-track"><div class="progress-bar" id="revBar"></div></div>
+                <div class="mp-label" id="revProgLabel">Đang trích khung hình…</div>
+                <button class="btn danger" id="btnRevCancel" style="padding:5px 10px;font-size:12px">Huỷ đảo ngược</button>
+              </div>
+              <div class="row-btns" style="margin-bottom:6px">
+                <button class="btn" id="btnClipBgAI">Xoá nền AI: Tắt</button>
+                <span class="badge-exp">Thử nghiệm</span>
+              </div>
+              <p class="hint" style="margin:0 0 10px">Xoá nền AI chạy ngay trên máy bạn (tải model ở lần bật đầu) — có thể chậm trên máy yếu.</p>
+              <div class="field">
+                <label>Nền thay thế (sau người đã tách nền)</label>
+                <select id="clipBgKind">
+                  <option value="none">Không — trong suốt</option>
+                  <option value="color">Màu đặc</option>
+                  <option value="img">Ảnh</option>
+                  <option value="video">Video (lặp)</option>
+                </select>
+              </div>
+              <div class="two-col">
+                <div class="field">
+                  <label>Màu nền</label>
+                  <input type="color" id="clipBgColor" value="#16324a" style="width:100%;height:28px" />
+                </div>
+                <div class="field">
+                  <label>File nền</label>
+                  <div class="row-btns">
+                    <button class="btn" id="btnClipBgImg" style="flex:1;justify-content:center">Ảnh</button>
+                    <button class="btn" id="btnClipBgVid" style="flex:1;justify-content:center">Video</button>
+                  </div>
+                </div>
+              </div>
+              <p class="hint" id="clipBgInfo" style="margin:0 0 10px">Đang trong suốt — người tách nền sẽ lộ phần phía sau khung hình.</p>
+              <div class="row-btns" style="margin-bottom:6px">
+                <button class="btn" id="btnBoomerang">Boomerang: Tắt</button>
+              </div>
+              <p class="hint" id="boomInfo" style="margin:0">Boomerang: đoạn dùng ≤ 6 giây phát xuôi–ngược lặp lại lấp đầy thời lượng clip; tiếng gốc tự tắt.</p>
+            </div>
+            <div class="sub-box" style="margin-top:2px">
+              <h3>Che mặt AI <span class="badge-exp">Thử nghiệm</span></h3>
+              <div class="row-btns" style="margin-bottom:6px">
+                <button class="btn" id="btnClipFace">Che mặt: Tắt</button>
+                <select id="faceModeSel" style="flex:1;min-width:0">
+                  <option value="blur">Mờ (blur)</option>
+                  <option value="pixel">Pixel</option>
+                </select>
+              </div>
+              <p class="hint" style="margin:0">AI tự tìm mặt trong khung hình và che theo suốt clip — áp cả xem trước lẫn file xuất.</p>
+            </div>
+            <div class="sub-box" style="margin-top:2px">
+              <h3>Cắt đoạn im lặng (clip)</h3>
+              <div class="field">
+                <label>Ngưỡng lặng <output id="outSilThrClip">4%</output></label>
+                <input type="range" id="silThrClip" min="1" max="20" step="0.5" value="4" />
+              </div>
+              <button class="btn" id="btnSilenceClip" style="width:100%;justify-content:center">Cắt đoạn lặng của clip</button>
+              <p class="hint" style="margin:6px 0 0">Tự dò khoảng lặng ≥ 0,4 giây trong tiếng của clip rồi cắt bỏ — các đoạn giữ lại nối liền nhau ngay tại chỗ, đoạn khác không xê dịch.</p>
+            </div>
+          </section>
           <section class="card insp-group" id="inspTransOver" hidden>
             <h2>Biến đổi · Lớp phủ</h2>
 <div class="field">
@@ -2398,6 +2251,125 @@
                 <div class="field">
                   <label>Vị trí Y <output id="outOvY">50%</output></label>
                   <input type="range" id="ovY" min="0" max="100" step="0.5" value="50" />
+                </div>
+              </div>
+          </section>
+          <section class="card insp-group" id="inspOverFx" hidden>
+            <h2>Lớp phủ · hiệu ứng &amp; nền</h2>
+              <div id="ovVideoFields" hidden>
+                <div class="field">
+                  <label>Âm lượng video phủ <output id="outOvVol">100%</output></label>
+                  <input type="range" id="ovVol" min="0" max="100" step="1" value="100" />
+                </div>
+                <div class="row-btns" style="margin-bottom:10px">
+                  <button class="btn" id="btnOvMute">Tắt tiếng phủ</button>
+                  <button class="btn" id="btnOvVloop">Lặp video phủ</button>
+                </div>
+              </div>
+              <div class="two-col">
+                <div class="field">
+                  <label>Mặt nạ</label>
+                  <select id="ovMaskSel">
+                    <option value="none">Không có</option>
+                    <option value="rect">Chữ nhật</option>
+                    <option value="circle">Tròn</option>
+                    <option value="round">Bo góc</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Mờ viền <output id="outOvMaskFeather">0</output></label>
+                  <input type="range" id="ovMaskFeather" min="0" max="100" step="1" value="0" />
+                </div>
+              </div>
+              <div class="field">
+                <label>Chế độ hoà trộn</label>
+                <select id="ovBlend">
+                  <option value="normal">Thường</option>
+                  <option value="screen">Sáng (screen)</option>
+                  <option value="multiply">Nhân tối (multiply)</option>
+                  <option value="overlay">Phủ sáng (overlay)</option>
+                  <option value="soft-light">Ánh sáng mềm</option>
+                  <option value="difference">Khác biệt</option>
+                </select>
+              </div>
+              <div class="sub-box" id="ovChromaBox" style="margin-top:2px">
+                <h3>Tách nền (chroma key)</h3>
+                <div class="row-btns" style="margin-bottom:8px">
+                  <button class="btn" id="btnOvChroma">Tách nền: Tắt</button>
+                </div>
+                <div class="two-col">
+                  <div class="field">
+                    <label>Màu cần tách</label>
+                    <input type="color" id="ovChromaColor" value="#00ff00" style="width:100%;height:28px" />
+                  </div>
+                  <div class="field">
+                    <label>Dung sai <output id="outOvChromaTol">35</output></label>
+                    <input type="range" id="ovChromaTol" min="0" max="100" step="1" value="35" />
+                  </div>
+                </div>
+                <div class="row-btns" style="margin-top:2px">
+                  <button class="btn" id="btnOvBgAI">Xoá nền AI: Tắt</button>
+                  <span class="badge-exp">Thử nghiệm</span>
+                </div>
+                <p class="hint" style="margin:6px 0 0">Xoá nền AI chạy ngay trên máy bạn — có thể chậm trên máy yếu.</p>
+                <div class="field" style="margin-top:10px">
+                  <label>Nền thay thế (sau người đã tách nền)</label>
+                  <select id="ovBgKind">
+                    <option value="none">Không — trong suốt</option>
+                    <option value="color">Màu đặc</option>
+                    <option value="img">Ảnh</option>
+                    <option value="video">Video (lặp)</option>
+                  </select>
+                </div>
+                <div class="two-col">
+                  <div class="field">
+                    <label>Màu nền</label>
+                    <input type="color" id="ovBgColor" value="#16324a" style="width:100%;height:28px" />
+                  </div>
+                  <div class="field">
+                    <label>File nền</label>
+                    <div class="row-btns">
+                      <button class="btn" id="btnOvBgImg" style="flex:1;justify-content:center">Ảnh</button>
+                      <button class="btn" id="btnOvBgVid" style="flex:1;justify-content:center">Video</button>
+                    </div>
+                  </div>
+                </div>
+                <p class="hint" id="ovBgInfo" style="margin:0">Đang trong suốt — người tách nền sẽ lộ lớp bên dưới.</p>
+              </div>
+              <div class="two-col">
+                <div class="field">
+                  <label>Hiệu ứng vào</label>
+                  <select id="ovAnimIn">
+                    <option value="none">Không có</option>
+                    <option value="fade">Mờ dần</option>
+                    <option value="pop">Nảy</option>
+                    <option value="slide">Trượt vào</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Hiệu ứng ra</label>
+                  <select id="ovAnimOut">
+                    <option value="none">Không có</option>
+                    <option value="fade">Mờ dần</option>
+                    <option value="pop">Nảy</option>
+                    <option value="slide">Trượt ra</option>
+                  </select>
+                </div>
+              </div>
+              <div class="two-col">
+                <div class="field">
+                  <label>Lặp liên tục</label>
+                  <select id="ovLoop">
+                    <option value="none">Không có</option>
+                    <option value="spin">Xoay tròn</option>
+                    <option value="bounce">Nhún nhảy</option>
+                    <option value="float">Lơ lửng</option>
+                    <option value="pulse">Đập nhịp</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Thời lượng hiệu ứng <output id="outOvAnimDur">0.5s</output></label>
+                  <input type="range" id="ovAnimDur" min="0.2" max="2" step="0.1" value="0.5" />
                 </div>
               </div>
           </section>
@@ -2440,6 +2412,39 @@
                   <input type="color" id="ltColor" value="#ffffff" />
                 </div>
               </div>
+              <div class="two-col">
+                <div class="field">
+                  <label>Hiện từ giây</label>
+                  <input type="number" id="ltStart" min="0" step="0.1" value="0" />
+                </div>
+                <div class="field">
+                  <label>Đến giây</label>
+                  <input type="number" id="ltEnd" min="0" step="0.1" value="3" />
+                </div>
+              </div>
+              <div class="two-col">
+                <div class="field">
+                  <label>Hiệu ứng chữ</label>
+                  <select id="ltAnim">
+                    <option value="none">Không có</option>
+                    <option value="fade">Mờ dần</option>
+                    <option value="pop">Nảy lên</option>
+                    <option value="up">Trượt lên</option>
+                    <option value="type">Gõ chữ</option>
+                    <option value="zoom">Zoom chữ</option>
+                    <option value="left">Trượt từ trái</option>
+                    <option value="right">Trượt từ phải</option>
+                    <option value="drop">Rơi xuống</option>
+                    <option value="spin">Xoay vào</option>
+                    <option value="blink">Nhấp nháy</option>
+                    <option value="wave">Sóng</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Thời lượng hiệu ứng <output id="outLtAnimDur">0.5s</output></label>
+                  <input type="range" id="ltAnimDur" min="0.2" max="2" step="0.1" value="0.5" />
+                </div>
+              </div>
           </section>
           <section class="card insp-group" id="inspAudio" hidden>
             <h2>Âm thanh · Đoạn tiếng</h2>
@@ -2456,6 +2461,10 @@
                   <label>Tiếng nhỏ dần (giây) <output id="outAsegFadeOut">0s</output></label>
                   <input type="range" id="asegFadeOut" min="0" max="5" step="0.5" value="0" />
                 </div>
+              </div>
+              <div class="field" style="margin-bottom:13px">
+                <label>Vang (echo) <output id="outAsegEcho">0%</output></label>
+                <input type="range" id="asegEcho" min="0" max="100" step="1" value="0" />
               </div>
 <div class="sub-box" style="margin-top:2px">
                 <h3>◆ Keyframe âm lượng</h3>
@@ -4619,11 +4628,18 @@
         else if(tlSel.kind === "clip" && selClip()) kind = "clip";
         else if(tlSel.kind === "text" && selTextId && findText(selTextId)) kind = "text";
         else if(tlSel.kind === "audio" && selAseg()) kind = "audio";
+        else if(tlSel.kind === "music" && S.musicLoaded) kind = "music";
+        var frameLike = (kind === null || kind === "music");
         var g;
-        g = $("inspFrame"); if(g) g.hidden = !!kind;
+        g = $("inspFrame"); if(g) g.hidden = !frameLike;
+        g = $("inspTheme"); if(g) g.hidden = !frameLike;
+        g = $("inspMusic"); if(g) g.hidden = !frameLike;
+        g = $("inspScopes"); if(g) g.hidden = !frameLike;
         g = $("inspTransClip"); if(g) g.hidden = kind !== "clip";
         g = $("inspFx"); if(g) g.hidden = kind !== "clip";
+        g = $("inspClipEdit"); if(g) g.hidden = kind !== "clip";
         g = $("inspTransOver"); if(g) g.hidden = kind !== "over";
+        g = $("inspOverFx"); if(g) g.hidden = kind !== "over";
         g = $("inspText"); if(g) g.hidden = kind !== "text";
         g = $("inspAudio"); if(g) g.hidden = kind !== "audio";
       }
@@ -5995,7 +6011,7 @@
         fill.style.background = meterPeak > 0.92 ? "#ff453a" : (meterPeak > 0.72 ? "#ffd60a" : "#34d17b");
       }, 90);
 
-      /* ---------- Biểu đồ màu: histogram độ sáng + RGB của khung hiện tại (chỉ để xem, ~6 lần/giây khi tab Khung mở) ---------- */
+      /* ---------- Biểu đồ màu: histogram độ sáng + RGB của khung hiện tại (chỉ để xem, ~6 lần/giây khi nhóm Biểu đồ màu ở cột phải đang hiện) ---------- */
       var histSrc = document.createElement("canvas");
       histSrc.width = 160; histSrc.height = 90;
       var histSrcCtx = histSrc.getContext("2d", { willReadFrequently: true });
@@ -6038,8 +6054,8 @@
         bars(lum, "rgba(255,255,255,.75)");
       }
       setInterval(function(){
-        var page = document.querySelector('.tab-page[data-page="frame"]');
-        if(!page || page.hidden || $("studio").hidden || !clips.length) return;
+        var sc = $("inspScopes");
+        if(!sc || sc.hidden || $("studio").hidden || !clips.length) return;
         drawHistogram();
       }, 170);
 
