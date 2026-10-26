@@ -350,9 +350,21 @@
       .icon-btn svg{ width:16px; height:16px; }
       .studio{
         width:100%; padding:8px 14px 30px;
-        display:grid; grid-template-columns:300px minmax(0,1fr); gap:12px; align-items:start;
+        display:grid; grid-template-columns:300px minmax(0,1fr) 290px; gap:12px; align-items:start;
       }
-      @media (max-width:920px){ .studio{ grid-template-columns:1fr; } }
+      /* Màn hình vừa: cột Thuộc tính xếp xuống dưới cột giữa; hẹp nữa thì một cột */
+      @media (max-width:1100px){
+        .studio{ grid-template-columns:300px minmax(0,1fr); }
+        #studio .studio > .tools-panel{ grid-column:1; grid-row:1; }
+        #studio .studio > .stage-card{ grid-column:2; grid-row:1; }
+        #studio .studio > .insp{ grid-column:2; grid-row:2; }
+      }
+      @media (max-width:920px){
+        .studio{ grid-template-columns:1fr; }
+        #studio .studio > .stage-card{ grid-column:1; grid-row:1; }
+        #studio .studio > .insp{ grid-column:1; grid-row:2; }
+        #studio .studio > .tools-panel{ grid-column:1; grid-row:3; }
+      }
 
       .stage-card{
         background:var(--panel); border:1px solid var(--line); border-radius:12px;
@@ -379,17 +391,18 @@
       .btn.on:hover{ background:var(--accent-soft); }
       /* Desktop: studio gọn trong một màn hình — xem trước + timeline chiếm
          cột chính bên phải, cột công cụ bên trái cuộn riêng, trang không dài thêm. */
-      @media (min-width:921px){
+      @media (min-width:1101px){
         #studio{ display:flex; flex-direction:column; height:100dvh; }
         #studio .toolbar{ flex:none; width:100%; }
         #studio .studio{ flex:1 1 auto; min-height:0; width:100%; padding:5px 14px 8px; align-items:stretch; }
-        #studio .studio > .panel{ grid-column:1; grid-row:1; }
+        #studio .studio > .tools-panel{ grid-column:1; grid-row:1; }
+        #studio .studio > .insp{ grid-column:3; grid-row:1; }
         #studio .studio > .stage-card{ grid-column:2; grid-row:1; }
         .stage-card{ height:100%; }
-        /* Sân khấu xem trước chỉ còn ~49% chiều cao cột chính (CapCut gọn hơn);
+        /* Sân khấu xem trước chỉ còn ~42% chiều cao cột chính (CapCut gọn hơn);
            phần diện tích còn lại nhường cho khu timeline. Canvas fit trọn khung
            nhờ fitPreview() (contain theo cả hai chiều sân khấu) — không cắt hình. */
-        .stage{ flex:0 1 49%; min-height:0; padding:10px; }
+        .stage{ flex:0 1 42%; min-height:0; padding:10px; }
         .timeline{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
         .tl-body{ flex:1 1 auto; min-height:0; }
         .tl-scroll{ min-height:0; }
@@ -599,6 +612,9 @@
       .panel::-webkit-scrollbar{ width:8px; }
       .panel::-webkit-scrollbar-thumb{ background:#45454e; border-radius:4px; }
       .panel::-webkit-scrollbar-track{ background:transparent; }
+      /* ---------- Panel Thuộc tính (cột phải) ---------- */
+      .insp-title{ font-size:12.5px; font-weight:700; color:var(--ink-soft); padding:2px 2px 0; }
+      .insp-group[hidden]{ display:none; }
       /* ---------- Tab cột công cụ ---------- */
       .tabbar{
         position:sticky; top:0; z-index:8; flex:none;
@@ -1468,7 +1484,7 @@
           </div>
         </div>
 
-        <aside class="panel">
+        <aside class="panel tools-panel">
           <nav class="tabbar" id="tabBar" aria-label="Nhóm công cụ">
             <button type="button" class="tab-btn on" data-tab="clip"><span class="tic" aria-hidden="true">🎬</span>Clip</button>
             <button type="button" class="tab-btn" data-tab="frame"><span class="tic" aria-hidden="true">🖼</span>Khung</button>
@@ -1553,21 +1569,7 @@
               </div>
               <p class="hint" style="margin:6px 0 0">Kéo 5 điểm neo lên / xuống (0,25×–3×). Diện tích dưới đường cong được chuẩn hoá nên tổng thời lượng clip không đổi.</p>
             </div>
-            <div class="two-col">
-              <div class="field">
-                <label>Hiệu ứng video</label>
-                <select id="clipFx">
-                  <option value="none">Không có</option>
-                  <option value="shake">Rung máy</option>
-                  <option value="glitch">Glitch RGB</option>
-                  <option value="leak">Rò sáng</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Cường độ <output id="outClipFxAmt">50%</output></label>
-                <input type="range" id="clipFxAmt" min="0" max="100" step="1" value="50" />
-              </div>
-            </div>
+            
             <div class="field">
               <label>Thời gian chuyển cảnh <output id="outTransDur">0.5s</output></label>
               <input type="range" id="transDur" min="0.2" max="1.5" step="0.1" value="0.5" />
@@ -1623,34 +1625,7 @@
                 <input type="range" id="clipMaskFeather" min="0" max="100" step="1" value="0" />
               </div>
             </div>
-            <div class="sub-box" style="margin-top:2px">
-              <h3>◆ Keyframe</h3>
-              <div class="two-col">
-                <div class="field">
-                  <label>Lệch ngang <output id="outClipKx">0%</output></label>
-                  <input type="range" id="clipKx" min="-60" max="60" step="1" value="0" />
-                </div>
-                <div class="field">
-                  <label>Lệch dọc <output id="outClipKy">0%</output></label>
-                  <input type="range" id="clipKy" min="-60" max="60" step="1" value="0" />
-                </div>
-              </div>
-              <div class="two-col">
-                <div class="field">
-                  <label>Tỉ lệ <output id="outClipKs">100%</output></label>
-                  <input type="range" id="clipKs" min="20" max="300" step="1" value="100" />
-                </div>
-                <div class="field">
-                  <label>Độ mờ <output id="outClipKo">100%</output></label>
-                  <input type="range" id="clipKo" min="0" max="100" step="1" value="100" />
-                </div>
-              </div>
-              <div class="row-btns">
-                <button class="btn" id="btnKfPin">◆ Ghim keyframe</button>
-                <button class="btn" id="btnKfDel">Xoá tại điểm phát</button>
-              </div>
-              <p class="hint" id="clipKfInfo" style="margin:6px 0 0">Chưa có keyframe.</p>
-            </div>
+            
             <div class="sub-box" style="margin-top:2px">
               <h3>Đảo ngược &amp; xoá nền</h3>
               <div class="row-btns" style="margin-bottom:6px">
@@ -1774,41 +1749,10 @@
             <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15.5 9 10l3.5 3L16 9.5l5 4.5"/></svg>
               Khung hình
             </h2>
-            <div class="field">
-              <label>Tỉ lệ</label>
-              <div class="chips" id="aspectChips">
-                <button class="chip on" data-aspect="orig">Gốc</button>
-                <button class="chip" data-aspect="9:16">9:16 Dọc</button>
-                <button class="chip" data-aspect="16:9">16:9 Ngang</button>
-                <button class="chip" data-aspect="1:1">1:1 Vuông</button>
-                <button class="chip" data-aspect="4:5">4:5</button>
-              </div>
-            </div>
-            <div class="field">
-              <label>Cách lấp khung khi lệch tỉ lệ</label>
-              <div class="row-btns">
-                <button class="btn on" id="btnFillCrop">Cắt đầy khung</button>
-                <button class="btn" id="btnFillBlur">Nền mờ</button>
-              </div>
-            </div>
-            <div class="field">
-              <label>Nền vùng đệm (khi dùng Nền mờ)</label>
-              <select id="bgModeSel">
-                <option value="blur">Mờ theo khung hình</option>
-                <option value="color">Màu đặc</option>
-                <option value="grad">Chuyển sắc</option>
-              </select>
-            </div>
-            <div class="two-col">
-              <div class="field">
-                <label>Màu nền</label>
-                <input type="color" id="bgColor1" value="#101018" style="width:100%;height:28px" />
-              </div>
-              <div class="field">
-                <label>Màu nền 2 (chuyển sắc)</label>
-                <input type="color" id="bgColor2" value="#26324a" style="width:100%;height:28px" />
-              </div>
-            </div>
+            
+            
+            
+            
             <div class="field">
               <label>Dịch khung ngang <output id="outPosX">50%</output></label>
               <input type="range" id="posX" min="0" max="100" step="1" value="50" />
@@ -1837,39 +1781,12 @@
               <label>Bão hoà màu <output id="outSat">100%</output></label>
               <input type="range" id="sat" min="0" max="220" step="1" value="100" />
             </div>
-            <div class="field">
-              <label>Nhiệt độ (lạnh ↔ ấm) <output id="outTemp">0</output></label>
-              <input type="range" id="temp" min="-100" max="100" step="1" value="0" />
-            </div>
-            <div class="field">
-              <label>Sắc độ (hue) <output id="outHue">0°</output></label>
-              <input type="range" id="hue" min="-180" max="180" step="1" value="0" />
-            </div>
-            <div class="field">
-              <label>Nhạt màu (fade) <output id="outFade">0%</output></label>
-              <input type="range" id="fade" min="0" max="100" step="1" value="0" />
-            </div>
-            <div class="field">
-              <label>Tối góc <output id="outVignette">0%</output></label>
-              <input type="range" id="vignette" min="0" max="100" step="1" value="0" />
-            </div>
-            <div class="field">
-              <label>Hạt nhiễu <output id="outGrain">0%</output></label>
-              <input type="range" id="grain" min="0" max="100" step="1" value="0" />
-            </div>
-            <div class="field">
-              <label>Bộ lọc màu cho clip</label>
-              <select id="filterSelect">
-                <option value="none">Không lọc</option>
-                <option value="cinema">Điện ảnh</option>
-                <option value="vintage">Vintage</option>
-                <option value="bw">Trắng đen</option>
-                <option value="fresh">Tươi sáng</option>
-                <option value="warm">Ấm</option>
-                <option value="cool">Lạnh</option>
-                <option value="vivid">Rực rỡ</option>
-              </select>
-            </div>
+            
+            
+            
+            
+            
+            
           </section>
 
           <!-- COLOR SCOPES -->
@@ -1914,28 +1831,8 @@
                 <label>Nội dung chữ</label>
                 <input type="text" id="ltText" placeholder="Nhập chữ…" maxlength="160" />
               </div>
-              <div class="field">
-                <label>Font chữ</label>
-                <select id="ltFont">
-                  <option value="">Mặc định</option>
-                  <option value="Anton">Anton — tiêu đề đậm</option>
-                  <option value="Oswald">Oswald — gọn cao</option>
-                  <option value="Playfair Display">Playfair — sang</option>
-                  <option value="Dancing Script">Dancing — viết tay</option>
-                  <option value="Space Mono">Space Mono — máy chữ</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Style nhanh</label>
-                <div class="chips" id="ltStyleRow">
-                  <button type="button" class="chip" data-tstyle="std">Chuẩn</button>
-                  <button type="button" class="chip" data-tstyle="yellow">Vàng viền đen</button>
-                  <button type="button" class="chip" data-tstyle="neon">Neon</button>
-                  <button type="button" class="chip" data-tstyle="shadow">Bóng đổ mạnh</button>
-                  <button type="button" class="chip" data-tstyle="outline">Viền trắng</button>
-                  <button type="button" class="chip" data-tstyle="box">Hộp đen mờ</button>
-                </div>
-              </div>
+              
+              
               <div class="two-col">
                 <div class="field">
                   <label>Hiện từ giây</label>
@@ -1946,21 +1843,8 @@
                   <input type="number" id="ltEnd" min="0" step="0.1" value="3" />
                 </div>
               </div>
-              <div class="field">
-                <label>Cỡ chữ <output id="outLtSize">6.5%</output></label>
-                <input type="range" id="ltSize" min="3" max="13" step="0.5" value="6.5" />
-              </div>
-              <div class="field">
-                <label>Màu chữ</label>
-                <div class="swatches" id="ltSwatches">
-                  <button class="swatch on" data-color="#ffffff" style="background:#ffffff" aria-label="Trắng"></button>
-                  <button class="swatch" data-color="#ffd60a" style="background:#ffd60a" aria-label="Vàng"></button>
-                  <button class="swatch" data-color="#111111" style="background:#111111" aria-label="Đen"></button>
-                  <button class="swatch" data-color="#ff3b30" style="background:#ff3b30" aria-label="Đỏ"></button>
-                  <button class="swatch" data-color="#34d17b" style="background:#34d17b" aria-label="Xanh lá"></button>
-                  <input type="color" id="ltColor" value="#ffffff" />
-                </div>
-              </div>
+              
+              
               <div class="field">
                 <label>Vị trí</label>
                 <div class="chips" id="ltPosChips">
@@ -2065,24 +1949,9 @@
               Thêm video phủ (PiP)
             </button>
             <div class="editor-box" id="overEditor" hidden>
-              <div class="field">
-                <label>Kích thước <output id="outOvSize">28%</output></label>
-                <input type="range" id="ovSize" min="6" max="90" step="1" value="28" />
-              </div>
-              <div class="field">
-                <label>Độ mờ <output id="outOvOpacity">100%</output></label>
-                <input type="range" id="ovOpacity" min="10" max="100" step="1" value="100" />
-              </div>
-              <div class="two-col">
-                <div class="field">
-                  <label>Vị trí ngang <output id="outOvX">50%</output></label>
-                  <input type="range" id="ovX" min="0" max="100" step="0.5" value="50" />
-                </div>
-                <div class="field">
-                  <label>Vị trí dọc <output id="outOvY">50%</output></label>
-                  <input type="range" id="ovY" min="0" max="100" step="0.5" value="50" />
-                </div>
-              </div>
+              
+              
+              
               <div id="ovVideoFields" hidden>
                 <div class="field">
                   <label>Âm lượng video phủ <output id="outOvVol">100%</output></label>
@@ -2246,55 +2115,18 @@
             </div>
             <div id="asegEditor" hidden>
               <p class="music-name" style="margin:0 0 10px">Đoạn tiếng đang chọn: <b id="asegNameLabel"></b></p>
-              <div class="field">
-                <label>Âm lượng đoạn tiếng <output id="outAsegVol">100%</output></label>
-                <input type="range" id="asegVol" min="0" max="150" step="1" value="100" />
-              </div>
+              
               <button class="btn" id="btnAsegMute" style="width:100%;justify-content:center;margin-bottom:10px">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z" fill="currentColor" stroke="none"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7.5 7.5 0 0 1 0 10"/></svg>
                 <span id="asegMuteLabel">Tắt tiếng đoạn này</span>
               </button>
-              <div class="two-col" style="margin-bottom:13px">
-                <div class="field">
-                  <label>Tiếng to dần (giây) <output id="outAsegFadeIn">0s</output></label>
-                  <input type="range" id="asegFadeIn" min="0" max="5" step="0.5" value="0" />
-                </div>
-                <div class="field">
-                  <label>Tiếng nhỏ dần (giây) <output id="outAsegFadeOut">0s</output></label>
-                  <input type="range" id="asegFadeOut" min="0" max="5" step="0.5" value="0" />
-                </div>
-              </div>
+              
               <div class="field" style="margin-bottom:13px">
                 <label>Vang (echo) <output id="outAsegEcho">0%</output></label>
                 <input type="range" id="asegEcho" min="0" max="100" step="1" value="0" />
               </div>
-              <div class="sub-box" style="margin-top:2px">
-                <h3>◆ Keyframe âm lượng</h3>
-                <div class="row-btns">
-                  <button class="btn" id="btnAsegKfPin">◆ Ghim mức</button>
-                  <button class="btn" id="btnAsegKfDel">Xoá điểm</button>
-                </div>
-                <p class="hint" id="asegKfInfo" style="margin:6px 0 0">Chưa có điểm mức nào.</p>
-              </div>
-              <div class="sub-box" style="margin-top:2px">
-                <h3>EQ &amp; rõ giọng (đoạn tiếng)</h3>
-                <div class="field">
-                  <label>Trầm (bass) <output id="outAsegEqB">0 dB</output></label>
-                  <input type="range" id="asegEqB" min="-12" max="12" step="1" value="0" />
-                </div>
-                <div class="field">
-                  <label>Trung (mid) <output id="outAsegEqM">0 dB</output></label>
-                  <input type="range" id="asegEqM" min="-12" max="12" step="1" value="0" />
-                </div>
-                <div class="field">
-                  <label>Cao (treble) <output id="outAsegEqT">0 dB</output></label>
-                  <input type="range" id="asegEqT" min="-12" max="12" step="1" value="0" />
-                </div>
-                <div class="row-btns">
-                  <button class="btn" id="btnAsegClarity">Rõ giọng: Tắt</button>
-                </div>
-                <p class="hint" style="margin:6px 0 0">Rõ giọng: lọc ù dưới 80Hz + tăng độ hiện diện + nén nhẹ, hợp giọng kể chuyện.</p>
-              </div>
+              
+              
               <div class="sub-box" style="margin-top:2px">
                 <h3>Cắt đoạn im lặng (đoạn tiếng)</h3>
                 <div class="field">
@@ -2422,6 +2254,237 @@
             <div id="projList"></div>
           </section>
           </div>
+        </aside>
+        <aside class="panel insp" id="inspPanel" aria-label="Bảng thuộc tính">
+          <div class="insp-title">Thuộc tính</div>
+          <section class="card insp-group" id="inspFrame">
+            <h2>Khung hình</h2>
+<div class="field">
+              <label>Tỉ lệ</label>
+              <div class="chips" id="aspectChips">
+                <button class="chip on" data-aspect="orig">Gốc</button>
+                <button class="chip" data-aspect="9:16">9:16 Dọc</button>
+                <button class="chip" data-aspect="16:9">16:9 Ngang</button>
+                <button class="chip" data-aspect="1:1">1:1 Vuông</button>
+                <button class="chip" data-aspect="4:5">4:5</button>
+              </div>
+            </div>
+<div class="field">
+              <label>Cách lấp khung khi lệch tỉ lệ</label>
+              <div class="row-btns">
+                <button class="btn on" id="btnFillCrop">Cắt đầy khung</button>
+                <button class="btn" id="btnFillBlur">Nền mờ</button>
+              </div>
+            </div>
+<div class="field">
+              <label>Nền vùng đệm (khi dùng Nền mờ)</label>
+              <select id="bgModeSel">
+                <option value="blur">Mờ theo khung hình</option>
+                <option value="color">Màu đặc</option>
+                <option value="grad">Chuyển sắc</option>
+              </select>
+            </div>
+<div class="two-col">
+              <div class="field">
+                <label>Màu nền</label>
+                <input type="color" id="bgColor1" value="#101018" style="width:100%;height:28px" />
+              </div>
+              <div class="field">
+                <label>Màu nền 2 (chuyển sắc)</label>
+                <input type="color" id="bgColor2" value="#26324a" style="width:100%;height:28px" />
+              </div>
+            </div>
+            <p class="hint" style="margin:8px 0 0">Chọn một đoạn trên timeline để chỉnh thuộc tính của đoạn đó.</p>
+          </section>
+          <section class="card insp-group" id="inspTransClip" hidden>
+            <h2>Biến đổi · Clip</h2>
+
+              <div class="two-col">
+                <div class="field">
+                  <label>Vị trí X <output id="outClipKx">0%</output></label>
+                  <input type="range" id="clipKx" min="-60" max="60" step="1" value="0" />
+                </div>
+                <div class="field">
+                  <label>Vị trí Y <output id="outClipKy">0%</output></label>
+                  <input type="range" id="clipKy" min="-60" max="60" step="1" value="0" />
+                </div>
+              </div>
+              <div class="two-col">
+                <div class="field">
+                  <label>Thu phóng <output id="outClipKs">100%</output></label>
+                  <input type="range" id="clipKs" min="10" max="300" step="1" value="100" />
+                </div>
+                <div class="field">
+                  <label>Độ mờ <output id="outClipKo">100%</output></label>
+                  <input type="range" id="clipKo" min="0" max="100" step="1" value="100" />
+                </div>
+              </div>
+              <div class="row-btns">
+                <button class="btn" id="btnKfPin">◆ Ghim keyframe</button>
+                <button class="btn" id="btnKfDel">Xoá tại điểm phát</button>
+              </div>
+              <p class="hint" id="clipKfInfo" style="margin:6px 0 0">Chưa có keyframe.</p>
+            <p class="hint" style="margin:6px 0 0">Giá trị áp tại điểm phát — clip đã có keyframe thì ghi thành keyframe tại điểm phát.</p>
+          </section>
+          <section class="card insp-group" id="inspFx" hidden>
+            <h2>Hiệu ứng &amp; màu · Clip</h2>
+<div class="two-col">
+              <div class="field">
+                <label>Hiệu ứng video</label>
+                <select id="clipFx">
+                  <option value="none">Không có</option>
+                  <option value="shake">Rung máy</option>
+                  <option value="glitch">Glitch RGB</option>
+                  <option value="leak">Rò sáng</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Cường độ <output id="outClipFxAmt">50%</output></label>
+                <input type="range" id="clipFxAmt" min="0" max="100" step="1" value="50" />
+              </div>
+            </div>
+            <div class="sub-box">
+              <h3>Chỉnh màu nâng cao</h3>
+<div class="field">
+              <label>Nhiệt độ (lạnh ↔ ấm) <output id="outTemp">0</output></label>
+              <input type="range" id="temp" min="-100" max="100" step="1" value="0" />
+            </div>
+<div class="field">
+              <label>Sắc độ (hue) <output id="outHue">0°</output></label>
+              <input type="range" id="hue" min="-180" max="180" step="1" value="0" />
+            </div>
+<div class="field">
+              <label>Nhạt màu (fade) <output id="outFade">0%</output></label>
+              <input type="range" id="fade" min="0" max="100" step="1" value="0" />
+            </div>
+<div class="field">
+              <label>Tối góc <output id="outVignette">0%</output></label>
+              <input type="range" id="vignette" min="0" max="100" step="1" value="0" />
+            </div>
+<div class="field">
+              <label>Hạt nhiễu <output id="outGrain">0%</output></label>
+              <input type="range" id="grain" min="0" max="100" step="1" value="0" />
+            </div>
+<div class="field">
+              <label>Bộ lọc màu cho clip</label>
+              <select id="filterSelect">
+                <option value="none">Không lọc</option>
+                <option value="cinema">Điện ảnh</option>
+                <option value="vintage">Vintage</option>
+                <option value="bw">Trắng đen</option>
+                <option value="fresh">Tươi sáng</option>
+                <option value="warm">Ấm</option>
+                <option value="cool">Lạnh</option>
+                <option value="vivid">Rực rỡ</option>
+              </select>
+            </div>
+            </div>
+          </section>
+          <section class="card insp-group" id="inspTransOver" hidden>
+            <h2>Biến đổi · Lớp phủ</h2>
+<div class="field">
+                <label>Thu phóng <output id="outOvSize">28%</output></label>
+                <input type="range" id="ovSize" min="6" max="90" step="1" value="28" />
+              </div>
+<div class="field">
+                <label>Độ mờ <output id="outOvOpacity">100%</output></label>
+                <input type="range" id="ovOpacity" min="10" max="100" step="1" value="100" />
+              </div>
+<div class="two-col">
+                <div class="field">
+                  <label>Vị trí X <output id="outOvX">50%</output></label>
+                  <input type="range" id="ovX" min="0" max="100" step="0.5" value="50" />
+                </div>
+                <div class="field">
+                  <label>Vị trí Y <output id="outOvY">50%</output></label>
+                  <input type="range" id="ovY" min="0" max="100" step="0.5" value="50" />
+                </div>
+              </div>
+          </section>
+          <section class="card insp-group" id="inspText" hidden>
+            <h2>Chữ</h2>
+<div class="field">
+                <label>Font chữ</label>
+                <select id="ltFont">
+                  <option value="">Mặc định</option>
+                  <option value="Anton">Anton — tiêu đề đậm</option>
+                  <option value="Oswald">Oswald — gọn cao</option>
+                  <option value="Playfair Display">Playfair — sang</option>
+                  <option value="Dancing Script">Dancing — viết tay</option>
+                  <option value="Space Mono">Space Mono — máy chữ</option>
+                </select>
+              </div>
+<div class="field">
+                <label>Style nhanh</label>
+                <div class="chips" id="ltStyleRow">
+                  <button type="button" class="chip" data-tstyle="std">Chuẩn</button>
+                  <button type="button" class="chip" data-tstyle="yellow">Vàng viền đen</button>
+                  <button type="button" class="chip" data-tstyle="neon">Neon</button>
+                  <button type="button" class="chip" data-tstyle="shadow">Bóng đổ mạnh</button>
+                  <button type="button" class="chip" data-tstyle="outline">Viền trắng</button>
+                  <button type="button" class="chip" data-tstyle="box">Hộp đen mờ</button>
+                </div>
+              </div>
+<div class="field">
+                <label>Cỡ chữ <output id="outLtSize">6.5%</output></label>
+                <input type="range" id="ltSize" min="3" max="13" step="0.5" value="6.5" />
+              </div>
+<div class="field">
+                <label>Màu chữ</label>
+                <div class="swatches" id="ltSwatches">
+                  <button class="swatch on" data-color="#ffffff" style="background:#ffffff" aria-label="Trắng"></button>
+                  <button class="swatch" data-color="#ffd60a" style="background:#ffd60a" aria-label="Vàng"></button>
+                  <button class="swatch" data-color="#111111" style="background:#111111" aria-label="Đen"></button>
+                  <button class="swatch" data-color="#ff3b30" style="background:#ff3b30" aria-label="Đỏ"></button>
+                  <button class="swatch" data-color="#34d17b" style="background:#34d17b" aria-label="Xanh lá"></button>
+                  <input type="color" id="ltColor" value="#ffffff" />
+                </div>
+              </div>
+          </section>
+          <section class="card insp-group" id="inspAudio" hidden>
+            <h2>Âm thanh · Đoạn tiếng</h2>
+<div class="field">
+                <label>Âm lượng đoạn tiếng <output id="outAsegVol">100%</output></label>
+                <input type="range" id="asegVol" min="0" max="150" step="1" value="100" />
+              </div>
+<div class="two-col" style="margin-bottom:13px">
+                <div class="field">
+                  <label>Tiếng to dần (giây) <output id="outAsegFadeIn">0s</output></label>
+                  <input type="range" id="asegFadeIn" min="0" max="5" step="0.5" value="0" />
+                </div>
+                <div class="field">
+                  <label>Tiếng nhỏ dần (giây) <output id="outAsegFadeOut">0s</output></label>
+                  <input type="range" id="asegFadeOut" min="0" max="5" step="0.5" value="0" />
+                </div>
+              </div>
+<div class="sub-box" style="margin-top:2px">
+                <h3>◆ Keyframe âm lượng</h3>
+                <div class="row-btns">
+                  <button class="btn" id="btnAsegKfPin">◆ Ghim mức</button>
+                  <button class="btn" id="btnAsegKfDel">Xoá điểm</button>
+                </div>
+                <p class="hint" id="asegKfInfo" style="margin:6px 0 0">Chưa có điểm mức nào.</p>
+              </div>
+<div class="sub-box" style="margin-top:2px">
+                <h3>EQ &amp; rõ giọng (đoạn tiếng)</h3>
+                <div class="field">
+                  <label>Trầm (bass) <output id="outAsegEqB">0 dB</output></label>
+                  <input type="range" id="asegEqB" min="-12" max="12" step="1" value="0" />
+                </div>
+                <div class="field">
+                  <label>Trung (mid) <output id="outAsegEqM">0 dB</output></label>
+                  <input type="range" id="asegEqM" min="-12" max="12" step="1" value="0" />
+                </div>
+                <div class="field">
+                  <label>Cao (treble) <output id="outAsegEqT">0 dB</output></label>
+                  <input type="range" id="asegEqT" min="-12" max="12" step="1" value="0" />
+                </div>
+                <div class="row-btns">
+                  <button class="btn" id="btnAsegClarity">Rõ giọng: Tắt</button>
+                </div>
+                <p class="hint" style="margin:6px 0 0">Rõ giọng: lọc ù dưới 80Hz + tăng độ hiện diện + nén nhẹ, hợp giọng kể chuyện.</p>
+              </div>
+          </section>
         </aside>
       </div>
     </div>
@@ -2953,7 +3016,7 @@
         var cs = window.getComputedStyle(stage);
         var availW = stage.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
         var availH;
-        if(window.matchMedia("(min-width:921px)").matches){
+        if(window.matchMedia("(min-width:1101px)").matches){
           availH = stage.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
         } else {
           /* Mobile: sân khấu cao theo nội dung, lấy chiều cao của chính nó sẽ
@@ -3380,7 +3443,7 @@
           };
           if(o.end <= o.start) o.end = o.start + 1;
           overs.push(o);
-          selOverId = o.id;
+          selOverId = o.id; inspOver = true;
           renderOverList(); syncOverPanel();
           pushHistory(); dirty = true;
           toast("Đã thêm ảnh — kéo trên khung hình để đặt vị trí.");
@@ -3566,6 +3629,7 @@
             $("pickMusicLabel").textContent = "Thêm file nhạc (MP3, WAV…)";
           }
         }
+        inspOver = false;
         if(selTextId && findText(selTextId)){ tlSel.kind = "text"; tlSel.id = selTextId; }
         else if(selAsegId && findAseg(selAsegId)){ tlSel.kind = "audio"; tlSel.id = selAsegId; }
         else if(selClipId){ tlSel.kind = "clip"; tlSel.id = selClipId; }
@@ -3905,7 +3969,7 @@
         return $("tlMusicSeg");
       }
       function selectTimeline(kind, id, seek){
-        tlSel.kind = kind; tlSel.id = id || null; tlGap = null;
+        tlSel.kind = kind; tlSel.id = id || null; tlGap = null; inspOver = false;
         if(kind === "clip"){
           selClipId = id;
           syncClipPanel();
@@ -3926,7 +3990,8 @@
         dirty = true;
       }
       function clearTimelineSelection(){
-        tlSel.kind = null; tlSel.id = null; tlGap = null;
+        tlSel.kind = null; tlSel.id = null; tlGap = null; inspOver = false;
+        syncInspector();
         renderStrip();
       }
       function showTlTip(x, y, text){
@@ -4332,7 +4397,7 @@
         e.preventDefault();
         var kind = segKindOf(segEl);
         var id = kind === "clip" ? segEl.getAttribute("data-clip") : (kind === "text" ? segEl.getAttribute("data-text") : (kind === "audio" ? segEl.getAttribute("data-aseg") : null));
-        tlSel.kind = kind; tlSel.id = id; tlGap = null;
+        tlSel.kind = kind; tlSel.id = id; tlGap = null; inspOver = false;
         if(kind === "clip"){ selClipId = id; syncClipPanel(); }
         else if(kind === "audio"){ selAsegId = id; syncAsegPanel(); }
         else if(kind === "text"){ selTextId = id; renderTextList(); syncTextPanel(); }
@@ -4370,7 +4435,7 @@
         else if(e.clientX - r0.left <= hw) mode = "trim-l";
         else if(kind !== "music" && r0.right - e.clientX <= hw) mode = "trim-r";
         if(kind === "music" && mode === "trim-r") mode = "move";
-        tlSel.kind = kind; tlSel.id = id; tlGap = null;
+        tlSel.kind = kind; tlSel.id = id; tlGap = null; inspOver = false;
         if(kind === "clip"){ selClipId = id; syncClipPanel(); }
         else if(kind === "audio"){ selAsegId = id; syncAsegPanel(); }
         else if(kind === "text"){ selTextId = id; renderTextList(); syncTextPanel(); }
@@ -4545,9 +4610,28 @@
         resizeTimer = setTimeout(renderStrip, 160);
       });
 
+      /* ---------- Panel Thuộc tính (cột phải): nhóm hiện theo lựa chọn hiện tại ---------- */
+      var inspOver = false;   /* lớp phủ được chọn qua danh sách / trên khung hình (không qua timeline) */
+      function syncInspector(){
+        if(inspOver && !(selOverId && findOver(selOverId))) inspOver = false;
+        var kind = null;
+        if(inspOver) kind = "over";
+        else if(tlSel.kind === "clip" && selClip()) kind = "clip";
+        else if(tlSel.kind === "text" && selTextId && findText(selTextId)) kind = "text";
+        else if(tlSel.kind === "audio" && selAseg()) kind = "audio";
+        var g;
+        g = $("inspFrame"); if(g) g.hidden = !!kind;
+        g = $("inspTransClip"); if(g) g.hidden = kind !== "clip";
+        g = $("inspFx"); if(g) g.hidden = kind !== "clip";
+        g = $("inspTransOver"); if(g) g.hidden = kind !== "over";
+        g = $("inspText"); if(g) g.hidden = kind !== "text";
+        g = $("inspAudio"); if(g) g.hidden = kind !== "audio";
+      }
+
       function syncClipPanel(){
         var c = selClip();
         $("clipCard").style.display = c ? "" : "none";
+        syncInspector();
         if(!c) return;
         $("clipNameLabel").textContent = c.name;
         var ts = $("trimStart"), te = $("trimEnd");
@@ -4675,7 +4759,7 @@
         var row = e.target.closest("[data-text]");
         if(!row) return;
         selTextId = row.getAttribute("data-text");
-        tlSel.kind = "text"; tlSel.id = selTextId;
+        tlSel.kind = "text"; tlSel.id = selTextId; inspOver = false;
         var t = findText(selTextId);
         if(t) seekTo(t.start);
         renderTextList(); syncTextPanel(); renderStrip();
@@ -4683,6 +4767,7 @@
       function syncTextPanel(){
         var t = selTextId ? findText(selTextId) : null;
         $("textEditor").hidden = !t;
+        syncInspector();
         if(!t) return;
         $("ltText").value = t.text;
         $("ltStart").value = Math.round(t.start*10)/10;
@@ -4722,7 +4807,7 @@
       $("overList").addEventListener("click", function(e){
         var row = e.target.closest("[data-over]");
         if(!row) return;
-        selOverId = row.getAttribute("data-over");
+        selOverId = row.getAttribute("data-over"); inspOver = true;
         var o = findOver(selOverId);
         if(o) seekTo(o.start);
         renderOverList(); syncOverPanel(); dirty = true;
@@ -4730,6 +4815,7 @@
       function syncOverPanel(){
         var o = selOverId ? findOver(selOverId) : null;
         $("overEditor").hidden = !o;
+        syncInspector();
         if(!o) return;
         $("ovSize").value = o.scale;
         $("outOvSize").textContent = o.scale + "%";
@@ -6023,7 +6109,7 @@
           }
           if(Math.abs(p.px - hx * canvas.width) <= ow/2 && Math.abs(p.py - hy * canvas.height) <= oh/2){
             dragOver = o;
-            selOverId = o.id;
+            selOverId = o.id; inspOver = true;
             renderOverList(); syncOverPanel();
             setTab("over");
             canvas.setPointerCapture(e.pointerId);
@@ -7714,7 +7800,7 @@
         };
         if(o.end <= o.start) o.end = o.start + 1;
         overs.push(o);
-        selOverId = o.id;
+        selOverId = o.id; inspOver = true;
         renderOverList(); syncOverPanel();
         pushHistory(); dirty = true;
         toast("Đã thêm sticker — kéo trên khung hình để đặt vị trí.");
@@ -7865,7 +7951,7 @@
           };
           if(o.end <= o.start) o.end = o.start + 1;
           overs.push(o);
-          selOverId = o.id;
+          selOverId = o.id; inspOver = true;
           getPipEl(o);
           renderOverList(); syncOverPanel();
           setTab("over");
@@ -7957,6 +8043,7 @@
         var a = selAseg();
         var box = $("asegEditor");
         if(box) box.hidden = !a;
+        syncInspector();
         if(!a) return;
         $("asegNameLabel").textContent = a.name + " · " + fmt(a.start || 0) + " → " + fmt((a.start || 0) + asegOut(a));
         var v = (a.vol == null ? 100 : a.vol);
