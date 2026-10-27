@@ -758,6 +758,21 @@
       .emoji-btn:hover{ border-color:var(--accent); }
       .emoji-btn:active{ transform:scale(.92); }
 
+      /* ---------- Kéo–thả từ panel: nguồn kéo + bóng kéo + đích thả ---------- */
+      .pdrag{ cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
+      .pdrag:hover{ border-color:var(--accent); }
+      .pdrag:active{ cursor:grabbing; }
+      .drag-ghost{
+        position:fixed; left:0; top:0; z-index:200; pointer-events:none;
+        transform:translate(-50%,-160%);
+        background:rgba(24,24,29,.95); color:var(--ink);
+        border:1.5px solid var(--accent); border-radius:9px;
+        padding:6px 11px; font-size:13px; font-weight:700; line-height:1.25;
+        box-shadow:0 8px 22px rgba(0,0,0,.45); white-space:nowrap;
+      }
+      #preview.drop-on{ outline:2px solid var(--accent); outline-offset:-2px; }
+      .tl-seg.drop-target{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent), 0 0 0 6px var(--accent-soft); z-index:3; }
+
       /* ---------- Export overlay ---------- */
       .overlay{
         position:fixed; inset:0; z-index:60; background:rgba(12,10,8,.62);
@@ -1739,6 +1754,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
               Thêm lớp chữ tại điểm phát
             </button>
+            <p class="hint" style="margin:8px 0 2px">Kéo nút này vào khung hình để chèn chữ ngay tại điểm thả.</p>
             <div class="editor-box" id="textEditor" hidden>
               <div class="field">
                 <label>Nội dung chữ</label>
@@ -1820,6 +1836,7 @@
               <button type="button" class="emoji-btn" data-emoji="🎉" aria-label="Sticker pháo giấy">🎉</button>
               <button type="button" class="emoji-btn" data-emoji="💯" aria-label="Sticker 100">💯</button>
             </div>
+            <p class="hint" style="margin:0 0 10px">Kéo sticker hoặc nút ảnh vào khung hình để chèn tại điểm thả.</p>
             <button class="btn" id="btnAddImage" style="width:100%;justify-content:center">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
               Thêm ảnh đè lên video
@@ -2182,6 +2199,19 @@
                 <option value="vivid">Rực rỡ</option>
               </select>
             </div>
+<div class="field">
+              <label>Bộ lọc nhanh</label>
+              <div class="chips" id="filterChips">
+                <button type="button" class="chip" data-filter="cinema">Điện ảnh</button>
+                <button type="button" class="chip" data-filter="vintage">Vintage</button>
+                <button type="button" class="chip" data-filter="bw">Trắng đen</button>
+                <button type="button" class="chip" data-filter="fresh">Tươi sáng</button>
+                <button type="button" class="chip" data-filter="warm">Ấm</button>
+                <button type="button" class="chip" data-filter="cool">Lạnh</button>
+                <button type="button" class="chip" data-filter="vivid">Rực rỡ</button>
+              </div>
+              <p class="hint" style="margin:6px 0 0">Bấm để áp cho clip đang chọn · kéo thả lên khung hình cũng áp ngay cho clip.</p>
+</div>
             </div>
           </section>
           <section class="card insp-group" id="inspClipEdit" hidden>
@@ -2233,6 +2263,18 @@
                   <option value="right">Pan sang phải</option>
                 </select>
               </div>
+            </div>
+            <div class="field">
+              <label>Chuyển cảnh nhanh</label>
+              <div class="chips" id="transChips">
+                <button type="button" class="chip" data-trans="fade">Mờ dần</button>
+                <button type="button" class="chip" data-trans="slide">Trượt ngang</button>
+                <button type="button" class="chip" data-trans="zoom">Zoom vào</button>
+                <button type="button" class="chip" data-trans="flash">Chớp sáng</button>
+                <button type="button" class="chip" data-trans="circle">Vòng tròn</button>
+                <button type="button" class="chip" data-trans="blur">Mờ chéo</button>
+              </div>
+              <p class="hint" style="margin:6px 0 0">Bấm để áp cho clip đang chọn · kéo thả lên một clip trên timeline để áp vào điểm nối trước nó.</p>
             </div>
             <div class="field">
               <label>Thời gian chuyển cảnh <output id="outTransDur">0.5s</output></label>
@@ -2543,6 +2585,7 @@
                   <button type="button" class="chip" data-tstyle="outline">Viền trắng</button>
                   <button type="button" class="chip" data-tstyle="box">Hộp đen mờ</button>
                 </div>
+                <p class="hint" style="margin:6px 0 0">Kéo một style vào khung hình để tạo chữ mới mang style đó tại điểm thả.</p>
               </div>
 <div class="field">
                 <label>Cỡ chữ <output id="outLtSize">6.5%</output></label>
@@ -3629,11 +3672,14 @@
         img.onload = function(){
           var o = {
             id: uid("o"), url: url, img: img, file: file,
-            x: 0.5, y: 0.5, scale: 28, opacity: 100,
+            x: pendingOverPos ? clamp(pendingOverPos.x, 0, 1) : 0.5,
+            y: pendingOverPos ? clamp(pendingOverPos.y, 0, 1) : 0.5,
+            scale: 28, opacity: 100,
             start: Math.round(playhead*10)/10,
             end: Math.round(Math.min(L.total, playhead + 5)*10)/10,
             animIn: "none", animOut: "none", animDur: 0.5, loop: "none"
           };
+          pendingOverPos = null;
           if(o.end <= o.start) o.end = o.start + 1;
           overs.push(o);
           selOverId = o.id; inspOver = true;
@@ -6885,6 +6931,233 @@
       canvas.addEventListener("pointercancel", function(){
         if(dragOver){ dragOver = null; pushHistory(); }
       });
+
+      /* ---------- KÉO–THẢ TỪ PANEL (pointer events — chuột + cảm ứng, không dùng HTML5 DnD) ----------
+         · Sticker / nút Thêm chữ / style chữ / nút Thêm ảnh: kéo thả lên khung
+           hình → chèn ngay tại điểm thả (toạ độ chuẩn hoá của khung hiển thị).
+         · Chip chuyển cảnh: kéo thả lên một clip trên timeline → áp vào điểm
+           nối TRƯỚC clip đó (đúng mô hình transType lưu trên clip trái).
+         · Chip bộ lọc: kéo thả lên khung hình → áp cho clip đang chọn (chưa
+           chọn thì lấy clip tại điểm phát / clip đầu, như các đường áp khác).
+         Bấm thường giữ nguyên 100%: kéo chỉ kích hoạt sau khi di chuyển > 7px,
+         và cú click sinh ra ngay sau một lần kéo thật bị nuốt một lần để không
+         chèn/áp hai lần. Mỗi lần thả thành công = đúng 1 bước Hoàn tác. */
+      var pendingOverPos = null;   /* điểm thả đang chờ cho ảnh sắp chọn từ hộp chọn file */
+      var pd = null;               /* phiên kéo panel đang diễn ra */
+      var pdSwallowClick = false;
+      var pdGhost = document.createElement("div");
+      pdGhost.className = "drag-ghost";
+      pdGhost.hidden = true;
+      document.body.appendChild(pdGhost);
+      function markDraggable(sel, kind){
+        document.querySelectorAll(sel).forEach(function(el){
+          el.setAttribute("data-pdrag", kind);
+          el.classList.add("pdrag");
+        });
+      }
+      markDraggable(".emoji-btn", "emoji");
+      markDraggable("#btnAddText", "text");
+      markDraggable("#btnAddImage", "image");
+      markDraggable("#ltStyleRow .chip", "tstyle");
+      markDraggable("#transChips .chip", "trans");
+      markDraggable("#filterChips .chip", "filter");
+      function pdValue(src){
+        return src.getAttribute("data-emoji") || src.getAttribute("data-tstyle") ||
+               src.getAttribute("data-trans") || src.getAttribute("data-filter") || "";
+      }
+      function pdLabel(kind, src){
+        if(kind === "emoji") return src.getAttribute("data-emoji") || "Sticker";
+        if(kind === "text") return "Aa · Chữ mới";
+        if(kind === "image") return "Ảnh · logo";
+        return (src.textContent || "").trim();
+      }
+      /* Điểm thả → toạ độ chuẩn hoá 0..1 theo ĐÚNG hình chữ nhật hiển thị thật
+         của canvas như canvasPos() vẫn dùng (getBoundingClientRect đã gồm cả
+         transform zoom xem trước của stageWrap). Ngoài khung → null (huỷ). */
+      function pdStagePos(e){
+        if(!clips.length || !canvas.width) return null;
+        var r = canvas.getBoundingClientRect();
+        if(!r.width || !r.height) return null;
+        var nx = (e.clientX - r.left) / r.width;
+        var ny = (e.clientY - r.top) / r.height;
+        if(nx < 0 || nx > 1 || ny < 0 || ny > 1) return null;
+        return { x: nx, y: ny };
+      }
+      /* Đích chuyển cảnh trên timeline: thả lên clip thứ idx = điểm nối vào
+         clip đó → clip lưu trữ là idx-1; clip đầu không có điểm nối vào thì
+         áp lên chính nó (điểm nối ra duy nhất nó có). Ngoài track / khoảng
+         trống giữa hai clip → null (huỷ). */
+      function pdTransTarget(e){
+        if(!clips.length) return null;
+        var track = $("tlVideoTrack"); if(!track) return null;
+        var r = track.getBoundingClientRect();
+        if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return null;
+        var idx = clipIndexAt(tlTimeFromEvent(e));
+        if(idx < 0) return null;
+        return { store: idx === 0 ? 0 : idx - 1, seg: idx };
+      }
+      function pdClearHi(){
+        if(pd && pd.hlEl){ pd.hlEl.classList.remove("drop-target"); pd.hlEl = null; }
+        canvas.classList.remove("drop-on");
+      }
+      function pdTrack(e){
+        pdGhost.style.left = e.clientX + "px";
+        pdGhost.style.top = e.clientY + "px";
+        if(pd.kind === "trans"){
+          canvas.classList.remove("drop-on");
+          var tg = pdTransTarget(e);
+          var el = null;
+          if(tg){
+            var seg = $("tlVideoTrack").querySelector('[data-clip="' + clips[tg.seg].id + '"]');
+            if(seg) el = seg;
+          }
+          if(pd.hlEl !== el){
+            if(pd.hlEl) pd.hlEl.classList.remove("drop-target");
+            pd.hlEl = el;
+            if(el) el.classList.add("drop-target");
+          }
+          hideTlHover();
+        } else {
+          if(pd.hlEl){ pd.hlEl.classList.remove("drop-target"); pd.hlEl = null; }
+          canvas.classList.toggle("drop-on", !!pdStagePos(e));
+        }
+      }
+      /* Bản sao của đường bấm sticker, chỉ khác x/y = điểm thả */
+      function addStickerAt(emoji, nx, ny){
+        if(!clips.length) return;
+        var o = {
+          id: uid("o"), url: "", emoji: emoji, img: null,
+          x: clamp(nx, 0, 1), y: clamp(ny, 0, 1), scale: 26, opacity: 100,
+          start: Math.round(playhead*10)/10,
+          end: Math.round(Math.min(L.total, playhead + 3)*10)/10,
+          animIn: "none", animOut: "none", animDur: 0.5, loop: "none"
+        };
+        if(o.end <= o.start) o.end = o.start + 1;
+        overs.push(o);
+        selOverId = o.id; inspOver = true;
+        renderOverList(); syncOverPanel();
+        pushHistory(); dirty = true;
+        toast("Đã thêm sticker — kéo trên khung hình để đặt vị trí.");
+      }
+      /* Bản sao của đường bấm Thêm chữ (+ style nếu kéo từ chip style): vị trí
+         thả → keyframe lệch vị trí t=0 (mô hình sẵn có của lớp chữ: pos neo
+         giữa + kf x/y theo % khung) nên tâm chữ nằm đúng điểm thả, xem trước
+         và xuất file dùng chung một đường vẽ. */
+      function addTextAt(nx, ny, styleKey){
+        if(!clips.length) return;
+        var t = {
+          id: uid("t"), kind: "text", text: "Chữ mới",
+          start: Math.round(playhead*10)/10,
+          end: Math.round(Math.min(L.total, playhead + 3)*10)/10,
+          size: 6.5, color: "#ffffff", pos: "center", bg: true, bold: true,
+          anim: "none", animDur: 0.5
+        };
+        if(t.end <= t.start) t.end = t.start + 1;
+        if(styleKey && typeof TSTYLES !== "undefined" && TSTYLES[styleKey]){
+          var st = TSTYLES[styleKey];
+          t.font = st.font; t.color = st.color; t.bg = st.bg; t.bold = st.bold;
+          t.stroke = st.stroke; t.glow = st.glow; t.shadow = st.shadow;
+          loadTextFont(t.font);
+        }
+        var ox = Math.round((clamp(nx, 0.06, 0.94) - 0.5) * 100);
+        var oy = Math.round((clamp(ny, 0.06, 0.94) - 0.5) * 100);
+        if(ox || oy) t.kfs = [{ t: 0, x: ox, y: oy, s: 100, o: 100 }];
+        texts.push(t);
+        selTextId = t.id;
+        tlSel.kind = "text"; tlSel.id = t.id;
+        renderTextList(); syncTextPanel(); renderStrip();
+        pushHistory(); dirty = true;
+        toast("Đã chèn chữ tại điểm thả.");
+      }
+      function pdApply(e){
+        if(pd.kind === "trans"){
+          var tg = pdTransTarget(e); if(!tg) return;
+          var c = clips[tg.store]; if(!c) return;
+          c.transType = pd.value;
+          c.transDur = parseFloat($("transDur").value) || 0.5;
+          afterClipStructure(); pushHistory();
+          toast("Đã áp chuyển cảnh vào điểm nối.");
+          return;
+        }
+        var pos = pdStagePos(e); if(!pos) return;
+        if(pd.kind === "emoji") addStickerAt(pd.value, pos.x, pos.y);
+        else if(pd.kind === "text") addTextAt(pos.x, pos.y, null);
+        else if(pd.kind === "tstyle") addTextAt(pos.x, pos.y, pd.value);
+        else if(pd.kind === "image"){
+          pendingOverPos = { x: pos.x, y: pos.y };
+          $("fileImage").click();
+        }
+        else if(pd.kind === "filter"){
+          var fc = selClip();
+          if(!fc){
+            var ci = clipIndexAt(playhead);
+            fc = (ci >= 0 ? clips[ci] : null) || clips[0] || null;
+          }
+          if(!fc){ toast("Hãy thêm video trước đã."); return; }
+          fc.filter = pd.value;
+          if(selClip() === fc) $("filterSelect").value = pd.value;
+          dirty = true; pushHistory();
+          toast("Đã áp bộ lọc cho clip.");
+        }
+      }
+      document.addEventListener("pointerdown", function(e){
+        if(pd) return;
+        if(e.pointerType === "mouse" && e.button !== 0) return;
+        var src = e.target && e.target.closest ? e.target.closest("[data-pdrag]") : null;
+        if(!src || src.disabled) return;
+        pd = { kind: src.getAttribute("data-pdrag"), value: pdValue(src),
+               x0: e.clientX, y0: e.clientY, active: false, hlEl: null };
+        pdGhost.textContent = pdLabel(pd.kind, src);
+      });
+      window.addEventListener("pointermove", function(e){
+        if(!pd) return;
+        if(!pd.active){
+          if(Math.abs(e.clientX - pd.x0) + Math.abs(e.clientY - pd.y0) < 7) return;
+          pd.active = true;
+          pdGhost.hidden = false;
+        }
+        pdTrack(e);
+      });
+      function pdFinish(e, commit){
+        if(!pd) return;
+        if(pd.active){
+          pdSwallowClick = true;
+          setTimeout(function(){ pdSwallowClick = false; }, 800);
+          if(commit) pdApply(e);
+        }
+        pdClearHi();
+        pdGhost.hidden = true;
+        pd = null;
+      }
+      window.addEventListener("pointerup", function(e){ pdFinish(e, true); });
+      window.addEventListener("pointercancel", function(e){ pdFinish(e, false); });
+      /* Nuốt đúng một cú click sinh ra ngay sau lần kéo thật (capture, chạy
+         trước mọi handler bấm hiện có) để thao tác không bị nhân đôi */
+      document.addEventListener("click", function(e){
+        if(!pdSwallowClick) return;
+        pdSwallowClick = false;
+        e.stopPropagation();
+        e.preventDefault();
+      }, true);
+      /* Chip chuyển cảnh / bộ lọc: bấm = áp cho clip đang chọn, y như chọn
+         trong ô select tương ứng (cùng trường dữ liệu, cùng 1 bước Hoàn tác) */
+      $("transChips").addEventListener("click", function(e){
+        var b = e.target.closest("[data-trans]"); if(!b) return;
+        var c = selClip(); if(!c) return;
+        c.transType = b.getAttribute("data-trans");
+        afterClipStructure(); pushHistory();
+      });
+      $("filterChips").addEventListener("click", function(e){
+        var b = e.target.closest("[data-filter]"); if(!b) return;
+        var c = selClip(); if(!c) return;
+        c.filter = b.getAttribute("data-filter");
+        $("filterSelect").value = c.filter;
+        dirty = true; pushHistory();
+      });
+      /* Bấm thường vào nút ảnh → vị trí mặc định giữa khung như cũ: huỷ điểm
+         thả đang chờ; hộp chọn file bị huỷ cũng huỷ điểm thả */
+      $("btnAddImage").addEventListener("click", function(){ pendingOverPos = null; });
+      $("fileImage").addEventListener("cancel", function(){ pendingOverPos = null; });
 
       /* ---------- file inputs & drag-drop ---------- */
       $("btnPickVideo").addEventListener("click", function(){ $("fileVideo").click(); });
