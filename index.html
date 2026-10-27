@@ -1064,7 +1064,12 @@
       .free-head{ font-size:14px; font-weight:700; margin:0 0 10px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
       .free-head span{ font-size:12px; font-weight:500; color:var(--ink-soft); }
       .free-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-      .free-row.panel{ grid-template-columns:repeat(2,1fr); }
+      /* Biến thể trong panel trái: 2 cột. KHÔNG đặt tên biến thể là "panel":
+         class .panel chung (panel công cụ) mang height:100%/overflow-y:auto ở
+         desktop — dính vào lưới này khiến lưới bị ép cao bằng cả hộp section,
+         hàng grid bị kéo giãn (thẻ thừa khoảng trống) và tràn khỏi đáy section,
+         đè lên section kế tiếp. */
+      .free-row.inpanel{ grid-template-columns:repeat(2,1fr); }
       .free-card{
         text-align:left; font:inherit; color:var(--ink); cursor:pointer;
         background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:7px;
@@ -1672,7 +1677,7 @@
               Video free
             </h2>
             <p class="hint" style="margin:0 0 11px">Bấm một clip để thêm vào cuối dự án đang làm.</p>
-            <div class="free-row panel" id="freeRowPanel"></div>
+            <div class="free-row inpanel" id="freeRowPanel"></div>
             <p class="free-src">Nguồn: MDN (CC0) · Blender Foundation (CC BY)</p>
           </section>
 
