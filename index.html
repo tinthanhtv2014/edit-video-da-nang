@@ -1252,11 +1252,11 @@
           <h2>Tải app desktop</h2>
           <p class="lp-dl-sub">Dùng ngay trên máy, không cần mở trình duyệt.</p>
           <div class="lp-dl-row">
-            <a class="btn primary big lp-dl-btn" href="https://github.com/tinthanhtv2014/edit-video-da-nang/releases/download/v1.0.0/KlipStudio-Windows.exe">
+            <a class="btn primary big lp-dl-btn" href="https://github.com/tinthanhtv2014/edit-video-da-nang/releases/latest/download/KlipStudio-Windows.exe">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M12 4v11m0 0 5-5m-5 5-5-5"/><path d="M4 20h16"/></svg>
               <span class="lp-dl-txt"><b>Tải cho Windows</b><small>.exe · ~75MB · mở lên chạy ngay, không cần cài đặt</small></span>
             </a>
-            <a class="btn big lp-dl-btn" href="https://github.com/tinthanhtv2014/edit-video-da-nang/releases/download/v1.0.0/KlipStudio-Ubuntu.deb">
+            <a class="btn big lp-dl-btn" href="https://github.com/tinthanhtv2014/edit-video-da-nang/releases/latest/download/KlipStudio-Ubuntu.deb">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M12 4v11m0 0 5-5m-5 5-5-5"/><path d="M4 20h16"/></svg>
               <span class="lp-dl-txt"><b>Tải cho Ubuntu</b><small>.deb · ~76MB · cài như ứng dụng bình thường</small></span>
             </a>
@@ -1972,6 +1972,10 @@
               <input type="text" id="projName" placeholder="Tên dự án…" maxlength="60" />
             </div>
             <button class="btn" id="btnSaveProj" style="width:100%;justify-content:center;margin-bottom:10px">Lưu dự án</button>
+            <div id="deskProjBtns" hidden style="gap:8px;margin-bottom:10px">
+              <button class="btn" id="btnSaveProjFile" style="flex:1;justify-content:center">Lưu ra file</button>
+              <button class="btn" id="btnOpenProjFile" style="flex:1;justify-content:center">Mở file dự án</button>
+            </div>
             <div id="projList"></div>
           </section>
           </div>
@@ -6732,6 +6736,7 @@
               var pct = L.total > 0 ? Math.round(clamp(playhead / L.total, 0, 1) * 100) : 0;
               $("exportBar").style.width = pct + "%";
               $("exportPct").textContent = pct + "%";
+              dkExportProgress(pct / 100);
             }
           }
         } else if(dirty){
@@ -10178,10 +10183,12 @@
         if(pEl) pEl.textContent = "Dựng từng khung theo bước 0,1s (10 fps) ở bề rộng 480px — đừng đóng trang.";
         $("exportBar").style.width = "0%";
         $("exportPct").textContent = "0%";
+        dkExportStart();
         var N = Math.max(1, Math.round(total * 10));
         var i = 0;
         suppressSel = true;
         function finishGif(){
+          dkExportEnd();
           suppressSel = false;
           gifBusy = false;
           $("exportOverlay").hidden = true;
@@ -10210,6 +10217,7 @@
           var pct = Math.round(i / N * 100);
           $("exportBar").style.width = pct + "%";
           $("exportPct").textContent = pct + "%";
+          dkExportProgress(pct / 100);
           playhead = t;
           syncPausedFrame();
           gifWaitSeek(t).then(function(){
@@ -10276,9 +10284,7 @@
           tx.onerror = function(){ toast("Không xoá được dự án."); };
         });
       }
-      $("btnSaveProj").addEventListener("click", function(){
-        if(!clips.length){ toast("Chưa có gì để lưu — hãy thêm video trước."); return; }
-        var name = ($("projName").value || "").trim() || (clips[0] ? clips[0].name.replace(/\.[^.]+$/, "") : "Dự án");
+      function buildProjectRecord(name){
         var media = {};
         clips.forEach(function(c){
           if(c.file && c.url && (!c.freeze || c.isImg)) media[c.url] = c.file;
@@ -10295,7 +10301,12 @@
           var msrc = music.getAttribute("src");
           if(msrc) media[msrc] = musicFile;
         }
-        var rec = { name: name, at: Date.now(), state: serializeState(), media: media };
+        return { name: name, at: Date.now(), state: serializeState(), media: media };
+      }
+      $("btnSaveProj").addEventListener("click", function(){
+        if(!clips.length){ toast("Chưa có gì để lưu — hãy thêm video trước."); return; }
+        var name = ($("projName").value || "").trim() || (clips[0] ? clips[0].name.replace(/\.[^.]+$/, "") : "Dự án");
+        var rec = buildProjectRecord(name);
         idbOpen(function(db){
           if(!db){ toast("Trình duyệt không hỗ trợ lưu dự án (IndexedDB)."); return; }
           var tx = db.transaction("projects", "readwrite");
@@ -10304,6 +10315,62 @@
           tx.onerror = function(){ toast("Không lưu được dự án — có thể đã hết dung lượng lưu trữ."); };
         });
       });
+      function applyProjectRecord(rec){
+        var st;
+        try{ st = JSON.parse(rec.state); }catch(e){ toast("Dữ liệu dự án bị lỗi."); return; }
+        /* Dựng lại URL từ Blob, thay vào state theo từng phần tử trước khi nạp */
+        var media = rec.media || {};
+        var urlMap = {};
+        Object.keys(media).forEach(function(oldUrl){ if(media[oldUrl] instanceof Blob) urlMap[oldUrl] = URL.createObjectURL(media[oldUrl]); });
+        var revBlobs = {};
+        Object.keys(media).forEach(function(k){ if(k.indexOf("revf:") === 0 && Array.isArray(media[k])) revBlobs[k.slice(5)] = media[k]; });
+        var blobByClip = {}, blobByOver = {}, blobByAseg = {}, blobByClipBg = {}, blobByOverBg = {}, musicBlob = null;
+        (st.clips || []).forEach(function(c){
+          if(media[c.url]){ blobByClip[c.id] = media[c.url]; c.url = urlMap[c.url]; }
+          if(c.imgUrl && urlMap[c.imgUrl]) c.imgUrl = urlMap[c.imgUrl];
+          if(c.bgUrl && media[c.bgUrl]){ blobByClipBg[c.id] = media[c.bgUrl]; c.bgUrl = urlMap[c.bgUrl]; }
+        });
+        (st.asegs || []).forEach(function(a){
+          if(media[a.url]) blobByAseg[a.id] = media[a.url];
+          if(urlMap[a.url]) a.url = urlMap[a.url];
+        });
+        (st.overs || []).forEach(function(o){
+          if(media[o.url]){ blobByOver[o.id] = media[o.url]; o.url = urlMap[o.url]; }
+          if(o.bgUrl && media[o.bgUrl]){ blobByOverBg[o.id] = media[o.bgUrl]; o.bgUrl = urlMap[o.bgUrl]; }
+        });
+        if(st.music && st.music.src && urlMap[st.music.src]){
+          musicBlob = media[st.music.src];
+          st.music.src = urlMap[st.music.src];
+        }
+        if(playing) pauseAll();
+        applySnap(JSON.stringify(st));
+        clips.forEach(function(c){ if(blobByClip[c.id]) c.file = blobByClip[c.id]; if(blobByClipBg[c.id]) c.bgFile = blobByClipBg[c.id]; });
+        asegs.forEach(function(a){ if(blobByAseg[a.id]) a.file = blobByAseg[a.id]; });
+        overs.forEach(function(o){ if(blobByOver[o.id]) o.file = blobByOver[o.id]; if(blobByOverBg[o.id]) o.bgFile = blobByOverBg[o.id]; });
+        if(musicBlob) musicFile = musicBlob;
+        /* Dựng lại bộ khung đảo ngược từ blob đã lưu */
+        Object.keys(revBlobs).forEach(function(cid){
+          var blobs = revBlobs[cid];
+          var st = { blobs: blobs, imgs: [], urls: [], fps: 30, w: 0, h: 0 };
+          blobs.forEach(function(b, ix){
+            var u = URL.createObjectURL(b);
+            st.urls.push(u);
+            var im = new Image();
+            im.onload = function(){ dirty = true; };
+            im.src = u;
+            st.imgs[ix] = im;
+          });
+          revStore[cid] = st;
+        });
+        waveCache = {}; waveBusyUrls = {}; waveFailUrls = {};
+        playhead = 0;
+        relayout(); refreshCanvasSize();
+        renderStrip(); syncClipPanel(); renderTextList(); syncTextPanel(); renderOverList(); syncOverPanel(); syncAsegPanel();
+        if(!playing) syncPausedFrame();
+        pushHistory();
+        dirty = true;
+        toast("Đã mở dự án đã lưu.");
+      }
       function openProject(id){
         idbOpen(function(db){
           if(!db) return;
@@ -10311,65 +10378,92 @@
           rq.onsuccess = function(){
             var rec = rq.result;
             if(!rec){ toast("Không thấy dự án này nữa."); return; }
-            var st;
-            try{ st = JSON.parse(rec.state); }catch(e){ toast("Dữ liệu dự án bị lỗi."); return; }
-            /* Dựng lại URL từ Blob, thay vào state theo từng phần tử trước khi nạp */
-            var media = rec.media || {};
-            var urlMap = {};
-            Object.keys(media).forEach(function(oldUrl){ if(media[oldUrl] instanceof Blob) urlMap[oldUrl] = URL.createObjectURL(media[oldUrl]); });
-            var revBlobs = {};
-            Object.keys(media).forEach(function(k){ if(k.indexOf("revf:") === 0 && Array.isArray(media[k])) revBlobs[k.slice(5)] = media[k]; });
-            var blobByClip = {}, blobByOver = {}, blobByAseg = {}, blobByClipBg = {}, blobByOverBg = {}, musicBlob = null;
-            (st.clips || []).forEach(function(c){
-              if(media[c.url]){ blobByClip[c.id] = media[c.url]; c.url = urlMap[c.url]; }
-              if(c.imgUrl && urlMap[c.imgUrl]) c.imgUrl = urlMap[c.imgUrl];
-              if(c.bgUrl && media[c.bgUrl]){ blobByClipBg[c.id] = media[c.bgUrl]; c.bgUrl = urlMap[c.bgUrl]; }
-            });
-            (st.asegs || []).forEach(function(a){
-              if(media[a.url]) blobByAseg[a.id] = media[a.url];
-              if(urlMap[a.url]) a.url = urlMap[a.url];
-            });
-            (st.overs || []).forEach(function(o){
-              if(media[o.url]){ blobByOver[o.id] = media[o.url]; o.url = urlMap[o.url]; }
-              if(o.bgUrl && media[o.bgUrl]){ blobByOverBg[o.id] = media[o.bgUrl]; o.bgUrl = urlMap[o.bgUrl]; }
-            });
-            if(st.music && st.music.src && urlMap[st.music.src]){
-              musicBlob = media[st.music.src];
-              st.music.src = urlMap[st.music.src];
-            }
-            if(playing) pauseAll();
-            applySnap(JSON.stringify(st));
-            clips.forEach(function(c){ if(blobByClip[c.id]) c.file = blobByClip[c.id]; if(blobByClipBg[c.id]) c.bgFile = blobByClipBg[c.id]; });
-            asegs.forEach(function(a){ if(blobByAseg[a.id]) a.file = blobByAseg[a.id]; });
-            overs.forEach(function(o){ if(blobByOver[o.id]) o.file = blobByOver[o.id]; if(blobByOverBg[o.id]) o.bgFile = blobByOverBg[o.id]; });
-            if(musicBlob) musicFile = musicBlob;
-            /* Dựng lại bộ khung đảo ngược từ blob đã lưu */
-            Object.keys(revBlobs).forEach(function(cid){
-              var blobs = revBlobs[cid];
-              var st = { blobs: blobs, imgs: [], urls: [], fps: 30, w: 0, h: 0 };
-              blobs.forEach(function(b, ix){
-                var u = URL.createObjectURL(b);
-                st.urls.push(u);
-                var im = new Image();
-                im.onload = function(){ dirty = true; };
-                im.src = u;
-                st.imgs[ix] = im;
-              });
-              revStore[cid] = st;
-            });
-            waveCache = {}; waveBusyUrls = {}; waveFailUrls = {};
-            playhead = 0;
-            relayout(); refreshCanvasSize();
-            renderStrip(); syncClipPanel(); renderTextList(); syncTextPanel(); renderOverList(); syncOverPanel(); syncAsegPanel();
-            if(!playing) syncPausedFrame();
-            pushHistory();
-            dirty = true;
-            toast("Đã mở dự án đã lưu.");
+            applyProjectRecord(rec);
           };
           rq.onerror = function(){ toast("Không mở được dự án."); };
         });
       }
       refreshProjList();
+
+      /* ---------- CẦU DESKTOP (tuỳ chọn): chỉ hoạt động khi app Electron cung cấp window.klipDesktop.
+         Trên web bridge không tồn tại nên mọi hàm dưới đây đều thoát sớm, hành vi giữ nguyên 100%. ---------- */
+      function dkBridge(){ return (typeof window.klipDesktop !== "undefined" && window.klipDesktop) ? window.klipDesktop : null; }
+      function dkExportStart(){ var dk = dkBridge(); if(dk && dk.setExportActive){ try{ dk.setExportActive(true); }catch(e){} } }
+      function dkExportProgress(f){ var dk = dkBridge(); if(dk && dk.setExportProgress){ try{ dk.setExportProgress(f); }catch(e){} } }
+      function dkExportEnd(){ var dk = dkBridge(); if(!dk) return; try{ if(dk.setExportActive) dk.setExportActive(false); if(dk.setExportProgress) dk.setExportProgress(-1); }catch(e){} }
+      function dkBlobToB64(blob){
+        return new Promise(function(res, rej){
+          var r = new FileReader();
+          r.onload = function(){ var t = String(r.result || ""); res(t.slice(t.indexOf(",") + 1)); };
+          r.onerror = function(){ rej(r.error); };
+          r.readAsDataURL(blob);
+        });
+      }
+      function dkB64ToBlob(b64, type){
+        var bin = atob(b64 || ""), arr = new Uint8Array(bin.length);
+        for(var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        return new Blob([arr], { type: type || "" });
+      }
+      function dkEncodeMedia(v){
+        if(Array.isArray(v)) return Promise.all(v.map(dkEncodeMedia));
+        if(v instanceof Blob) return dkBlobToB64(v).then(function(b64){ return { __blob: 1, type: v.type || "", b64: b64 }; });
+        return Promise.resolve(v);
+      }
+      function dkDecodeMedia(v){
+        if(Array.isArray(v)) return v.map(dkDecodeMedia);
+        if(v && v.__blob) return dkB64ToBlob(v.b64, v.type);
+        return v;
+      }
+      (function initDesktopBridge(){
+        var dk = dkBridge();
+        if(!dk) return;
+        var btns = $("deskProjBtns");
+        if(btns){ btns.hidden = false; btns.style.display = "flex"; }
+        var btnSave = $("btnSaveProjFile"), btnOpen = $("btnOpenProjFile");
+        if(btnSave) btnSave.addEventListener("click", function(){
+          if(!clips.length){ toast("Chưa có gì để lưu — hãy thêm video trước."); return; }
+          var name = ($("projName").value || "").trim() || (clips[0] ? clips[0].name.replace(/\.[^.]+$/, "") : "Dự án");
+          var rec = buildProjectRecord(name);
+          var keys = Object.keys(rec.media), enc = {};
+          Promise.all(keys.map(function(k){
+            return dkEncodeMedia(rec.media[k]).then(function(v){ enc[k] = v; });
+          })).then(function(){
+            var payload = JSON.stringify({ app: "klip-studio", kind: "project", name: rec.name, at: rec.at, state: rec.state, media: enc });
+            var fname = (name || "du-an-klip").replace(/[\\/:*?"<>|]+/g, " ").trim();
+            return dk.saveProjectFile((fname || "du-an-klip") + ".klip", payload);
+          }).then(function(r){
+            if(r && r.ok) toast("Đã lưu dự án ra file" + (r.path ? " — " + r.path : "."));
+            else if(r) toast("Đã huỷ lưu file dự án.");
+          }).catch(function(){ toast("Không lưu được dự án ra file."); });
+        });
+        if(btnOpen) btnOpen.addEventListener("click", function(){
+          dk.openProjectFile().then(function(r){
+            if(!r || !r.ok || !r.data) return;
+            var parsed;
+            try{ parsed = JSON.parse(r.data); }catch(e){ toast("File dự án không hợp lệ."); return; }
+            if(!parsed || !parsed.state){ toast("File dự án không hợp lệ."); return; }
+            var media = {};
+            Object.keys(parsed.media || {}).forEach(function(k){ media[k] = dkDecodeMedia(parsed.media[k]); });
+            applyProjectRecord({ name: parsed.name || "Dự án", at: parsed.at || Date.now(), state: parsed.state, media: media });
+          }).catch(function(){ toast("Không mở được file dự án."); });
+        });
+        function importDesktopMedia(url){
+          if(!url) return;
+          fetch(url).then(function(resp){ return resp.blob(); }).then(function(blob){
+            if(!blob) return;
+            var nm = "video-desktop";
+            try{ nm = decodeURIComponent(String(url).split("/").pop().split("?")[0]) || nm; }catch(e){}
+            if(!/\.(mp4|webm|mov|mkv|m4v|avi)$/i.test(nm)) nm += ".mp4";
+            var type = (blob.type && blob.type.indexOf("video/") === 0) ? blob.type : "video/mp4";
+            var file;
+            try{ file = new File([blob], nm, { type: type }); }
+            catch(e){ file = blob; }
+            addVideoFiles([file]);
+          }).catch(function(){ /* mở-từ-desktop là đường tiện ích: lỗi thì bỏ qua lặng lẽ */ });
+        }
+        try{ var pend = dk.getPendingMedia(); if(pend && pend.then) pend.then(importDesktopMedia).catch(function(){}); }catch(e){}
+        try{ if(dk.onMediaOpen) dk.onMediaOpen(importDesktopMedia); }catch(e){}
+      })();
 
       /* ---------- Theme video: gói phong cách áp 1 chạm + theme của tôi (chỉ lưu cài đặt vào localStorage, không chứa media) ---------- */
       var THEME_KEY = "evdn-themes-v1";
@@ -10743,6 +10837,7 @@
         $("exportError").hidden = which !== "error";
       }
       function exportError(msg){
+        dkExportEnd();
         exporting = false;
         playing = false;
         setPlayIcon(false);
@@ -10772,6 +10867,7 @@
         if(S.musicLoaded && actx) attachMusicNode();
         playhead = 0;
         showExportPanel("run");
+        dkExportStart();
         $("exportBar").style.width = "0%";
         $("exportPct").textContent = "0%";
         var tries = 0;
@@ -10816,6 +10912,7 @@
         } else onRecorderStop();
       }
       function onRecorderStop(){
+        dkExportEnd();
         recorder = null;
         if(exportCancelled){
           $("exportOverlay").hidden = true;
