@@ -35,6 +35,17 @@
         --danger:#ff6f61;
         --shadow:0 18px 42px rgba(0,0,0,.52), 0 2px 9px rgba(0,0,0,.38);
         --radius:12px;
+        /* Nguồn sự thật duy nhất cho kích thước timeline: mọi hàng track
+           (CSS + nhãn hàng bên trái) đều đọc từ các biến này; JS thanh chia
+           đọc --stage-* để kẹp biên và reset, nên sửa ở đây là đồng bộ cả hai. */
+        --tl-ruler-h:16px;
+        --tl-video-h:60px;
+        --tl-audio-h:32px;
+        --tl-music-h:30px;
+        --tl-text-h:28px;
+        --stage-pct:34;
+        --stage-min:20;
+        --stage-max:65;
       }
       *{ box-sizing:border-box; }
       html,body{ margin:0; padding:0; }
@@ -423,13 +434,21 @@
         #studio .studio > .insp{ grid-column:3; grid-row:1; }
         #studio .studio > .stage-card{ grid-column:2; grid-row:1; }
         .stage-card{ height:100%; }
-        /* Sân khấu xem trước chỉ còn ~42% chiều cao cột chính (CapCut gọn hơn);
-           phần diện tích còn lại nhường cho khu timeline. Canvas fit trọn khung
-           nhờ fitPreview() (contain theo cả hai chiều sân khấu) — không cắt hình. */
-        .stage{ flex:0 1 42%; min-height:0; padding:10px; }
+        /* Sân khấu xem trước mặc định ~34% chiều cao cột chính (trước đây 42%)
+           để vùng timeline cao hơn rõ rệt; phần diện tích còn lại nhường cho
+           khu timeline. Canvas fit trọn khung nhờ fitPreview() (contain theo
+           cả hai chiều sân khấu) — không cắt hình. */
+        .stage{ flex:0 1 calc(var(--stage-pct) * 1%); min-height:0; padding:10px; }
         .timeline{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
-        .tl-body{ flex:1 1 auto; min-height:0; }
-        .tl-scroll{ min-height:0; }
+        .tl-body{ flex:1 1 auto; min-height:0; overflow:hidden; }
+        /* Hàng track cao hơn trước: khi tổng chiều cao các hàng vượt vùng
+           timeline (stage kéo lên tối đa), .tl-scroll cuộn dọc nội bộ —
+           nhãn hàng bên trái được JS dịch theo cùng scrollTop nên không lệch
+           hàng, không tràn/đè lên stage hay panel khác. */
+        .tl-scroll{ min-height:0; overflow-y:auto; }
+        .tl-scroll::-webkit-scrollbar{ width:8px; }
+        .tl-labels{ overflow:hidden; align-self:stretch; }
+        .tl-labels-in{ will-change:transform; }
         .tl-inner{ min-height:100%; }
         .panel{ height:100%; min-height:0; overflow-y:auto; padding-right:2px; }
         /* Panel công cụ: thanh tab nằm NGOÀI vùng cuộn. Panel không tự cuộn nữa;
@@ -476,15 +495,15 @@
       .tl-lab{ display:flex; align-items:center; font-size:10px; font-weight:700; color:var(--ink-faint); letter-spacing:.02em; }
       .tl-lab + .tl-lab{ margin-top:3px; }
       .tl-scroll{
-        flex:1; min-width:0; overflow-x:auto; overflow-y:hidden;
+        flex:1; min-width:0; overflow-x:auto; overflow-y:auto;
         border:1px solid var(--line); border-radius:10px; background:var(--panel-2);
         scrollbar-width:thin; scrollbar-color:#45454e transparent;
       }
-      .tl-scroll::-webkit-scrollbar{ height:8px; }
+      .tl-scroll::-webkit-scrollbar{ height:8px; width:8px; }
       .tl-scroll::-webkit-scrollbar-thumb{ background:#45454e; border-radius:4px; }
       .tl-scroll::-webkit-scrollbar-track{ background:transparent; }
       .tl-inner{ position:relative; padding-bottom:6px; }
-      .tl-ruler{ position:relative; height:16px; border-bottom:1px solid var(--line); cursor:pointer; touch-action:none; }
+      .tl-ruler{ position:relative; height:var(--tl-ruler-h); border-bottom:1px solid var(--line); cursor:pointer; touch-action:none; }
       .tl-tick{
         position:absolute; top:0; height:100%; border-left:1px solid var(--line);
         font-size:9px; color:var(--ink-faint); padding:3px 0 0 4px; font-variant-numeric:tabular-nums;
@@ -496,11 +515,11 @@
         box-shadow:0 0 0 1.5px rgba(0,0,0,.45);
       }
       .tl-track{ position:relative; margin-top:3px; touch-action:pan-x; }
-      .tl-vtrack{ height:40px; }
-      .tl-atrack{ height:20px; }
-      .tl-mtrack{ height:23px; }
+      .tl-vtrack{ height:var(--tl-video-h); }
+      .tl-atrack{ height:var(--tl-audio-h); }
+      .tl-mtrack{ height:var(--tl-music-h); }
       .tl-seg{
-        position:absolute; top:0; height:40px; border-radius:6px; overflow:hidden;
+        position:absolute; top:0; height:var(--tl-video-h); border-radius:6px; overflow:hidden;
         background-color:#20242c; background-repeat:repeat-x; background-size:auto 100%;
         border:2px solid rgba(255,255,255,.14); cursor:pointer; padding:0; text-align:left;
       }
@@ -515,12 +534,12 @@
         padding:2px 6px; border-radius:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
       }
       .tl-add{
-        position:absolute; top:0; height:40px; width:52px; border-radius:6px;
+        position:absolute; top:0; height:var(--tl-video-h); width:52px; border-radius:6px;
         border:1.5px dashed var(--line); background:transparent; color:var(--ink-soft);
         font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center;
       }
       .tl-aseg{
-        position:absolute; top:0; height:20px; border-radius:6px; overflow:hidden;
+        position:absolute; top:0; height:var(--tl-audio-h); border-radius:6px; overflow:hidden;
         background:#1e5f43; border:1.5px solid rgba(255,255,255,.14); cursor:grab; touch-action:none;
       }
       .tl-aseg:active{ cursor:grabbing; }
@@ -534,7 +553,7 @@
         background:rgba(0,0,0,.35); padding:1px 5px; border-radius:4px; white-space:nowrap;
       }
       .tl-mseg{
-        position:absolute; top:0; height:23px; border-radius:6px; overflow:hidden;
+        position:absolute; top:0; height:var(--tl-music-h); border-radius:6px; overflow:hidden;
         background-color:#2f4d85; border:1.5px solid rgba(255,255,255,.16); cursor:grab;
         background-repeat:repeat-x; background-size:auto 100%; touch-action:none;
       }
@@ -559,7 +578,7 @@
         border-top:7px solid var(--accent);
       }
       /* ---------- Tương tác trực tiếp trên timeline (chọn / kéo / cắt mép) ---------- */
-      .tl-ttrack{ height:20px; }
+      .tl-ttrack{ height:var(--tl-text-h); }
       .tl-seg{ cursor:grab; touch-action:none; }
       .tl-seg:active{ cursor:grabbing; }
       .tl-seg .tl-seg-name{ pointer-events:none; }
@@ -577,7 +596,7 @@
       .tl-aseg.on{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
       .tl-mseg.on{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
       .tl-tseg{
-        position:absolute; top:0; height:20px; border-radius:6px; overflow:hidden;
+        position:absolute; top:0; height:var(--tl-text-h); border-radius:6px; overflow:hidden;
         background:#6b4e20; border:1.5px solid rgba(255,255,255,.14); cursor:grab; touch-action:none;
       }
       .tl-tseg:active{ cursor:grabbing; }
@@ -599,8 +618,8 @@
         border:1.5px dashed rgba(175,175,188,.55);
         background:repeating-linear-gradient(45deg, rgba(175,175,188,.15) 0 6px, transparent 6px 12px);
       }
-      .tl-vtrack .tl-gap{ height:40px; }
-      .tl-atrack .tl-gap{ height:20px; }
+      .tl-vtrack .tl-gap{ height:var(--tl-video-h); }
+      .tl-atrack .tl-gap{ height:var(--tl-audio-h); }
       .tl-gap.on{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); background-color:rgba(0,201,212,.12); }
       .tl-tip{
         position:absolute; z-index:9; pointer-events:none;
@@ -1563,12 +1582,14 @@
             </div>
             <div class="tl-selbar" id="tlSelBar" hidden></div>
             <div class="tl-body">
-              <div class="tl-labels" aria-hidden="true">
-                <div class="tl-lab" style="height:16px"></div>
-                <div class="tl-lab" style="height:40px">Video</div>
-                <div class="tl-lab" style="height:20px">Tiếng gốc</div>
-                <div class="tl-lab" style="height:23px">Nhạc nền</div>
-                <div class="tl-lab" style="height:20px">Chữ</div>
+              <div class="tl-labels" id="tlLabels" aria-hidden="true">
+                <div class="tl-labels-in" id="tlLabelsIn">
+                  <div class="tl-lab" style="height:var(--tl-ruler-h)"></div>
+                  <div class="tl-lab" style="height:var(--tl-video-h)">Video</div>
+                  <div class="tl-lab" style="height:var(--tl-audio-h)">Tiếng gốc</div>
+                  <div class="tl-lab" style="height:var(--tl-music-h)">Nhạc nền</div>
+                  <div class="tl-lab" style="height:var(--tl-text-h)">Chữ</div>
+                </div>
               </div>
               <div class="tl-scroll" id="tlScroll">
                 <div class="tl-inner" id="tlInner">
@@ -5083,7 +5104,14 @@
         tlSpaceDown = false;
         document.body.classList.remove("tl-space");
       });
-      /* ---------- Thanh chia kéo dãn chiều cao: sân khấu co/dãn 25–65% cột giữa, timeline ăn phần còn lại ---------- */
+      /* ---------- Thanh chia kéo dãn chiều cao: tỉ lệ đọc từ biến CSS
+         --stage-pct / --stage-min / --stage-max ở :root (cùng nguồn sự thật
+         với CSS .stage) — sân khấu co/dãn 20–65% cột giữa, timeline ăn phần
+         còn lại; nhấp đúp reset về mặc định 34%. ---------- */
+      function stagePctVar(name, fallback){
+        var v = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue(name));
+        return isFinite(v) ? v : fallback;
+      }
       var tlSplitDrag = false;
       $("tlSplit").addEventListener("pointerdown", function(e){
         tlSplitDrag = true;
@@ -5096,15 +5124,21 @@
         var card = stage.parentElement;
         var cr = card.getBoundingClientRect();
         var sr = stage.getBoundingClientRect();
-        var pct = clamp((e.clientY - sr.top) / Math.max(1, cr.height) * 100, 25, 65);
+        var pct = clamp((e.clientY - sr.top) / Math.max(1, cr.height) * 100, stagePctVar("--stage-min", 20), stagePctVar("--stage-max", 65));
         stage.style.flex = "0 1 " + pct + "%";
         fitPreview();
       });
       $("tlSplit").addEventListener("pointerup", function(){ tlSplitDrag = false; });
       $("tlSplit").addEventListener("pointercancel", function(){ tlSplitDrag = false; });
       $("tlSplit").addEventListener("dblclick", function(){
-        $("stageWrap").parentElement.style.flex = "";
+        $("stageWrap").parentElement.style.flex = "0 1 " + stagePctVar("--stage-pct", 34) + "%";
         fitPreview();
+      });
+      /* Cuộn dọc nội bộ của vùng track: nhãn hàng bên trái dịch theo đúng
+         scrollTop của .tl-scroll để luôn thẳng hàng với các track. */
+      $("tlScroll").addEventListener("scroll", function(){
+        var inn = $("tlLabelsIn");
+        if(inn) inn.style.transform = "translateY(" + (-$("tlScroll").scrollTop) + "px)";
       });
 
       /* ---------- kéo trên timeline: dời đoạn / cắt mép ---------- */
