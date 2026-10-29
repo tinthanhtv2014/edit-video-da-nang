@@ -1798,6 +1798,18 @@
               <div class="row-btns" style="margin-bottom:8px">
                 <button class="btn" id="btnLtKaraoke">🎤 Karaoke</button>
               </div>
+              <div class="field">
+                <label>Hiệu ứng phụ đề</label>
+                <div class="chips" id="ltCapFxTab">
+                  <button type="button" class="chip on" data-capfx="none">Tĩnh</button>
+                  <button type="button" class="chip" data-capfx="pop">Pop</button>
+                  <button type="button" class="chip" data-capfx="bounce">Nảy</button>
+                  <button type="button" class="chip" data-capfx="smooth">Karaoke mượt</button>
+                  <button type="button" class="chip" data-capfx="type">Máy chữ</button>
+                  <button type="button" class="chip" data-capfx="drift">Trôi</button>
+                  <button type="button" class="chip" data-capfx="glow">Phát sáng</button>
+                </div>
+              </div>
               <button class="btn danger" id="btnDelText" style="width:100%;justify-content:center">Xoá lớp chữ này</button>
             </div>
             <div class="sub-box">
@@ -2657,6 +2669,18 @@
                   <input type="range" id="ltAnimDur" min="0.2" max="2" step="0.1" value="0.5" />
                 </div>
               </div>
+              <div class="field">
+                <label>Hiệu ứng phụ đề</label>
+                <div class="chips" id="ltCapFx">
+                  <button type="button" class="chip on" data-capfx="none">Tĩnh</button>
+                  <button type="button" class="chip" data-capfx="pop">Pop</button>
+                  <button type="button" class="chip" data-capfx="bounce">Nảy</button>
+                  <button type="button" class="chip" data-capfx="smooth">Karaoke mượt</button>
+                  <button type="button" class="chip" data-capfx="type">Máy chữ</button>
+                  <button type="button" class="chip" data-capfx="drift">Trôi</button>
+                  <button type="button" class="chip" data-capfx="glow">Phát sáng</button>
+                </div>
+              </div>
               <div class="sub-box" style="margin-top:2px">
                 <h3>Theo dõi chuyển động</h3>
                 <button class="btn" id="btnTrackText" style="width:100%;justify-content:center">◎ Theo dõi điểm</button>
@@ -2801,7 +2825,7 @@
       };
       /* Style phụ đề mặc định — theme video ghi vào đây; trình tạo phụ đề
          (theo câu + nhập SRT) dùng các giá trị này cho lớp phụ đề mới. */
-      var subStyle = { size:5.5, color:"#ffd60a", bg:false, bold:true, pos:"bottom", font:"" };
+      var subStyle = { size:5.5, color:"#ffd60a", bg:false, bold:true, pos:"bottom", font:"", capFx:"none" };
       var clips = [];        // {id,url,name,duration,vw,vh,trimStart,trimEnd,speed,ramp,transType,transDur,kb,filter,thumb,start,freeze,imgUrl,img} — start = vị trí tuyệt đối trên timeline (giây); cắt/xoá không tự dồn các đoạn khác. freeze=true: đoạn hình tĩnh chụp từ khung hình (img), duration = thời lượng đóng băng
       var asegs = [];        // đoạn tiếng gốc ĐỘC LẬP: {id,clipId,url,name,fileDur,start,trimStart,trimEnd,speed,vol,muted,fadeIn,fadeOut} — lúc tạo nằm đúng vị trí clip gốc, từ đó tách/cắt/dời/xoá riêng, KHÔNG dính tới clip video
       var texts = [];        // {id,kind:"text"|"sub",text,start,end,size,color,pos,bg,bold,anim,animDur}
@@ -3741,7 +3765,7 @@
           }),
           texts: texts.map(function(t){
             return { id:t.id, kind:t.kind, text:t.text, start:t.start, end:t.end, size:t.size, color:t.color, pos:t.pos, bg:t.bg, bold:t.bold, hidden:!!t.hidden,
-              anim:(t.anim || "none"), animDur:(t.animDur == null ? 0.5 : t.animDur), karaoke:!!t.karaoke, kfs:kfCopy(t.kfs),
+              anim:(t.anim || "none"), animDur:(t.animDur == null ? 0.5 : t.animDur), karaoke:!!t.karaoke, capFx:(t.capFx || "none"), kfs:kfCopy(t.kfs),
               font:(t.font || ""), stroke:(t.stroke || null), glow:(t.glow || null), shadow:!!t.shadow };
           }),
           markers: markers.slice(),
@@ -3761,7 +3785,7 @@
                bgMode:(S.bgMode || "blur"), bgColor:(S.bgColor || "#101018"), bgColor2:(S.bgColor2 || "#26324a"),
                musicStart:S.musicStart, musicOffset:S.musicOffset, duck:!!S.duck, duckLevel:(S.duckLevel == null ? 30 : S.duckLevel),
                musicEqB:(S.musicEqB || 0), musicEqM:(S.musicEqM || 0), musicEqT:(S.musicEqT || 0), musicClarity:!!S.musicClarity,
-               subStyle:{ size:subStyle.size, color:subStyle.color, bg:!!subStyle.bg, bold:!!subStyle.bold, pos:subStyle.pos, font:(subStyle.font || "") } },
+               subStyle:{ size:subStyle.size, color:subStyle.color, bg:!!subStyle.bg, bold:!!subStyle.bold, pos:subStyle.pos, font:(subStyle.font || ""), capFx:(subStyle.capFx || "none") } },
           selClipId: selClipId, selTextId: selTextId, selOverId: selOverId, selAsegId: selAsegId
         });
       }
@@ -3832,7 +3856,7 @@
         markers = st.markers || [];
         tlGap = null;
         texts = st.texts;
-        texts.forEach(function(t){ if(t.anim == null) t.anim = "none"; if(t.animDur == null) t.animDur = 0.5; if(t.karaoke == null) t.karaoke = false; if(t.font == null) t.font = ""; if(t.stroke == null) t.stroke = null; if(t.glow == null) t.glow = null; if(t.shadow == null) t.shadow = false; if(t.kfs === undefined) t.kfs = null; });
+        texts.forEach(function(t){ if(t.anim == null) t.anim = "none"; if(t.animDur == null) t.animDur = 0.5; if(t.karaoke == null) t.karaoke = false; if(t.capFx == null) t.capFx = "none"; if(t.font == null) t.font = ""; if(t.stroke == null) t.stroke = null; if(t.glow == null) t.glow = null; if(t.shadow == null) t.shadow = false; if(t.kfs === undefined) t.kfs = null; });
         var overFiles = {};
         var overBgFiles = {};
         overs.forEach(function(o){ if(o.file) overFiles[o.id] = o.file; if(o.bgFile) overBgFiles[o.id] = o.bgFile; });
@@ -3869,7 +3893,7 @@
         applyMusicEq();
         S.temp = g.temp || 0; S.hue = g.hue || 0; S.fade = g.fade || 0; S.vignette = g.vignette || 0; S.grain = g.grain || 0;
         S.bgMode = g.bgMode || "blur"; S.bgColor = g.bgColor || "#101018"; S.bgColor2 = g.bgColor2 || "#26324a";
-        if(g.subStyle) subStyle = { size:(g.subStyle.size || 5.5), color:(g.subStyle.color || "#ffd60a"), bg:!!g.subStyle.bg, bold:!!g.subStyle.bold, pos:(g.subStyle.pos || "bottom"), font:(g.subStyle.font || "") };
+        if(g.subStyle) subStyle = { size:(g.subStyle.size || 5.5), color:(g.subStyle.color || "#ffd60a"), bg:!!g.subStyle.bg, bold:!!g.subStyle.bold, pos:(g.subStyle.pos || "bottom"), font:(g.subStyle.font || ""), capFx:(g.subStyle.capFx || "none") };
         selClipId = st.selClipId && findClip(st.selClipId) ? st.selClipId : (clips[0] ? clips[0].id : null);
         selTextId = st.selTextId; selOverId = st.selOverId;
         selAsegId = st.selAsegId && findAseg(st.selAsegId) ? st.selAsegId : null;
@@ -4468,7 +4492,7 @@
         var copy = JSON.parse(JSON.stringify({
           kind: t.kind, text: t.text, start: t.start, end: t.end, size: t.size,
           color: t.color, pos: t.pos, bg: t.bg, bold: t.bold, hidden: !!t.hidden,
-          anim: (t.anim || "none"), animDur: (t.animDur == null ? 0.5 : t.animDur), karaoke: !!t.karaoke,
+          anim: (t.anim || "none"), animDur: (t.animDur == null ? 0.5 : t.animDur), karaoke: !!t.karaoke, capFx: (t.capFx || "none"),
           font: (t.font || ""), stroke: (t.stroke || null), glow: (t.glow || null), shadow: !!t.shadow
         }));
         copy.id = uid("t");
@@ -4497,7 +4521,7 @@
         var second = JSON.parse(JSON.stringify({
           kind: t.kind, text: t.text, start: cut, end: t.end, size: t.size,
           color: t.color, pos: t.pos, bg: t.bg, bold: t.bold, hidden: !!t.hidden,
-          anim: (t.anim || "none"), animDur: (t.animDur == null ? 0.5 : t.animDur), karaoke: !!t.karaoke,
+          anim: (t.anim || "none"), animDur: (t.animDur == null ? 0.5 : t.animDur), karaoke: !!t.karaoke, capFx: (t.capFx || "none"),
           font: (t.font || ""), stroke: (t.stroke || null), glow: (t.glow || null), shadow: !!t.shadow
         }));
         second.id = uid("t");
@@ -5485,6 +5509,15 @@
         $("ltAnim").value = t.anim || "none";
         $("ltAnimDur").value = t.animDur == null ? 0.5 : t.animDur;
         $("outLtAnimDur").textContent = (t.animDur == null ? 0.5 : t.animDur).toFixed(1) + "s";
+        syncCapFxChips(t.capFx || "none");
+      }
+      /* Mẫu phụ đề động: 2 nhóm chip (panel Thuộc tính + tab Chữ) cùng điều khiển t.capFx của lớp đang chọn */
+      function syncCapFxChips(fx){
+        ["ltCapFx", "ltCapFxTab"].forEach(function(id){
+          var box = $(id); if(!box) return;
+          var chips = box.querySelectorAll(".chip");
+          chips.forEach(function(el){ el.classList.toggle("on", el.getAttribute("data-capfx") === fx); });
+        });
       }
 
       function renderOverList(){
@@ -5730,6 +5763,148 @@
           ctx.globalAlpha = Math.min(inP, outP) * (Math.floor(now * 3) % 2 === 0 ? 1 : 0.12);
         } else if(anim === "wave"){
           ctx.globalAlpha = Math.min(inP, outP);
+        }
+        /* Mẫu phụ đề động (capFx): mọi hiệu ứng là hàm thuần của (now − t.start) và
+           timing từng từ chia theo tỉ lệ độ dài từ — cùng thuật toán với karaoke bên dưới —
+           không dùng đồng hồ hệ thống, nên khung xem trước và khung xuất file khớp tuyệt đối.
+           capFx = "none"/thiếu (mặc định, gồm mọi project cũ) → rơi xuống đường vẽ cũ, không đổi hành vi. */
+        var capFx = t.capFx || "none";
+        if(capFx !== "none"){
+          var cWords = raw.split(/\s+/).filter(Boolean);
+          var cTotalCh = 0, ci2;
+          for(ci2 = 0; ci2 < cWords.length; ci2++) cTotalCh += cWords[ci2].length;
+          if(cTotalCh > 0){
+            var cStarts = [], cDurs = [], cAcc = 0;
+            for(ci2 = 0; ci2 < cWords.length; ci2++){
+              var cDurI = dur * cWords[ci2].length / cTotalCh;
+              cStarts.push(cAcc); cDurs.push(cDurI); cAcc += cDurI;
+            }
+            var cElapsed = now - t.start;
+            var cAccent = "#ffd60a";
+            var cLines = wrapLines(raw, fs, t.bold, W * 0.88, fam);
+            var cTotalH = lh * cLines.length;
+            ctx.textAlign = "left"; ctx.textBaseline = "middle";
+            /* Trôi: cả câu fade + trượt nhẹ lên khi vào, fade khi ra — áp lên toàn khối */
+            if(capFx === "drift"){
+              var dSpan = Math.max(0.01, Math.min(0.45, dur * 0.3));
+              var dInP = clamp(cElapsed / dSpan, 0, 1);
+              var dOutP = clamp((dur - cElapsed) / dSpan, 0, 1);
+              var dEase = 1 - Math.pow(1 - dInP, 3);
+              ctx.globalAlpha *= Math.min(dInP, dOutP);
+              ctx.translate(0, (1 - dEase) * fs * 0.45);
+            }
+            if(t.bg){
+              var cMaxW = 0;
+              for(ci2 = 0; ci2 < cLines.length; ci2++) cMaxW = Math.max(cMaxW, ctx.measureText(cLines[ci2]).width);
+              var cPadX = fs * 0.55, cPadY = fs * 0.34;
+              ctx.fillStyle = "rgba(0,0,0,0.55)";
+              roundRectPath(ctx, W/2 - cMaxW/2 - cPadX, centerY - cTotalH/2 - cPadY, cMaxW + cPadX*2, cTotalH + cPadY*2, fs * 0.28);
+              ctx.fill();
+            }
+            if(useStroke){
+              ctx.lineWidth = strokeW;
+              ctx.strokeStyle = strokeCol;
+              ctx.lineJoin = "round";
+            }
+            var cSpaceW = ctx.measureText(" ").width;
+            var cWi = 0, curX = -1, curY = 0;
+            for(var cl = 0; cl < cLines.length; cl++){
+              var cLineWords = cLines[cl].split(/\s+/).filter(Boolean);
+              var cLineW = ctx.measureText(cLines[cl]).width;
+              var cx0 = W/2 - cLineW/2;
+              var cy0 = centerY - cTotalH/2 + lh * (cl + 0.5);
+              for(var cw = 0; cw < cLineWords.length; cw++){
+                var cWord = cLineWords[cw];
+                var cWw = ctx.measureText(cWord).width;
+                var wStart = cWi < cWords.length ? cStarts[cWi] : dur;
+                var wDur = cWi < cWords.length ? Math.max(0.01, cDurs[cWi]) : 0.01;
+                var wP = clamp((cElapsed - wStart) / wDur, 0, 1);
+                var wActive = cElapsed >= wStart && cElapsed < wStart + wDur;
+                var wTxt = cWord, wShown = true;
+                var wScale = 1, wOffY = 0, wAlpha = 1;
+                if(capFx === "bounce"){
+                  /* Nảy: từ rơi vào đúng lúc bắt đầu của nó (easeOutBack cho overshoot) rồi đứng yên;
+                     từ chưa tới lúc thì chưa hiện */
+                  var bP = clamp((cElapsed - wStart) / 0.3, 0, 1);
+                  if(bP <= 0) wShown = false;
+                  else { wOffY = -(1 - easeOutBack(bP)) * fs * 0.9; wAlpha = Math.min(1, bP * 2.5); }
+                } else if(capFx === "type"){
+                  /* Máy chữ: ký tự hiện dần theo tiến trình trong từ */
+                  var tShown = Math.ceil(cWord.length * wP);
+                  if(tShown <= 0) wShown = false;
+                  else wTxt = cWord.slice(0, tShown);
+                } else if(capFx === "pop" && wActive){
+                  wScale = 1 + 0.25 * easeOutBack(clamp((cElapsed - wStart) / 0.18, 0, 1));
+                } else if(capFx === "glow" && wActive){
+                  wScale = 1 + 0.1 * easeOutBack(clamp((cElapsed - wStart) / 0.2, 0, 1));
+                }
+                if(wShown){
+                  ctx.save();
+                  if(wAlpha < 1) ctx.globalAlpha *= wAlpha;
+                  /* Pop: khối màu bo góc nằm sau từ đang đọc (kiểu Hormozi), bề rộng theo scale của từ */
+                  if(capFx === "pop" && wActive){
+                    var pBW = cWw * wScale + fs * 0.34;
+                    ctx.fillStyle = cAccent;
+                    roundRectPath(ctx, cx0 + cWw/2 - pBW/2, cy0 - lh/2 + fs * 0.07, pBW, lh - fs * 0.14, fs * 0.15);
+                    ctx.fill();
+                  }
+                  if(wScale !== 1){
+                    ctx.translate(cx0 + cWw/2, cy0);
+                    ctx.scale(wScale, wScale);
+                    ctx.translate(-(cx0 + cWw/2), -cy0);
+                  }
+                  if(wOffY) ctx.translate(0, wOffY);
+                  /* Phát sáng: shadowBlur CHỈ áp cho từ đang đọc — các từ còn lại không tốn chi phí này */
+                  if(capFx === "glow" && wActive){ ctx.shadowColor = cAccent; ctx.shadowBlur = fs * 0.7; ctx.shadowOffsetY = 0; }
+                  else if(t.glow){ ctx.shadowColor = t.glow; ctx.shadowBlur = fs * 0.55; ctx.shadowOffsetY = 0; }
+                  else if(t.shadow){ ctx.shadowColor = "rgba(0,0,0,0.85)"; ctx.shadowBlur = fs * 0.14; ctx.shadowOffsetY = fs * 0.09; }
+                  if(capFx === "smooth"){
+                    /* Karaoke mượt: lớp màu nhấn quét qua từ bằng gradient có mép mềm,
+                       màu chuyển liên tục theo tiến trình trong từ (không phải mép cắt cứng) */
+                    ctx.fillStyle = t.color;
+                    if(useStroke) ctx.strokeText(cWord, cx0, cy0);
+                    ctx.fillText(cWord, cx0, cy0);
+                    if(wP >= 1){
+                      ctx.fillStyle = cAccent;
+                      if(useStroke) ctx.strokeText(cWord, cx0, cy0);
+                      ctx.fillText(cWord, cx0, cy0);
+                    } else if(wP > 0){
+                      var gA = ctx.createLinearGradient(cx0, 0, cx0 + cWw, 0);
+                      var gS0 = clamp(wP - 0.15, 0, 1), gS1 = clamp(wP + 0.15, 0, 1);
+                      gA.addColorStop(0, "rgba(255,214,10,1)");
+                      gA.addColorStop(gS0, "rgba(255,214,10,1)");
+                      if(gS1 > gS0) gA.addColorStop(gS1, "rgba(255,214,10,0)");
+                      gA.addColorStop(1, "rgba(255,214,10,0)");
+                      ctx.fillStyle = gA;
+                      if(useStroke) ctx.strokeText(cWord, cx0, cy0);
+                      ctx.fillText(cWord, cx0, cy0);
+                    }
+                  } else if(capFx === "pop" && wActive){
+                    ctx.fillStyle = "#141414";
+                    ctx.fillText(cWord, cx0, cy0);
+                  } else {
+                    ctx.fillStyle = t.color;
+                    if(useStroke) ctx.strokeText(wTxt, cx0, cy0);
+                    ctx.fillText(wTxt, cx0, cy0);
+                  }
+                  ctx.restore();
+                  if(capFx === "type"){ curX = cx0 + ctx.measureText(wTxt).width; curY = cy0; }
+                }
+                cx0 += cWw + cSpaceW;
+                cWi++;
+              }
+            }
+            /* Máy chữ: con trỏ nhấp nháy ở cuối phần đã gõ — pha nhấp nháy suy ra từ
+               thời gian timeline (now), không dùng đồng hồ hệ thống */
+            if(capFx === "type" && curX >= 0 && Math.floor((now - t.start) * 2.2) % 2 === 0){
+              ctx.save();
+              ctx.fillStyle = cAccent;
+              ctx.fillText("|", curX + fs * 0.05, curY);
+              ctx.restore();
+            }
+            ctx.restore();
+            return;
+          }
         }
         /* PRO: karaoke — từng từ sáng dần theo tiến trình câu, thời gian mỗi từ chia theo tỉ lệ độ dài từ */
         if(t.karaoke){
@@ -8611,6 +8786,18 @@
         t.anim = this.value;
         dirty = true; pushHistory();
       });
+      function bindCapFxChips(id){
+        var box = $(id); if(!box) return;
+        box.addEventListener("click", function(e){
+          var b = e.target.closest("[data-capfx]"); if(!b) return;
+          var t = selText(); if(!t) return;
+          t.capFx = b.getAttribute("data-capfx");
+          syncCapFxChips(t.capFx);
+          dirty = true; pushHistory();
+        });
+      }
+      bindCapFxChips("ltCapFx");
+      bindCapFxChips("ltCapFxTab");
       $("ltAnimDur").addEventListener("input", function(){
         var t = selText(); if(!t) return;
         t.animDur = parseFloat(this.value);
@@ -8635,7 +8822,7 @@
             start: Math.round(i * each * 10) / 10,
             end: Math.round(Math.min(total, (i+1) * each) * 10) / 10,
             size: subStyle.size, color: subStyle.color, pos: subStyle.pos, bg: subStyle.bg, bold: subStyle.bold,
-            anim: "none", animDur: 0.5, font: (subStyle.font || ""), stroke: null, glow: null, shadow: false
+            anim: "none", animDur: 0.5, capFx: (subStyle.capFx || "none"), font: (subStyle.font || ""), stroke: null, glow: null, shadow: false
           });
         });
         selTextId = texts[texts.length-1] ? texts[texts.length-1].id : null;
@@ -8695,7 +8882,7 @@
               id: uid("t"), kind: "sub", text: txt,
               start: Math.round(st * 10) / 10, end: Math.round(en * 10) / 10,
               size: subStyle.size, color: subStyle.color, pos: subStyle.pos, bg: subStyle.bg, bold: subStyle.bold,
-              anim: "none", animDur: 0.5, karaoke: false, font: (subStyle.font || ""), stroke: null, glow: null, shadow: false
+              anim: "none", animDur: 0.5, karaoke: false, capFx: (subStyle.capFx || "none"), font: (subStyle.font || ""), stroke: null, glow: null, shadow: false
             });
             added++;
           });
@@ -8808,7 +8995,7 @@
                 id: uid("t"), kind: "sub", text: m.text,
                 start: Math.round(m.st * 10) / 10, end: Math.round(Math.max(m.en, m.st + 0.4) * 10) / 10,
                 size: subStyle.size, color: subStyle.color, pos: subStyle.pos, bg: subStyle.bg, bold: subStyle.bold,
-                anim: "none", animDur: 0.5, karaoke: false, font: (subStyle.font || ""), stroke: null, glow: null, shadow: false
+                anim: "none", animDur: 0.5, karaoke: false, capFx: (subStyle.capFx || "none"), font: (subStyle.font || ""), stroke: null, glow: null, shadow: false
               });
             });
             selTextId = texts[texts.length - 1].id;
@@ -10574,7 +10761,8 @@
         S.bright = th.bright; S.contrast = th.contrast; S.sat = th.sat;
         clips.forEach(function(c){ c.filter = th.filter || "none"; });
         var keepFont = subStyle.font || "";
-        subStyle = { size:(th.sub.size || 5.5), color:(th.sub.color || "#ffffff"), bg:!!th.sub.bg, bold:!!th.sub.bold, pos:(th.sub.pos || "bottom"), font:keepFont };
+        var keepFx = subStyle.capFx || "none";
+        subStyle = { size:(th.sub.size || 5.5), color:(th.sub.color || "#ffffff"), bg:!!th.sub.bg, bold:!!th.sub.bold, pos:(th.sub.pos || "bottom"), font:keepFont, capFx:keepFx };
         texts.forEach(function(t){
           if(t.kind !== "sub") return;
           t.size = subStyle.size; t.color = subStyle.color; t.bg = subStyle.bg; t.bold = subStyle.bold; t.pos = subStyle.pos;
