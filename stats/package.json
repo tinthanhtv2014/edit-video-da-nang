@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "mongodb": "^6.0.0"
+  },
+  "description": "Endpoint \u0111\u1ebfm phi\u00ean s\u1eed d\u1ee5ng \u1ea9n danh cho Klip Studio \u2014 POST /api/ping -> MongoDB Atlas (klip-stats.sessions), GET /api/stats sau key qu\u1ea3n tr\u1ecb.",
+  "name": "klip-stats",
+  "private": true,
+  "scripts": {},
+  "type": "module",
+  "version": "1.0.0"
+}
